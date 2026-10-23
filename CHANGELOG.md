@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 6: a scan's sections in React** (spec 055, v2.6.5, 2026-10-23).
+  `/app/scans/{id}/states`, `actions`, `frontier`, `forms`, `network`, `robots`, `decisions` and
+  `docs`: the screens observed with their pictures, the actions with their safety class, decision
+  and top locator, the frontier, the forms' fields, the network call shapes, the robots.txt
+  policies, the decision log grouped by rule, and the records that cite the scan. Filters (safety
+  class, decision, status, kind, rule) change the table at once and stay in the address; long
+  lists page on with First and Next. Trace and Process still open the htmx page. New components in
+  Storybook: Disclosure, Code. API: `/api/scans/{id}/<section>`.
 - **R-96 step 5: the scan-based views in React** (spec 054, v2.6.4, 2026-10-23).
   Screens → Map gains One scan's path: every recorded screen with the discovery tree, what each
   page left (queued, failed, blocked) and the Scans, Persona and layer filters in the address; a

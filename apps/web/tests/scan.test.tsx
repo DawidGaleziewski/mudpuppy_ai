@@ -29,7 +29,7 @@ describe('Scan page', () => {
     expect(await screen.findByText('step budget reached', { selector: '.sy-callout' })).toBeTruthy();
     const tabs = screen.getByRole('navigation', { name: 'Scan sections' });
     expect(within(tabs).getByRole('link', { name: /Graph/ }).getAttribute('aria-current')).toBe('page');
-    expect(within(tabs).getByRole('link', { name: /States/ }).getAttribute('href')).toBe(`/runs/${SCAN}?tab=states`);
+    expect(within(tabs).getByRole('link', { name: /States/ }).getAttribute('href')).toBe(`/app/scans/${SCAN}/states`);
     expect(await screen.findByRole('heading', { name: 'Where it stopped' })).toBeTruthy();
     const path = screen.getByRole('list', { name: 'Path to where it stopped' });
     expect(within(path).getByText('✕ Dalej')).toBeTruthy();

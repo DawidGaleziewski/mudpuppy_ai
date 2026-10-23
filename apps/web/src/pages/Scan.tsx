@@ -1,4 +1,9 @@
+import type { ReactNode } from 'react';
 import { useParams } from 'react-router';
+import { isSection, type SectionId } from '../app/api-scan-tabs';
+import { scanTabHref as tabHref } from '../app/scanLinks';
+import { ActionsSection, DecisionsSection, FrontierSection } from './ScanFiltered';
+import { DocsSection, FormsSection, NetworkSection, RobotsSection, StatesSection } from './ScanLists';
 import { Callout, Facts, PageHead, Plate, Stack, Text, ViewNav } from '../design-system';
 import { useScanHead, type ScanHead } from '../app/api-scan';
 import { QueryState } from '../app/QueryState';
@@ -6,11 +11,24 @@ import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { ScanGraph } from './ScanGraph';
 
-/** The scan's other tabs stay on the htmx page until they move (a later step of R-96). */
-const tabHref = (scan: string, tab: string) =>
-  tab === 'graph' ? `/app/scans/${encodeURIComponent(scan)}` : `/runs/${encodeURIComponent(scan)}?tab=${tab}`;
+const SECTION_VIEWS: Record<SectionId, (p: { scan: string }) => ReactNode> = {
+  states: StatesSection,
+  actions: ActionsSection,
+  frontier: FrontierSection,
+  forms: FormsSection,
+  network: NetworkSection,
+  robots: RobotsSection,
+  decisions: DecisionsSection,
+  docs: DocsSection,
+};
 
-function Head({ h }: { h: ScanHead }) {
+function Section({ scan, tab }: { scan: string; tab: string }) {
+  if (!isSection(tab)) return <ScanGraph scan={scan} />;
+  const View = SECTION_VIEWS[tab];
+  return <View scan={scan} />;
+}
+
+function Head({ h, tab }: { h: ScanHead; tab: string }) {
   return (
     <Stack>
       <Plate title="Summary" actions={<ShownStatus status={h.status} />}>
@@ -31,7 +49,7 @@ function Head({ h }: { h: ScanHead }) {
           href: tabHref(h.id, t.id),
           label: t.label,
           count: t.count,
-          current: t.id === 'graph',
+          current: t.id === tab,
         }))}
       />
     </Stack>
@@ -40,7 +58,8 @@ function Head({ h }: { h: ScanHead }) {
 
 /** One scan (the htmx `/runs/{id}`): its summary, its sections, and the Graph tab with its restarts. */
 export function Scan() {
-  const scan = useParams().scan ?? '';
+  const { scan = '', tab: given = 'graph' } = useParams();
+  const tab = isSection(given) ? given : 'graph';
   const q = useScanHead(scan);
   const portal = q.data?.portal;
   return (
@@ -66,8 +85,8 @@ export function Scan() {
       <QueryState query={q} what="the scan">
         {(h) => (
           <Stack>
-            <Head h={h} />
-            <ScanGraph scan={h.id} />
+            <Head h={h} tab={tab} />
+            <Section scan={h.id} tab={tab} />
           </Stack>
         )}
       </QueryState>

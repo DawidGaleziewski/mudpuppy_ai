@@ -20,6 +20,7 @@ export const routes = [
   { path: '/app/portals/:portal/screens/recorded', element: <RecordedPages /> },
   { path: '/app/portals/:portal/screens/:screenKey', element: <Screen /> },
   { path: '/app/scans/:scan', element: <Scan /> },
+  { path: '/app/scans/:scan/:tab', element: <Scan /> },
   { path: '*', element: <NotFound /> },
 ];
 

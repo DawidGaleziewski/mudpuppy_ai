@@ -9,7 +9,6 @@ identical markup.
 from __future__ import annotations
 
 import itertools
-import json
 from pathlib import Path
 from typing import Any
 
@@ -30,13 +29,22 @@ from . import (
     status_map,
     wb_frames,
 )
-from .formats import fmt_duration, fmt_when
+from .formats import fmt_duration, fmt_when, jget, pretty_json, short_id, top_locator
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
 from .web import activity as activity_page
 from .web import amendments as amendments_page
-from .web import api_app, api_map, api_recorded, api_scan, api_screens, api_writes, spa
+from .web import (
+    api_app,
+    api_map,
+    api_recorded,
+    api_scan,
+    api_scan_tabs,
+    api_screens,
+    api_writes,
+    spa,
+)
 from .web import changes as changes_page
 from .web import chat as chat_page
 from .web import check_runs as check_runs_page
@@ -188,37 +196,9 @@ def create_app(
     app.include_router(api_screens.router)
     app.include_router(api_map.router)
     app.include_router(api_scan.router)
+    app.include_router(api_scan_tabs.router)
     app.include_router(api_writes.router)
     app.include_router(spa.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
     return app
-
-
-# ---- formatting filters --------------------------------------------------------------------
-
-
-def short_id(value: str, keep: int = 13) -> str:
-    """`01a0da64-3bf1-7000-…` → `01a0da64-3bf1…`: enough to tell UUIDv7 runs apart at a glance."""
-    return value if len(value) <= keep + 1 else value[:keep] + "…"
-
-
-def jget(value: Any, key: str) -> Any:
-    """`value[key]` for a parsed JSON object, None for any other shape."""
-    return value.get(key) if isinstance(value, dict) else None
-
-
-def top_locator(value: Any) -> str | None:
-    """The rank-0 locator of an action descriptor (what QA would use first)."""
-    locators = jget(value, "locators")
-    if isinstance(locators, list) and locators and isinstance(locators[0], dict):
-        best = min(locators, key=lambda loc: loc.get("rank", 99) if isinstance(loc, dict) else 99)
-        return str(best.get("value")) if isinstance(best, dict) else None
-    return None
-
-
-def pretty_json(value: Any) -> str:
-
-    if isinstance(value, str):
-        return value
-    return json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True)

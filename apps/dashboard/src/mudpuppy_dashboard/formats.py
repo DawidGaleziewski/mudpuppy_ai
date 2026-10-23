@@ -1,7 +1,35 @@
-"""How the console writes a duration and a timestamp, for the htmx templates' filters and the React
-console's API alike (spec 054)."""
+"""How the console writes a duration, a timestamp, a short id, JSON and an action's locator and
+link, for the htmx templates' filters and the React console's API alike (specs 054, 055)."""
 
 from __future__ import annotations
+
+import json
+from typing import Any
+
+
+def short_id(value: str, keep: int = 13) -> str:
+    """`01a0da64-3bf1-7000-…` → `01a0da64-3bf1…`: enough to tell UUIDv7 runs apart at a glance."""
+    return value if len(value) <= keep + 1 else value[:keep] + "…"
+
+
+def jget(value: Any, key: str) -> Any:
+    """`value[key]` for a parsed JSON object, None for any other shape."""
+    return value.get(key) if isinstance(value, dict) else None
+
+
+def top_locator(value: Any) -> str | None:
+    """The rank-0 locator of an action descriptor (what QA would use first)."""
+    locators = jget(value, "locators")
+    if isinstance(locators, list) and locators and isinstance(locators[0], dict):
+        best = min(locators, key=lambda loc: loc.get("rank", 99) if isinstance(loc, dict) else 99)
+        return str(best.get("value")) if isinstance(best, dict) else None
+    return None
+
+
+def pretty_json(value: Any) -> str:
+    if isinstance(value, str):
+        return value
+    return json.dumps(value, indent=2, ensure_ascii=False, sort_keys=True)
 
 
 def fmt_duration(ms: int | None) -> str:

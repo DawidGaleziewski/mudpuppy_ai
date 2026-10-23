@@ -24,7 +24,8 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   TanStack Query hooks; one `api-<page>.ts` per page group, e.g. `api-recorded.ts`, `api-scan.ts`),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it), `ShownStatus.tsx` (a status as the
-  API maps it), `Shell.tsx`, `QueryState.tsx`.
+  API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
+  address; `api-scan-tabs.ts` is its data), `Shell.tsx`, `QueryState.tsx`.
 - `src/pages/`: one file per page.
 - `tests/`: Vitest + Testing Library (components, pages with a stubbed API, the design-system drift).
 

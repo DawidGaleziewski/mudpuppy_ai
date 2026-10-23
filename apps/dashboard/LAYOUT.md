@@ -127,3 +127,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   in `web/api_writes.py` (marks, Probe, Skip, restarts; `{ok, message, href}`), which send the
   same chat service calls as the htmx routes through `web/chat_writes.py`; `formats.py` holds
   the duration and timestamp formats (the htmx filters and the API). Scan ids are whole (D-9).
+- Spec 055 (R-96, a scan's sections): `web/api_scan_tabs.py` (`/api/scans/{id}/states`,
+  `actions`, `frontier`, `forms`, `network`, `robots`, `decisions`, `docs`; paged ones by cursor
+  at `settings.page_size`) over `queries_app_scan_tabs.py` (`queries`, `queries_docs` as JSON);
+  `formats.py` also holds `jget`, `top_locator`, `pretty_json`, `short_id`.

@@ -7,6 +7,8 @@ export { Chip, type ChipProps } from './components/Chip.js';
 export { Compare, CompareSide, type CompareSideProps } from './components/Compare.js';
 export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
+export { Code } from './components/Code.js';
+export { Disclosure } from './components/Disclosure.js';
 export { Facts } from './components/Facts.js';
 export {
   Bundle,
