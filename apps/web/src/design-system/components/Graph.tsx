@@ -20,7 +20,50 @@ export interface GraphEdge {
   label?: string | undefined;
   labelX?: number | undefined;
   labelY?: number | undefined;
+  /** An arrowhead (`.sy-edge-arrow`) at the page the move went to, or at both ends (a move off
+   * the tree on the recorded map, designer 18/10). */
+  arrow?: 'end' | 'both' | undefined;
 }
+
+/** The arrowhead marker, in the graph's own `<defs>` with an id unique on the page. */
+function ArrowDef({ id }: { id: string }) {
+  return (
+    <defs>
+      <marker id={id} viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse">
+        <path className="sy-edge-arrow" d="M1 1 7 4 1 7" />
+      </marker>
+    </defs>
+  );
+}
+
+/** The graph's edges and their labels: decoration, the caller's table carries the facts. */
+function Edges({ edges, arrowId }: { edges: readonly GraphEdge[]; arrowId: string }) {
+  return (
+    <svg className="sy-graph__edges" aria-hidden="true" focusable="false">
+      {edges.some((e) => e.arrow) && <ArrowDef id={arrowId} />}
+      {edges.map((e, i) => (
+        <path key={i} className={cx('sy-edge', e.state && `sy-edge--${e.state}`)} d={e.d} {...arrowAttrs(e.arrow, arrowId)} />
+      ))}
+      {edges.map(
+        (e, i) =>
+          e.label && (
+            <text key={`l${String(i)}`} className={cx('sy-edge-label', e.state === 'failed' && 'sy-edge-label--failed')} x={e.labelX} y={e.labelY} textAnchor="middle">
+              {e.label}
+            </text>
+          ),
+      )}
+    </svg>
+  );
+}
+
+/** A marker id from a React id, safe inside `url(#…)`. */
+const markerId = (id: string) => `arrow-${id.replace(/[^\w-]/g, '')}`;
+
+const arrowAttrs = (arrow: GraphEdge['arrow'], id: string) => {
+  if (!arrow) return {};
+  const url = `url(#${id})`;
+  return arrow === 'both' ? { markerStart: url, markerEnd: url } : { markerEnd: url };
+};
 
 export interface GraphProps {
   /** What the graph shows, for assistive technology ("Map of liveinsurer now"). */
@@ -36,9 +79,13 @@ export interface GraphProps {
   embedded?: boolean;
 }
 
-/** The zoom steps (design answer Q4); Fit may go below the first. */
-const STEPS = [0.5, 0.67, 0.8, 1, 1.25, 1.5] as const;
-const [MIN, MAX] = [0.3, 1.5];
+/** The zoom steps (design answers Q4, round-3 Q3); Fit may go below the first. */
+const STEPS = [0.25, 0.33, 0.5, 0.67, 0.8, 1, 1.25, 1.5] as const;
+const [MIN, MAX] = [0.1, 1.5];
+/** A map opens no smaller than this (round-3 Q3): the route and title stay readable. */
+const READABLE = 0.8;
+/** Below this the map is an overview: boxes keep shape and state, their words fade. */
+const OVERVIEW = 0.5;
 const clamp = (s: number) => Math.min(MAX, Math.max(MIN, s));
 const stepIn = (s: number) => STEPS.find((z) => z > s + 0.001) ?? s;
 const stepOut = (s: number) => [...STEPS].reverse().find((z) => z < s - 0.001) ?? s;
@@ -74,23 +121,28 @@ function neighbour(canvas: HTMLElement, node: HTMLElement, dir: readonly [number
   return best;
 }
 
-/** The selected node, else the top row's first: what the graph opens on and keeps in view. */
+/** The top-left node of the layered layout: the start page. */
+const isBefore = (a: HTMLElement, b: HTMLElement) => b.offsetTop < a.offsetTop || (b.offsetTop === a.offsetTop && b.offsetLeft < a.offsetLeft);
+
+/** The selected node, else the start page (top row, leftmost): what the graph opens on. */
 function focusNode(el: HTMLElement) {
   const nodes = [...el.querySelectorAll<HTMLElement>('[data-node]')];
   return (
     el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]') ??
-    nodes.reduce<HTMLElement | undefined>((a, b) => (a === undefined || b.offsetTop < a.offsetTop ? b : a), undefined)
+    nodes.reduce<HTMLElement | undefined>((a, b) => (a === undefined || isBefore(a, b) ? b : a), undefined)
   );
 }
 
-/** Scroll the box so the selected node is in view (after a zoom). */
-function keepInView(el: HTMLElement) {
-  const node = el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]');
+/** Scroll the box so `node` is in view; `centre`: centred even when it already is. */
+function bringIntoView(el: HTMLElement, node: HTMLElement | null | undefined, centre = false) {
   if (!node) return;
   const [b, n] = [el.getBoundingClientRect(), node.getBoundingClientRect()];
-  if (n.left < b.left || n.right > b.right) el.scrollLeft += n.left + n.width / 2 - (b.left + b.width / 2);
-  if (n.top < b.top || n.bottom > b.bottom) el.scrollTop += n.top + n.height / 2 - (b.top + b.height / 2);
+  if (centre || n.left < b.left || n.right > b.right) el.scrollLeft += n.left + n.width / 2 - (b.left + b.width / 2);
+  if (centre || n.top < b.top || n.bottom > b.bottom) el.scrollTop += n.top + n.height / 2 - (b.top + b.height / 2);
 }
+
+/** Opening zoom (round-3 Q3): fit, but never below readable and never above 100 %. */
+const openZoom = (fit: number) => (fit >= READABLE ? Math.min(fit, 1) : READABLE);
 
 /** The graph's keys: + / − zoom, 0 back to 100 %, an arrow moves to the neighbour that way. */
 const graphKeys = (scale: number, zoom: (s: number) => void) => (e: KeyboardEvent<HTMLDivElement>) => {
@@ -125,7 +177,7 @@ function ZoomBar({ controls, scale, fitted, zoom, fit }: ZoomBarProps) {
       <button className={quiet} type="button" aria-label="Zoom out" onClick={() => zoom(stepOut(scale))}>
         −
       </button>
-      <button className={`${quiet} sy-graph__zoom-level`} type="button" aria-label={`Zoom ${pct(scale)}, reset to 100%`} onClick={() => zoom(1)}>
+      <button className={`${quiet} sy-graph__zoom-level`} type="button" aria-label={`Zoom ${pct(scale)}${scale < OVERVIEW ? ', overview' : ''}, reset to 100%`} onClick={() => zoom(1)}>
         {pct(scale)}
       </button>
       <button className={quiet} type="button" aria-label="Zoom in" onClick={() => zoom(stepIn(scale))}>
@@ -142,17 +194,22 @@ function ZoomBar({ controls, scale, fitted, zoom, fit }: ZoomBarProps) {
  * A graph whose layout the API made (the portal map): edges as SVG paths in their state, nodes as
  * `GraphNode` buttons at their place, in a `.sy-graphview` frame (design answer Q4): as tall as
  * the graph, at most the screen below the header (520 px when `embedded`), with a zoom bar that
- * stays in view while the graph does. It opens fitted when wider than its box, else at 100 %,
- * on the selected node or the top row. Keys in the graph: + / − zoom, 0 back to 100 %, arrows
- * move to the neighbour that way. The text version (a table) is the caller's: a graph is never
- * the only way to the facts.
+ * stays in view while the graph does. It opens readable (round-3 Q3): fitted when that is 80 %
+ * or more, else at 80 % scrolled to the selected node or the start page (top-left). Fit shows the
+ * whole map at any zoom; under 50 % it is an overview (`.sy-graph--overview`: the boxes keep their
+ * state, their words fade but stay for screen readers), where clicking a node zooms to 100 % on
+ * it. Keys in the graph: + / − zoom, 0 back to 100 %, arrows move to the neighbour that way. The
+ * text version (a table) is the caller's: a graph is never the only way to the facts.
  */
 export function Graph({ label, width, height, edges, children, embedded = false }: GraphProps) {
   const id = useId();
+  const arrowId = markerId(id);
   const box = useRef<HTMLElement>(null);
   const [scale, setScale] = useState(1);
   const [fitted, setFitted] = useState(false);
   const [said, setSaid] = useState('');
+  // The node to centre after the next zoom: the open's start page, or the node clicked in overview.
+  const centreOn = useRef<HTMLElement | null>(null);
   const fitScale = () => {
     const el = box.current;
     return el && width > 0 && el.clientWidth > 0 ? clamp((el.clientWidth - 32) / width) : 1;
@@ -160,17 +217,32 @@ export function Graph({ label, width, height, edges, children, embedded = false 
   useLayoutEffect(() => {
     const el = box.current;
     if (!el) return;
-    if (el.clientWidth > 0 && width > el.clientWidth) {
-      setScale(fitScale());
-      setFitted(true);
-    }
     const target = focusNode(el);
-    if (target) el.scrollLeft = target.offsetLeft + target.offsetWidth / 2 - el.clientWidth / 2;
+    if (el.clientWidth > 0 && width > el.clientWidth) {
+      const fit = fitScale();
+      setScale(openZoom(fit));
+      setFitted(fit >= READABLE);
+    }
+    centreOn.current = target ?? null;
+    bringIntoView(el, target, true);
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open: later the person zooms and pans
   }, []);
   useLayoutEffect(() => {
-    if (box.current) keepInView(box.current);
+    const el = box.current;
+    if (!el) return;
+    if (centreOn.current) bringIntoView(el, centreOn.current, true);
+    else bringIntoView(el, el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]'));
+    centreOn.current = null;
   }, [scale]);
+  const overview = scale < OVERVIEW;
+  // In overview a click on a node also zooms to 100 % centred on it (the node's own click selects it).
+  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
+    if (!overview || !(e.target instanceof HTMLElement)) return;
+    const node = e.target.closest<HTMLElement>('button[data-node]');
+    if (!node) return;
+    centreOn.current = node;
+    zoom(1);
+  };
   const zoom = (s: number) => {
     setScale(s);
     setFitted(false);
@@ -191,27 +263,9 @@ export function Graph({ label, width, height, edges, children, embedded = false 
       <span className="sy-sr-only" aria-live="polite">
         {said}
       </span>
-      <section id={id} className="sy-graph" aria-label={label} ref={box}>
-        <div className="sy-graph__canvas" style={canvas} onKeyDown={keys}>
-          <svg className="sy-graph__edges" aria-hidden="true" focusable="false">
-            {edges.map((e, i) => (
-              <path key={i} className={cx('sy-edge', e.state && `sy-edge--${e.state}`)} d={e.d} />
-            ))}
-            {edges.map(
-              (e, i) =>
-                e.label && (
-                  <text
-                    key={`l${String(i)}`}
-                    className={cx('sy-edge-label', e.state === 'failed' && 'sy-edge-label--failed')}
-                    x={e.labelX}
-                    y={e.labelY}
-                    textAnchor="middle"
-                  >
-                    {e.label}
-                  </text>
-                ),
-            )}
-          </svg>
+      <section id={id} className={cx('sy-graph', overview && 'sy-graph--overview')} aria-label={label} ref={box}>
+        <div className="sy-graph__canvas" style={canvas} onKeyDown={keys} onClickCapture={onClickCapture}>
+          <Edges edges={edges} arrowId={arrowId} />
           {children}
         </div>
       </section>
@@ -309,14 +363,19 @@ export interface LegendProps {
   items: readonly { state: string; label: string }[];
 }
 
+/** Edge states drawn with an arrowhead (the swatch shows it too). */
+const ARROWED = new Set(['offtree']);
+
 /** The legend of a `Graph`'s edges: a swatch of each state with its word. */
 export function Legend({ label, items }: LegendProps) {
+  const arrow = markerId(useId());
   return (
     <ul className="sy-legend" aria-label={label}>
       {items.map((it) => (
-        <li key={it.state}>
+        <li key={it.state} className="sy-legend__item">
           <svg width="28" height="10" aria-hidden="true">
-            <path className={cx('sy-edge', it.state && `sy-edge--${it.state}`)} d="M0 5H28" />
+            {ARROWED.has(it.state) && <ArrowDef id={arrow} />}
+            <path className={cx('sy-edge', it.state && `sy-edge--${it.state}`)} d={ARROWED.has(it.state) ? 'M0 5H24' : 'M0 5H28'} {...arrowAttrs(ARROWED.has(it.state) ? 'end' : undefined, arrow)} />
           </svg>
           {it.label}
         </li>

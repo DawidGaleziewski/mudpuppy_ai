@@ -1,0 +1,17 @@
+{# FixChoices — variations for the next attempt. They come from the recovery API, not from the model.
+   "Run attempt" proposes a command; the command card asks before anything runs. #}
+<div id="{{ cid }}-fix">
+{%- block live_fix %}
+<form class="sy-stack" style="--sy-gap: 8px" hx-post="/workbench/commands/propose" hx-swap="none" aria-label="Try next">
+  <input type="hidden" name="command" value="path.attempt"><input type="hidden" name="scan" value="{{ vm.scan.id }}">
+  <input type="hidden" name="step" value="{{ vm.step }}">
+  <fieldset class="sy-grid" style="--sy-min: 180px; --sy-gap: 8px"><legend class="sy-sr-only">Variation for attempt {{ vm.n }}</legend>
+    {% for ch in vm.choices %}
+    <label class="sy-choice"><input class="sy-choice__input" type="radio" name="variation" value="{{ ch.variation }}"{% if ch.variation == vm.default %} checked{% endif %}>
+      <span class="sy-choice__body"><b>{{ ch.label }}</b><span>{{ ch.help }}{% if ch.tried %} Tried already.{% endif %}</span></span></label>
+    {% endfor %}
+  </fieldset>
+  {% if live %}<div class="sy-actions"><button class="sy-btn sy-btn--strong" type="submit">Run attempt {{ vm.n }}…</button></div>{% endif %}
+</form>
+{%- endblock %}
+</div>

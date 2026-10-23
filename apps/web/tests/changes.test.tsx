@@ -2,7 +2,7 @@
 // Releases (lanes, scans, range) and Shot (the changed region, Not here, Overlay).
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { Releases, Shot } from '../src/design-system';
+import { Releases, Shot, thinTicks } from '../src/design-system';
 import { at } from './render-at';
 
 beforeAll(() => {
@@ -64,6 +64,7 @@ const one = (over: Record<string, unknown> = {}) => ({
   before: side('Before', false),
   after: side('After', true),
   region: { left: 10, top: 10, width: 20, height: 5 },
+  gone: { shape: 'box', left: 10, top: 10, width: 20, height: 5 },
   differs: [{ label: 'Release · Shell', before: '1d77', after: '3e1a', differs: true }],
   explained: false,
   hypothesis_status: { shape: 'needs', word: 'Needs confirmation' },
@@ -122,10 +123,22 @@ describe('Before / after', () => {
     expect(within(where).getByRole('link', { name: 'Oblicz składkę' }).getAttribute('href')).toBe('/app/portals/shop/processes/PRC-001');
   });
 
-  it('draws the after over the before in Overlay, with no mark', async () => {
+  it('draws the after over the before in Overlay, its mark at full strength, a slider for the mix (Q5b)', async () => {
     at('/app/portals/shop/changes/d2?mode=overlay', { [`${API}/d2`]: one() });
-    expect(await screen.findByAltText('After, half transparent')).toBeTruthy();
-    expect(screen.queryByText('Changed')).toBeNull();
+    expect(await screen.findByAltText('Before: Start, with After drawn over it')).toBeTruthy();
+    const container = document.body;
+    expect(container.querySelector('.sy-compare__over')?.getAttribute('aria-hidden')).toBe('true');
+    expect(container.querySelector('.sy-compare__over .sy-mark')?.textContent).toBe('Changed');
+    const slider = screen.getByRole('slider', { name: 'How strongly the after shows' });
+    fireEvent.change(slider, { target: { value: '80' } });
+    expect(slider.getAttribute('aria-valuetext')).toBe('After at 80%');
+    expect(container.querySelector<HTMLElement>('.sy-compare__stack')?.style.getPropertyValue('--sy-overlay')).toBe('0.8');
+  });
+
+  it('says "Not here" on the side without the change, in words too', async () => {
+    at('/app/portals/shop/changes/d2', { [`${API}/d2`]: one({ gone: { shape: 'line', left: 0, top: 11, width: 100, height: 0 } }) });
+    expect(await screen.findByAltText(/^Before: Start, without the change; a dashed line marks/)).toBeTruthy();
+    expect(screen.getByText('Not here').parentElement?.getAttribute('data-shape')).toBe('line');
   });
 
   it('decides the hypothesis through Review after asking, and offers Undo', async () => {
@@ -174,9 +187,38 @@ describe('Releases and Shot', () => {
     expect(screen.getByText('this range · 3 changes')).toBeTruthy();
   });
 
-  it('marks the region where it is and where it is not', () => {
-    render(<Shot src="/a.png" alt="Before" region={{ left: 10, top: 10, width: 20, height: 5 }} mark="gone" />);
-    const mark = screen.getByText('Not here').closest('mark');
-    expect(mark?.getAttribute('style')).toContain('left: 10%');
+  it('makes room for the range inside its own box and aligns the label to an end it touches (Q6)', () => {
+    const base = { lanes: [], scans: [], axis: [], start: 'a', end: 'b' };
+    const { container, rerender } = render(<Releases {...base} range={{ left: 60, width: 40, label: 'this range · 3 changes' }} />);
+    expect(container.querySelector('.sy-releases')?.className).toContain('sy-releases--ranged');
+    expect(container.querySelector('.sy-releases')?.getAttribute('style')).toBeNull();
+    expect(container.querySelector('.sy-releases__range')?.getAttribute('data-label')).toBe('end');
+    rerender(<Releases {...base} range={{ left: 30, width: 20, label: 'r' }} />);
+    expect(container.querySelector('.sy-releases__range')?.getAttribute('data-label')).toBeNull();
+    rerender(<Releases {...base} range={null} />);
+    expect(container.querySelector('.sy-releases')?.className).toBe('sy-releases');
+  });
+
+  it('thins axis ticks to 64 px apart, always keeping both ends (Q5c)', () => {
+    const t = (left: number) => ({ left, label: String(left) });
+    const ticks = [t(0), t(10), t(20), t(30), t(90), t(95), t(100)];
+    // 320 px: 64 px is 20 %, 96 px next to an end is 30 %; 90 is kept, then dropped: it crowds the end
+    expect(thinTicks(ticks, 320).map((x) => x.left)).toEqual([0, 30, 100]);
+    expect(thinTicks(ticks, 1000).map((x) => x.left)).toEqual([0, 10, 20, 30, 90, 100]);
+    expect(thinTicks(ticks, 0)).toHaveLength(7);
+    expect(thinTicks([t(0), t(100)], 50).map((x) => x.left)).toEqual([0, 100]);
+  });
+
+  it('marks where the change is not: a box, or a line where it was inserted (Q5a)', () => {
+    const { rerender } = render(<Shot src="/a.png" alt="Before" gone={{ shape: 'box', left: 10, top: 10, width: 20, height: 5 }} />);
+    const box = screen.getByText('Not here').parentElement;
+    expect(box?.className).toContain('sy-mark--gone');
+    expect(box?.getAttribute('aria-hidden')).toBe('true');
+    expect(box?.getAttribute('style')).toContain('left: 10%');
+    expect(box?.getAttribute('data-shape')).toBeNull();
+    rerender(<Shot src="/a.png" alt="Before" gone={{ shape: 'line', left: 0, top: 11, width: 100, height: 0 }} />);
+    const line = screen.getByText('Not here').parentElement;
+    expect(line?.getAttribute('data-shape')).toBe('line');
+    expect(line?.getAttribute('style')).not.toContain('height');
   });
 });

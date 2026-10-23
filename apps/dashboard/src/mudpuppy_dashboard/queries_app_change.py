@@ -7,6 +7,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -22,6 +23,18 @@ from .queries_change_detail import Test as ChangeTest
 class Region(BaseModel):
     """The changed element's box on the screenshots, in percent of the image."""
 
+    left: float
+    top: float
+    width: float
+    height: float
+
+
+class Gone(BaseModel):
+    """Where the change is not, on the other side's picture, in percent of that picture (designer
+    Q5a): a `box` at the region's place for things that float, a `line` at the insertion point when
+    the region was inserted and pushed the content below it (that page is shorter by its height)."""
+
+    shape: Literal["box", "line"]
     left: float
     top: float
     width: float
@@ -74,6 +87,7 @@ class ChangePage(BaseModel):
     before: SideOut
     after: SideOut
     region: Region | None
+    gone: Gone | None  # "Not here" on the unmarked side
     differs: list[Differ]
     explained: bool
     hypothesis_status: StatusOut | None
@@ -120,6 +134,36 @@ def _region(data_dir: Path, d: ChangeDetail) -> Region | None:
     return Region(left=mark.left, top=mark.top, width=mark.width, height=mark.height)
 
 
+def _page_height(data_dir: Path, ref: str | None) -> float | None:
+    layout = visuals.load_layout(data_dir, ref)
+    return float(layout.page.height) if layout and layout.page.height else None
+
+
+def _gone(data_dir: Path, d: ChangeDetail, r: Region | None) -> Gone | None:
+    """The "Not here" mark on the unmarked side. Inserted when the marked page is taller by the
+    region's height (within 15 %, at least 8 px); without both heights, a box (the safe default)."""
+    if r is None:
+        return None
+    here, other = (d.before, d.after) if d.marked_side == "before" else (d.after, d.before)
+    h_here, h_other = (
+        _page_height(data_dir, here.layout_ref),
+        _page_height(data_dir, other.layout_ref),
+    )
+    if not (h_here and h_other):
+        return Gone(shape="box", **r.model_dump())
+    region_px, top_px = r.height * h_here / 100, r.top * h_here / 100
+    inserted = abs(h_here - h_other - region_px) <= max(8.0, 0.15 * region_px)
+    if inserted:
+        return Gone(shape="line", left=r.left, top=top_px * 100 / h_other, width=r.width, height=0)
+    return Gone(
+        shape="box",
+        left=r.left,
+        top=top_px * 100 / h_other,
+        width=r.width,
+        height=region_px * 100 / h_other,
+    )
+
+
 def _test(t: ChangeTest) -> Test:
     return Test(inputs=t.inputs, result=t.result, verdict=status_out("boundary_test", t.verdict))
 
@@ -148,7 +192,8 @@ def change_page(
         process=Option(value=d.process[0], label=d.process[1]) if d.process else None,
         before=side_out(d.before, d.marked_side == "before"),
         after=side_out(d.after, d.marked_side == "after"),
-        region=_region(data_dir, d),
+        region=(region := _region(data_dir, d)),
+        gone=_gone(data_dir, d, region),
         differs=[
             Differ(label=x.label, before=x.before, after=x.after, differs=x.differs)
             for x in d.differs

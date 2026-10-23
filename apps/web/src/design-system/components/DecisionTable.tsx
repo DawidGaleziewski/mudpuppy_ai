@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react';
+import { useId, type ReactNode } from 'react';
 import { Facts } from './Facts.js';
 
 /** One rule of the table: a condition per input (`null`: any value) and the result. */
@@ -22,22 +22,24 @@ export interface DecisionTableProps {
 /**
  * A business rule as a decision table (designer v2-12, `.sy-table--decision`): inputs left, a
  * double weld, the result right; one rule per row, numbered; a condition in mono, "any" muted.
- * The facts (inputs, hit policy) come first. On a narrow screen it scrolls sideways in its own
- * region.
+ * The facts (inputs, hit policy) come first, joined to the table and describing it (designer Q7:
+ * read once on demand, not with every entry like a caption); the caption only names the table.
+ * On a narrow screen it scrolls sideways in its own region.
  */
 export function DecisionTable({ label, inputs, result, rows, facts }: DecisionTableProps) {
+  const id = useId();
   return (
     <>
-      {facts && <Facts items={facts} />}
-      <Grid label={label} inputs={inputs} result={result} rows={rows} />
+      {facts && <Facts items={facts} table id={id} />}
+      <Grid label={label} inputs={inputs} result={result} rows={rows} describedBy={facts ? id : undefined} />
     </>
   );
 }
 
-function Grid({ label, inputs, result, rows }: Omit<DecisionTableProps, 'facts'>) {
+function Grid({ label, inputs, result, rows, describedBy }: Omit<DecisionTableProps, 'facts'> & { describedBy?: string | undefined }) {
   return (
     <div className="sy-table-wrap" role="region" aria-label={label} tabIndex={0}>
-      <table className="sy-table sy-table--decision">
+      <table className="sy-table sy-table--decision" aria-describedby={describedBy}>
         <caption className="sy-sr-only">{label}</caption>
         <thead>
           <tr className="sy-dt-group">

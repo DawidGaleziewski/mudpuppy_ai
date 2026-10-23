@@ -3,7 +3,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { getJson, type ChipOut, type StatusOut } from './api';
 import type { Option } from './api-map';
-import type { RecordedEdge } from './api-recorded';
+
+/** A scan graph's edge: the first move into a screen (state null) or a failed one. */
+export interface ScanEdge {
+  state: string | null;
+  d: string;
+}
 
 export interface ScanHead {
   id: string;
@@ -57,7 +62,7 @@ export interface ScanGraph {
     queued: number;
   };
   nodes: ScanNode[];
-  edges: RecordedEdge[];
+  edges: ScanEdge[];
   width: number;
   height: number;
   node_h: number;

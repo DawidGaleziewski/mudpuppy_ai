@@ -11,6 +11,7 @@ from pydantic import BaseModel
 from .queries_app import NeedsItem, StatusOut, needs_item, status_out
 from .queries_portal_home import portal_home
 from .queries_review import KINDS
+from .scan_words import kind_word, when_words
 
 
 class Lane(BaseModel):
@@ -28,9 +29,11 @@ class LastScan(BaseModel):
     id: str
     started_at: str
     status: StatusOut
-    #: "check" (a re-scan that checks the model) or "scan", the word the page shows.
+    #: AI scan, or Check run (a re-scan that checks the model, no AI): the scan line's kind word.
     kind: str
     steps: int
+    #: After the id, in the scan line's grammar (designer 19/12): "17 Oct 10:05Z · 64 steps".
+    summary: str
 
 
 class KindCount(BaseModel):
@@ -122,8 +125,10 @@ def portal_home_data(conn: sqlite3.Connection, portal: str, env: str) -> PortalH
             id=h.last_scan.id,
             started_at=h.last_scan.started_at,
             status=status_out("run", h.last_scan.status),
-            kind="check" if h.last_scan.check else "scan",
+            kind=kind_word("probe" if h.last_scan.check else "map"),
             steps=h.last_scan.steps,
+            summary=f"{when_words(h.last_scan.started_at)} · {h.last_scan.steps}"
+            f" {'checks' if h.last_scan.check else 'steps'}",
         )
         if h.last_scan
         else None,

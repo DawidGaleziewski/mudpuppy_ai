@@ -6,7 +6,13 @@ import Ajv2020 from 'ajv/dist/2020.js';
 
 import type { CommandEntry, Contract } from './contract.js';
 
-export type CommandName = 'scan.start' | 'scan.resume' | 'scan.stop' | 'path.attempt' | 'mark.add';
+export type CommandName =
+  | 'scan.start'
+  | 'scan.resume'
+  | 'scan.stop'
+  | 'path.attempt'
+  | 'mark.add'
+  | 'persona.add';
 
 export interface CommandProposal {
   command: CommandName;

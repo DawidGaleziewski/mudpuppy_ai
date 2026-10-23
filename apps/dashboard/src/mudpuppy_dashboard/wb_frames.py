@@ -6,6 +6,7 @@ model's words (`why`, the asked message) arrive here as plain strings; the templ
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import Any
 
 PATH_WORDS = {
     "chat": "Chat",
@@ -96,3 +97,10 @@ class CommandCard:
     personas: tuple[str, ...] = ()
     persona: str | None = None
     no_persona_url: str | None = None
+    # An editable card (spec 072, designer 19/04: persona.add): its fields come from `args`, the
+    # person edits them before Confirm; `sign_ins` are the credential names it may use.
+    editable: bool = False
+    args: dict[str, Any] = field(default_factory=dict)
+    sign_ins: tuple[str, ...] = ()
+    #: done persona.add: Undo removes the persona while no scan used it.
+    undo_url: str | None = None

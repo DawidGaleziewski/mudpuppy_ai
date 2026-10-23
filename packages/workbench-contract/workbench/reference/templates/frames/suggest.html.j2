@@ -1,0 +1,4 @@
+{# Suggested follow-ups for the current view: the assistant drafts them (dashed), you send them with one click. #}
+<div class="sy-suggest" id="wb-suggest" aria-label="Suggested questions"{% if oob %} hx-swap-oob="outerHTML"{% endif %}{% if not items %} hidden{% endif %}>
+  {% for s in items %}<button type="button" data-suggest>{{ s }}</button>{% endfor %}
+</div>

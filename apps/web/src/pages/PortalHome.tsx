@@ -57,17 +57,11 @@ function LastScan({ scan }: { scan: PortalHomeData['last_scan'] }) {
   return (
     <Plate title="Last scan">
       {scan ? (
-        <Stack>
+        <Cluster>
+          <Text small>{scan.kind}</Text>
           <ScanId id={scan.id} href={`/app/scans/${encodeURIComponent(scan.id)}`} copy />
-          <Facts
-            items={[
-              ['Status', <ShownStatus status={scan.status} />],
-              ['Kind', scan.kind],
-              ['Steps', scan.steps],
-              ['Started (UTC)', <Text mono>{scan.started_at}</Text>],
-            ]}
-          />
-        </Stack>
+          <Text small>{scan.summary}</Text>
+        </Cluster>
       ) : (
         <Callout>No scan yet. Ask the assistant to start one.</Callout>
       )}

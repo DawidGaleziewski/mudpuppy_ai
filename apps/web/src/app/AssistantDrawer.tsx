@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
+import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Button, Callout, ChatLog, Chips, Cluster, Code, Composer, Confirm, Drawer, Field, Message, Segmented, Split, Stack, Tag, Text, Textarea } from '../design-system';
 import { chatCall, useAssistant, useChatStream, type AssistantConversation, type AssistantPage, type PageContext } from './api-assistant';
 import { takeSay } from './assistant-context';
@@ -172,32 +172,42 @@ function Conversation(props: TurnProps) {
 
 /** What the assistant can see: this page (when the page names itself) or the whole yard. */
 function Seeing({ portal, context, seeing, onSee }: { portal: string; context: PageContext | null; seeing: 'page' | 'portal'; onSee: (v: 'page' | 'portal') => void }) {
-  if (!context) return <Text small>{`Whole yard · portal ${portal}`}</Text>;
+  const why = useId();
   return (
     <Stack>
       <Segmented
         label="What the assistant can see"
         items={[
-          { value: 'page', label: 'This page' },
+          { value: 'page', label: 'This page', disabled: !context, reason: why },
           { value: 'portal', label: 'Whole yard' },
         ]}
-        selected={seeing}
+        selected={context ? seeing : 'portal'}
         onSelect={(v) => onSee(v === 'page' ? 'page' : 'portal')}
       />
-      {seeing === 'page' ? (
-        <Cluster>
-          <Text small asIs>{`${context.type} · ${context.label ?? context.id}`}</Text>
-          {context.rev !== undefined && <Tag size="sm">{`r${String(context.rev)}`}</Tag>}
-          {(context.ids ?? []).map((i) => (
-            <Tag key={i} size="sm">
-              {i}
-            </Tag>
-          ))}
-        </Cluster>
-      ) : (
-        <Text small>{`Portal · ${portal}`}</Text>
-      )}
+      <InContext portal={portal} context={context} seeing={seeing} why={why} />
     </Stack>
+  );
+}
+
+/** Under the switch: the reason This page is off, what the page put in context, or the portal. */
+function InContext({ portal, context, seeing, why }: { portal: string; context: PageContext | null; seeing: 'page' | 'portal'; why: string }) {
+  if (!context)
+    return (
+      <Text small muted id={why}>
+        Nothing on this page to ask about. Open a screen, process or rule to use This page.
+      </Text>
+    );
+  if (seeing === 'portal') return <Text small>{`Portal · ${portal}`}</Text>;
+  return (
+    <Cluster>
+      <Text small asIs>{`${context.type} · ${context.label ?? context.id}`}</Text>
+      {context.rev !== undefined && <Tag size="sm">{`r${String(context.rev)}`}</Tag>}
+      {(context.ids ?? []).map((i) => (
+        <Tag key={i} size="sm">
+          {i}
+        </Tag>
+      ))}
+    </Cluster>
   );
 }
 

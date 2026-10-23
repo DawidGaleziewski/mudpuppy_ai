@@ -32,28 +32,88 @@ export interface CommandCardProps {
   /** Confirm sends the card's one-time token (and the persona chosen); nothing runs before it. */
   onConfirm?: (persona: string | null) => void;
   onCancel?: () => void;
+  /**
+   * A card whose values the person owns (designer 19/04, `.sy-cmd__form`: persona.add): `body` is
+   * its fields, the card's body is a form and Confirm its submit; `ready` false holds Confirm back.
+   * The caller keeps the edited values and sends them from `onConfirm`.
+   */
+  edit?: { body: ReactNode; ready: boolean };
+  /** done: Undo (persona.add removes the persona while no scan used it). */
+  onUndo?: () => void;
+  /** A Start card: "Add a persona…" after its persona list opens an Add-a-persona card (designer 19/04). */
+  onAddPersona?: () => void;
 }
 
 /** A Start card's "As" choice (spec 044), or the way to add a persona when the portal has none. */
 function PersonaChoice({ p, persona, setPersona }: { p: CommandCardProps; persona: string | null; setPersona: (x: string) => void }) {
+  const add = p.onAddPersona && (
+    <Button size="sm" variant="quiet" onClick={() => p.onAddPersona?.()}>
+      Add a persona…
+    </Button>
+  );
   if (!p.personas?.length)
     return (
       <span className="sy-small">
         {'This portal has no persona yet. '}
-        {p.noPersona && <Anchor href={p.noPersona}>Add one in Settings</Anchor>}, then ask again.
+        {add ?? (p.noPersona && <Anchor href={p.noPersona}>Add one in Settings</Anchor>)}
+        {add ? '' : ', then ask again.'}
       </span>
     );
   return (
-    <label className="sy-field">
-      <span className="sy-field__label">As</span>
-      <select className="sy-select" value={persona ?? ''} onChange={(e) => setPersona(e.target.value)}>
-        {p.personas.map((x) => (
-          <option key={x} value={x}>
-            {x}
-          </option>
-        ))}
-      </select>
-    </label>
+    <div className="sy-cluster">
+      <label className="sy-field">
+        <span className="sy-field__label">As</span>
+        <select className="sy-select" value={persona ?? ''} onChange={(e) => setPersona(e.target.value)}>
+          {p.personas.map((x) => (
+            <option key={x} value={x}>
+              {x}
+            </option>
+          ))}
+        </select>
+      </label>
+      {add}
+    </div>
+  );
+}
+
+const proposedBy = (p: CommandCardProps) => (p.proposedBy === 'assistant' ? `Proposed by the assistant: ${p.reason ?? ''}` : 'You asked for it from the view.');
+
+/** An editable card (designer 19/04): its fields are a form, Confirm submits what they show. */
+function ProposedForm({ p, edit }: { p: CommandCardProps; edit: NonNullable<CommandCardProps['edit']> }) {
+  const form = useId();
+  const why = useId();
+  const busy = p.busy === true;
+  return (
+    <>
+      <form
+        id={form}
+        className="sy-cmd__body sy-cmd__form"
+        aria-describedby={why}
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (edit.ready) p.onConfirm?.(null);
+        }}
+      >
+        <span id={why} className="sy-cmd__wide sy-small sy-muted">
+          {proposedBy(p)}
+        </span>
+        {p.facts && p.facts.length > 0 && (
+          <div className="sy-cmd__wide">
+            <Facts items={p.facts} />
+          </div>
+        )}
+        <div className="sy-cmd__wide">{edit.body}</div>
+      </form>
+      <footer className="sy-cmd__foot">
+        <Button size="sm" variant="primary" type="submit" form={form} busy={busy} disabled={!edit.ready}>
+          Confirm
+        </Button>
+        <Button size="sm" variant="quiet" disabled={busy} onClick={() => p.onCancel?.()}>
+          Cancel
+        </Button>
+        <span className="sy-small sy-muted">Nothing is saved until you confirm.</span>
+      </footer>
+    </>
   );
 }
 
@@ -66,7 +126,7 @@ function Proposed(p: CommandCardProps) {
       <div className="sy-cmd__body">
         {p.facts && p.facts.length > 0 && <Facts items={p.facts} />}
         {p.askPersona && <PersonaChoice p={p} persona={persona} setPersona={setPersona} />}
-        <span className="sy-small sy-muted">{p.proposedBy === 'assistant' ? `Proposed by the assistant: ${p.reason ?? ''}` : 'You asked for it from the view.'}</span>
+        <span className="sy-small sy-muted">{proposedBy(p)}</span>
       </div>
       <footer className="sy-cmd__foot">
         {!noPersona && (
@@ -79,6 +139,33 @@ function Proposed(p: CommandCardProps) {
         </Button>
         <span className="sy-small sy-muted">Nothing runs until you confirm.</span>
       </footer>
+    </>
+  );
+}
+
+/** done or undone: what happened, its links, and Undo where the command has one. */
+function Done({ p }: { p: CommandCardProps }) {
+  const undo = p.onUndo && p.state === 'done';
+  const links = p.resultLinks ?? [];
+  return (
+    <>
+      <div className="sy-cmd__body">
+        <span>{p.result}</span>
+      </div>
+      {(links.length > 0 || undo) && (
+        <footer className="sy-cmd__foot">
+          {links.map(([label, href]) => (
+            <Anchor key={href} href={href}>
+              {label}
+            </Anchor>
+          ))}
+          {undo && (
+            <Button size="sm" variant="quiet" busy={p.busy === true} onClick={() => p.onUndo?.()}>
+              Undo
+            </Button>
+          )}
+        </footer>
+      )}
     </>
   );
 }
@@ -104,28 +191,13 @@ export function CommandCard(p: CommandCardProps) {
         </span>
         {head}
       </header>
-      {p.state === 'proposed' && <Proposed {...p} />}
+      {p.state === 'proposed' && (p.edit ? <ProposedForm p={p} edit={p.edit} /> : <Proposed {...p} />)}
       {p.state === 'running' && (
         <div className="sy-cmd__body">
           <span className="sy-caret">{p.runningWord ?? 'Running'}</span>
         </div>
       )}
-      {(p.state === 'done' || p.state === 'undone') && (
-        <>
-          <div className="sy-cmd__body">
-            <span>{p.result}</span>
-          </div>
-          {p.resultLinks && p.resultLinks.length > 0 && (
-            <footer className="sy-cmd__foot">
-              {p.resultLinks.map(([label, href]) => (
-                <Anchor key={href} href={href}>
-                  {label}
-                </Anchor>
-              ))}
-            </footer>
-          )}
-        </>
-      )}
+      {(p.state === 'done' || p.state === 'undone') && <Done p={p} />}
       {p.state === 'failed' && (
         <div className="sy-cmd__body" role="alert">
           <span>{`${p.error ?? ''} Nothing changed.`}</span> {p.errorRef}

@@ -49,6 +49,7 @@ export const WorkbenchCommandName = z.enum([
   'scan.stop',
   'path.attempt',
   'mark.add',
+  'persona.add', // spec 072 (0050): an editable card; Undo removes the persona
 ]);
 export type WorkbenchCommandName = z.infer<typeof WorkbenchCommandName>;
 

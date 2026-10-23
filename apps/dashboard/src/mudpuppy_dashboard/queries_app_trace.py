@@ -174,6 +174,8 @@ class TraceFilter(NamedTuple):
     tools: list[str]
     statuses: list[str]
     problems: bool
+    #: Only steps first…last (a pressed phase of the phase bar).
+    steps: tuple[int, int] | None = None
 
 
 class TraceCalls(BaseModel):
@@ -226,6 +228,7 @@ def trace_calls(conn: sqlite3.Connection, scan: str, f: TraceFilter, at: PageAt)
         problems=f.problems,
         cursor=at.cursor,
         limit=at.limit,
+        steps=f.steps,
     )
     names = sorted({s.name for s in queries.trace_calls(conn, scan, limit=10_000).items})
     ctx = queries_trace.agent_context_for_run(conn, scan)

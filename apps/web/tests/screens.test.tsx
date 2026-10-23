@@ -143,6 +143,16 @@ describe('Screen', () => {
     expect(screen.getByText('no change')).toBeTruthy(); // the API's word, shown as it came
     fireEvent.click(screen.getByRole('tab', { name: 'History 1' }));
     expect(await screen.findByRole('list', { name: 'Changes on this screen' })).toBeTruthy();
+    expect(screen.queryByRole('link', { name: /^Compare with/ })).toBeNull(); // one variant: nothing to compare
+  });
+
+  it('compares a persona variant with the first one side by side (designer Q10)', async () => {
+    const premium = { ...detail.variants[0]!, ordinal: 2, state_id: 'st-2', reason: 'Persona premium', personas: ['klient-premium'] };
+    at('/app/portals/shop/screens/SC-0001', { '/api/portals/shop/screens/SC-0001': { ...detail, variants: [...detail.variants, premium] } });
+    const r2 = await screen.findByRole('region', { name: 'r2' });
+    const compare = within(r2).getByRole('link', { name: 'Compare with r1' });
+    expect(compare.getAttribute('href')).toBe('/app/portals/shop/same-screen?screen=SC-0001&a=st-1&b=st-2');
+    expect(within(screen.getByRole('region', { name: 'r1' })).queryByRole('link', { name: /^Compare with/ })).toBeNull();
   });
 
   it('shows the API reason for an unknown screen', async () => {

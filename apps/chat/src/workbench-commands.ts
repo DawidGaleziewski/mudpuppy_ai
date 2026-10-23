@@ -9,6 +9,8 @@ import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import type BetterSqlite3 from 'better-sqlite3';
 import { newId, nowIso } from '@mudpuppy/core';
 import type { CommandProposal } from '@mudpuppy/workbench-contract';
+import { addPersona, personaArgs, refusalText, removePersona } from './persona-add.js';
+import { PersonaRefusal } from './personas.js';
 import { stopRun } from './runs.js';
 import { requestScan, ScanRefusal, type RequestScanInput } from './scan.js';
 import { SCAN_ID } from './workbench-context.js';
@@ -160,6 +162,13 @@ export function prepare(
     }
     case 'scan.start':
       return prepareStart(raw, portal, args);
+    case 'persona.add': {
+      // checked again on Confirm (the person may edit it); a name taken meanwhile is refused
+      // when it runs (savePersona never overwrites)
+      const checked = personaArgs(args);
+      if (!checked.ok) throw new CommandRefusal('PRECONDITION', checked.problem);
+      return { runId: null, scan: null, preconditionHash: sha256(`persona.add ${portal}`) };
+    }
     default:
       throw new CommandRefusal('NOT_IN_PHASE', `${proposal.command} comes with phase 2`);
   }
@@ -258,6 +267,7 @@ const portalOf = (raw: BetterSqlite3.Database, conversationId: string): string =
     throw new CommandRefusal('NOT_FOUND', 'the conversation has no portal');
   return row.portal_id;
 };
+export const commandPortal = portalOf;
 
 function setState(
   raw: BetterSqlite3.Database,
@@ -285,6 +295,9 @@ function setState(
       id,
     );
 }
+
+/** For the timer's pass (`workbench-settle`). */
+export const setCommandState = setState;
 
 /** A fresh one-time token for the card on screen; the previous one stops working. */
 export function issueToken(raw: BetterSqlite3.Database, id: string): string {
@@ -317,20 +330,33 @@ function tokenMatches(row: CommandRow, token: string): boolean {
   return given.length === stored.length && timingSafeEqual(given, stored);
 }
 
+/** An editable card's fields as confirmed (designer 19/04): kept on the row, which is the audit. */
+function takeEdited(raw: BetterSqlite3.Database, row: CommandRow, args: Record<string, unknown> | undefined): CommandRow {
+  if (args === undefined || row.command !== 'persona.add') return row;
+  const checked = personaArgs(args);
+  if (!checked.ok) throw new CommandRefusal('PRECONDITION', checked.problem);
+  raw.prepare(`UPDATE workbench_commands SET args_json = ?, updated_at = ? WHERE id = ?`).run(JSON.stringify(checked.args), nowIso(), row.id);
+  return getCommand(raw, row.id);
+}
+
 /** Confirm (WB-UI-21, -23): nothing reaches a scan before this, and only with the card's token. */
 export function confirmCommand(
   deps: ConfirmDeps,
-  /** `persona`: the person's choice on a Start card (spec 044); ignored by stop and resume. */
-  input: { id: string; token: string; by: string; persona?: string },
+  /**
+   * `persona`: the person's choice on a Start card (spec 044); ignored by stop and resume.
+   * `args`: an editable card's fields as the person left them (persona.add, spec 072).
+   */
+  input: { id: string; token: string; by: string; persona?: string; args?: Record<string, unknown> },
 ): CommandRow {
   const { raw } = deps;
   if (deps.commandsOn === false)
     throw new CommandRefusal('PAUSED', deps.offReason ?? 'commands are paused');
-  const row = getCommand(raw, input.id);
-  if (row.state !== 'proposed')
-    throw new CommandRefusal('NOT_PROPOSED', `the command is ${row.state}`);
-  if (!tokenMatches(row, input.token))
+  const found = getCommand(raw, input.id);
+  if (found.state !== 'proposed')
+    throw new CommandRefusal('NOT_PROPOSED', `the command is ${found.state}`);
+  if (!tokenMatches(found, input.token))
     throw new CommandRefusal('BAD_TOKEN', 'this card is out of date; reload it');
+  const row = takeEdited(raw, found, input.args);
   const proposal: CommandProposal = {
     command: row.command,
     args: JSON.parse(row.args_json) as Record<string, unknown>,
@@ -371,6 +397,13 @@ function run(
 ): void {
   const { raw } = deps;
   try {
+    if (row.command === 'persona.add') {
+      const saved = addPersona(deps.paths, portalOf(raw, row.conversation_id), JSON.parse(row.args_json));
+      setState(raw, row.id, 'done', {
+        result_json: JSON.stringify({ persona: saved.persona, credential_refs: saved.credentialRefs }),
+      });
+      return;
+    }
     if (row.command === 'scan.stop' && prepared.runId !== null) {
       stopRun(raw, prepared.runId, { byBa: true });
       deps.stopped?.(prepared.runId);
@@ -393,9 +426,24 @@ function run(
 function failure(error: unknown): string {
   if (error instanceof ScanRefusal && error.missing.length > 0)
     return `${error.message}: ${error.missing.join(', ')}`;
+  if (error instanceof PersonaRefusal) return refusalText(error);
   return error instanceof ScanRefusal || error instanceof CommandRefusal
     ? error.message
     : 'the command failed';
+}
+
+/** Undo a done `persona.add` (designer 19/04): remove the persona while no scan used it. */
+export function undoCommand(raw: BetterSqlite3.Database, paths: WorkspacePaths, id: string): CommandRow {
+  const row = getCommand(raw, id);
+  if (row.command !== 'persona.add' || row.state !== 'done')
+    throw new CommandRefusal('NOT_PROPOSED', `the command is ${row.state} and cannot be undone`);
+  try {
+    removePersona(raw, paths, portalOf(raw, row.conversation_id), (JSON.parse(row.args_json) as { name: string }).name);
+  } catch (error) {
+    throw error instanceof PersonaRefusal ? new CommandRefusal('PRECONDITION', error.message) : error;
+  }
+  setState(raw, id, 'undone');
+  return getCommand(raw, id);
 }
 
 export function cancelCommand(raw: BetterSqlite3.Database, id: string): CommandRow {
@@ -404,48 +452,4 @@ export function cancelCommand(raw: BetterSqlite3.Database, id: string): CommandR
     throw new CommandRefusal('NOT_PROPOSED', `the command is ${row.state}`);
   setState(raw, id, 'cancelled');
   return getCommand(raw, id);
-}
-
-/**
- * The timer's pass (every 2 s with the step recorder): proposals past 10 minutes expire; a
- * confirmed start or resume is done once its run is in the store, or failed when none came.
- * Returns the commands whose state changed.
- */
-export function settleCommands(raw: BetterSqlite3.Database, now = Date.now()): CommandRow[] {
-  const changed: CommandRow[] = [];
-  const open = raw
-    .prepare(`SELECT * FROM workbench_commands WHERE state IN ('proposed', 'running')`)
-    .all() as CommandRow[];
-  for (const row of open) {
-    if (row.state === 'proposed' && Date.parse(row.expires_at) <= now) {
-      setState(raw, row.id, 'expired', {
-        result_json: JSON.stringify({ why: 'it was proposed more than 10 minutes ago' }),
-      });
-      changed.push(getCommand(raw, row.id));
-    } else if (row.state === 'running' && row.confirmed_at !== null) {
-      const started = startedRun(raw, row);
-      if (started !== null) {
-        setState(raw, row.id, 'done', { result_json: JSON.stringify({ run_id: started }) });
-        changed.push(getCommand(raw, row.id));
-      } else if (Date.parse(row.confirmed_at) + START_WAIT_MS <= now) {
-        setState(raw, row.id, 'failed', {
-          error_ref: `WB-${row.id.slice(-8)}`,
-          result_json: JSON.stringify({ message: 'the crawler did not start a scan' }),
-        });
-        changed.push(getCommand(raw, row.id));
-      }
-    }
-  }
-  return changed;
-}
-
-/** The run a confirmed start or resume produced: the portal's first run since the confirm. */
-function startedRun(raw: BetterSqlite3.Database, row: CommandRow): string | null {
-  const portal = portalOf(raw, row.conversation_id);
-  const found = raw
-    .prepare(
-      `SELECT id FROM runs WHERE portal_id = ? AND started_at >= ? ORDER BY started_at LIMIT 1`,
-    )
-    .get(portal, row.confirmed_at) as { id: string } | undefined;
-  return found?.id ?? null;
 }

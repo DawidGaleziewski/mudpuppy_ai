@@ -44,8 +44,9 @@ describe('Graph', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(canvas.style.zoom).toBe('1.25');
     for (let i = 0; i < 10; i++) fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
-    expect(canvas.style.zoom).toBe('0.5');
-    expect(screen.getByText('Zoom 50%')).toBeTruthy(); // said once, in the live region
+    expect(canvas.style.zoom).toBe('0.25');
+    expect(screen.getByText('Zoom 25%')).toBeTruthy(); // said once, in the live region
+    expect(screen.getByRole('button', { name: 'Zoom 25%, overview, reset to 100%' })).toBeTruthy();
     fireEvent.keyDown(home, { key: '0' });
     expect(canvas.style.zoom).toBe('1');
     fireEvent.keyDown(home, { key: '+' });
@@ -104,5 +105,56 @@ describe('Legend, Bundle, ViewNav, Fieldset, SubHead, Text link', () => {
     expect(screen.getByRole('group', { name: 'Layers' })).toBeTruthy();
     expect(screen.getByRole('heading', { level: 3, name: 'Variants · 2' })).toBeTruthy();
     expect(screen.getByRole('link', { name: '/oferta/…' }).className).toBe('sy-route');
+  });
+});
+
+describe('Graph, round 3 (spec 072)', () => {
+  it('opens a big map readable at 80 %, not fitted; Fit draws an overview where a click zooms in (Q3)', () => {
+    // jsdom lays nothing out: a 400 px box for a 2000 px map fits at 18 %
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(400);
+    try {
+      const onSelect = vi.fn();
+      render(
+        <Graph label="Map of shop now" width={2000} height={400} edges={[]}>
+          <GraphNode id="a" x={0} y={0} route="/" title="Home" onSelect={onSelect} />
+        </Graph>,
+      );
+      const map = screen.getByRole('region', { name: 'Map of shop now' });
+      const home = screen.getByRole('button', { name: /Home/ });
+      expect(home.parentElement!.style.zoom).toBe('0.8');
+      expect(map.className).toBe('sy-graph');
+      const fit = screen.getByRole('button', { name: 'Fit' });
+      expect(fit.getAttribute('aria-pressed')).toBe('false');
+      fireEvent.click(fit);
+      expect(home.parentElement!.style.zoom).toBe('0.184');
+      expect(map.className).toBe('sy-graph sy-graph--overview');
+      fireEvent.click(home);
+      expect(onSelect).toHaveBeenCalled();
+      expect(home.parentElement!.style.zoom).toBe('1');
+      expect(map.className).toBe('sy-graph');
+    } finally {
+      width.mockRestore();
+    }
+  });
+
+  it('puts an arrowhead on a move off the tree, both ends when it went both ways (Q1)', () => {
+    const { container } = render(
+      <>
+        <Graph label="Map" width={100} height={100} edges={[{ d: 'M0 0H9', state: 'offtree', arrow: 'end', label: '↩ step 4', labelX: 4, labelY: 2 }, { d: 'M0 9H9', state: 'offtree', arrow: 'both' }, { d: 'M0 5H9', state: 'tree' }]}>
+          <GraphNode id="a" x={0} y={0} route="/" title="Home" />
+        </Graph>
+        <Legend label="Moves" items={[{ state: 'tree', label: 'First visit' }, { state: 'offtree', label: 'Move off the tree' }]} />
+      </>,
+    );
+    const marker = container.querySelector('.sy-graph marker');
+    const url = `url(#${marker?.id ?? ''})`;
+    const [end, both, tree] = [...container.querySelectorAll('.sy-graph path.sy-edge')];
+    expect(end?.getAttribute('marker-end')).toBe(url);
+    expect(end?.hasAttribute('marker-start')).toBe(false);
+    expect(both?.getAttribute('marker-start')).toBe(url);
+    expect(tree?.hasAttribute('marker-end')).toBe(false);
+    expect(screen.getByText('↩ step 4').tagName.toLowerCase()).toBe('text');
+    const legendMarker = container.querySelector('.sy-legend marker');
+    expect(legendMarker && legendMarker.id !== marker?.id).toBe(true);
   });
 });

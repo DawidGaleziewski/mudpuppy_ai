@@ -1,0 +1,12 @@
+{# Narration — the assistant's words about what the crawler did. Drawn rule (it is written, not observed).
+   Every line cites the event(s) it is based on; numbers were checked against those events. #}
+<ol class="sy-narration" id="{{ cid }}-lines" aria-label="What the crawler did" aria-live="off">
+{%- block live_lines %}
+  {% for ln in vm.lines %}
+  <li data-kind="{{ 'live' if loop.last and vm.live else ln.kind }}"><time>{{ ln.at }}</time>
+    <span>{{ ln.text }}{% for ct in ln.cites %}<a class="sy-cite" href="{{ ct.href }}" title="{{ ct.title }}" target="_blank" rel="noopener">{{ ct.label }}</a>{% endfor %}</span></li>
+  {% else %}
+  <li data-kind="live"><time>—</time><span>Waiting for the first page</span></li>
+  {% endfor %}
+{%- endblock %}
+</ol>

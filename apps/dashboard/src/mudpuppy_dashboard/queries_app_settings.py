@@ -92,6 +92,9 @@ class SettingsPage(BaseModel):
     credentials: list[Option]  # value the name, label "environment · saved at"
     workbench: str | None  # "n of cap turns used today"
     personas: list[Persona]
+    #: The sign-ins a new persona can use (spec 072): credential names X whose X_LOGIN and
+    #: X_PASSWORD a persona names or the vault holds.
+    sign_ins: list[str]
     rules: Rules | None
     hints: Hints | None
     identity: Identity
@@ -168,6 +171,16 @@ def _identity(i: queries_identity.Identity) -> Identity:
     )
 
 
+def sign_ins(names: list[str]) -> list[str]:
+    """Credential names X with both X_LOGIN and X_PASSWORD among `names` (spec 072: a persona
+    signs in with the pair; the card names it by X)."""
+    known = set(names)
+    return sorted(
+        {n.removesuffix("_LOGIN") for n in known if n.endswith("_LOGIN")}
+        & {n.removesuffix("_PASSWORD") for n in known if n.endswith("_PASSWORD")}
+    )
+
+
 def settings_page(r: SettingsRead) -> SettingsPage:
     envs = _environments(r)
     configured = {e.name for e in envs}
@@ -202,6 +215,9 @@ def settings_page(r: SettingsRead) -> SettingsPage:
             )
             for p in r.personas
         ],
+        sign_ins=sign_ins(
+            [ref for p in r.personas for ref in p.refs] + [c.name for c in r.credentials]
+        ),
         rules=Rules(**vars(r.rules)) if r.rules else None,
         hints=Hints(**vars(h)) if h else None,
         identity=_identity(r.identity),

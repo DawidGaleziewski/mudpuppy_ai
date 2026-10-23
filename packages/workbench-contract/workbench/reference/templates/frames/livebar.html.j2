@@ -1,0 +1,7 @@
+{# Pinned scan line (inline layout). Not a live region: it changes every step; milestones are announced separately. #}
+{% set st = r.state(v.scan) %}
+{% set s = r.status({"type": "ScanMeter"}, st) %}
+<span class="sy-livebar__main"><span class="sy-status" data-status="{{ s.status }}">{{ s.word }}</span>
+  <span>Scan <span class="sy-id" title="{{ st.id }}">{{ st.id | short_id }}</span> · {{ st.steps }} / {{ st.limit }} steps · now at {{ st.cur or "—" }}</span></span>
+{% set lm = v.spec.components | selectattr("type", "equalto", "LiveMap") | first %}
+{% if lm %}<a class="sy-small" href="#{{ r.cid(v, lm) }}">Jump to the live map</a>{% endif %}

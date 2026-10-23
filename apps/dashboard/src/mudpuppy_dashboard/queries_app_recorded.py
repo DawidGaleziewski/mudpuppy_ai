@@ -12,6 +12,7 @@ from pydantic import BaseModel
 from . import queries_app_map, queries_model_map, queries_plan
 from . import queries_map as qm
 from . import queries_map_node as qmn
+from .map_edges import Edge
 from .map_layout import NODE_H
 from .queries_app import Chip, StatusOut, status_out
 from .queries_app_screens import Option
@@ -40,6 +41,12 @@ class RecordedNode(BaseModel):
     kind_status: StatusOut | None
     #: The layers' chips: states, queued, failed, blocked (only for the layers shown).
     chips: list[Chip]
+    #: More than six moves off the tree end here: their chip ("↩ 14") and its words for a screen
+    #: reader ("moves back here from 9 pages"), instead of the lines (designer 18/10).
+    returns: Chip | None
+    returns_said: str | None
+    #: Reached only by other scans than the ones shown: faint, "Not reached".
+    dim: bool
     #: An open Probe mark on one of its form steps.
     marked: bool
     #: Its first recorded state; None for a family.
@@ -52,10 +59,16 @@ class RecordedNode(BaseModel):
 
 
 class RecordedEdge(BaseModel):
-    #: failed; unseen (the chosen scans did not make it); retired (off the discovery tree, the
-    #: All links layer); None: the first move into a screen.
-    state: str | None
+    #: The edge's class (designer 18/10, `sy-edge--<state>`): tree (the first move into a page),
+    #: offtree (a later move between pages the scan had), others (other scans' move), failed.
+    state: str
     d: str
+    #: "↩ 3 times", "↩ step 140", "↩ 2 · 1 times", "2 scans" (map_edges), at (label_x, label_y).
+    label: str | None
+    label_x: int | None
+    label_y: int | None
+    #: The arrowhead of a move off the tree: at its end, or both ends when it went both ways.
+    arrow: str | None
 
 
 class RecordedFilterOut(BaseModel):
@@ -92,17 +105,22 @@ class RecordedMap(BaseModel):
     open_marks: int
 
 
-LAYER_OPTIONS = [
-    Option(value="states", label="States"),
-    Option(value="errors", label="Errors"),
-    Option(value="frontier", label="Queue"),
-    Option(value="links", label="All links"),
-]
+def layer_options(others: int) -> list[Option]:
+    """The layers; other scans' moves carry their count (designer 18/10)."""
+    return [
+        Option(value="states", label="States"),
+        Option(value="errors", label="Errors"),
+        Option(value="frontier", label="Queue"),
+        Option(value="offtree", label="Moves off the tree"),
+        Option(value="others", label=f"Other scans' moves ({others})"),
+    ]
+
+
 LEGEND = [
-    Option(value="", label="First move into a screen"),
-    Option(value="retired", label="Other move (All links)"),
-    Option(value="unseen", label="Moved in other scans"),
-    Option(value="failed", label="Failed move"),
+    Option(value="tree", label="First visit"),
+    Option(value="offtree", label="Move off the tree"),
+    Option(value="others", label="Other scans' move"),
+    Option(value="failed", label="Failed"),
 ]
 NODE_LEGEND = [
     status_out("map_node", "observed"),
@@ -129,6 +147,7 @@ def _chips(n: qm.MapNode, layers: frozenset[str]) -> list[Chip]:
 
 def _node(n: qm.MapNode, layers: frozenset[str]) -> RecordedNode:
     one = n.states[0] if len(n.states) == 1 else None
+    back = n.returns if "offtree" in layers else None
     return RecordedNode(
         id=n.id,
         kind=n.kind,
@@ -139,6 +158,9 @@ def _node(n: qm.MapNode, layers: frozenset[str]) -> RecordedNode:
         deck=n.kind == "family" or len(n.states) > 1,
         kind_status=status_out("state_kind", one.kind) if one and one.kind != "main" else None,
         chips=_chips(n, layers),
+        returns=Chip(word=f"↩ {back.moves}", variant=None) if back else None,
+        returns_said=f"moves back here from {back.pages} pages" if back else None,
+        dim=n.status == "unobserved",
         marked=n.marked,
         first_state=n.states[0].id if n.states else None,
         states=n.count if n.kind == "family" else len(n.states),
@@ -149,14 +171,10 @@ def _node(n: qm.MapNode, layers: frozenset[str]) -> RecordedNode:
     )
 
 
-def _edge(e: qm.MapEdge) -> RecordedEdge:
-    if e.kind == "failed":
-        state: str | None = "failed"
-    elif not e.shown:
-        state = "unseen"
-    else:
-        state = "retired" if e.kind == "link" else None
-    return RecordedEdge(state=state, d=e.d)
+def _edge(e: Edge) -> RecordedEdge:
+    return RecordedEdge(
+        state=e.kind, d=e.d, label=e.label, label_x=e.label_x, label_y=e.label_y, arrow=e.arrow
+    )
 
 
 def _scan(s: qm.ScanChoice) -> ScanChoiceOut:
@@ -181,7 +199,7 @@ def recorded_map(conn: sqlite3.Connection, portal: str, f: qm.MapFilters) -> Rec
             layers=[x for x in qm.LAYERS if x in f.layers],
             open=f.open_family,
         ),
-        layer_options=LAYER_OPTIONS,
+        layer_options=layer_options(m.others),
         legend=LEGEND,
         node_legend=NODE_LEGEND,
         scans=[_scan(s) for s in m.scans],

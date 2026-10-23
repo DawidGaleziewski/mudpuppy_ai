@@ -1,0 +1,11 @@
+{# Phase 2: conversation on the left, the generated stage on the right. #}
+<div class="sy-wb sy-wb--split" id="wb-layout" data-phase="{{ sess.phase }}"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+  {% include "layouts/_conversation.html.j2" %}
+  <div class="sy-wb__stage" id="wb-stage" role="region" aria-label="Stage">
+    {% for c in slots.stage %}{{ r.component(view, c, "stage") }}{% endfor %}
+    {% if not slots.stage %}
+    <div class="sy-state"><span class="sy-state__title">Nothing on the stage</span>
+      <span>The answer is in the conversation. Ask to map, troubleshoot or explain something and the stage fills in.</span></div>
+    {% endif %}
+  </div>
+</div>

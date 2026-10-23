@@ -210,6 +210,7 @@ class Progress:
     max_steps: int | None
     last_activity: str | None
     items: list[ActivityItem]
+    here: str | None = None  # the route of the page it recorded last
 
     @property
     def running(self) -> bool:
@@ -338,6 +339,8 @@ def progress(conn: sqlite3.Connection, tracker: Tracker, limit: int = 30) -> Pro
         )
         for r in rows
     ]
+    latest = next((i.state_id for i in items if i.state_id), None)
+    here = conn.execute("SELECT route_template FROM states WHERE id = ?", (latest,)).fetchone()
     return Progress(
         run_id=rid,
         portal_id=run["portal_id"],
@@ -351,6 +354,7 @@ def progress(conn: sqlite3.Connection, tracker: Tracker, limit: int = 30) -> Pro
         max_steps=max_steps if isinstance(max_steps, int) else None,
         last_activity=items[0].at if items else None,
         items=items,
+        here=here[0] if here else None,
     )
 
 

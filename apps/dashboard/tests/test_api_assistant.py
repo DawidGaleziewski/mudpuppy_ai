@@ -76,14 +76,17 @@ def test_another_portals_conversation_is_not_this_portals(empty_store: Store) ->
 
 
 def test_the_scan_line_says_what_the_conversations_run_does(empty_store: Store) -> None:
-    """Spec 070 (FE-C02): the run in one line; a running run quiet five minutes is called out."""
+    """Spec 070 (FE-C02), one grammar (spec 072, designer 19/12): the run in one line; a
+    running run without a new step for 2 min or more says so, muted."""
     seed_conversation(empty_store)
     seed_progress_run(empty_store)
     with make_chat_client(empty_store, Service()) as c:
         scan = c.get(API).json()["scan"]
-    assert scan["what"] == "Scan run-p · 3 / 400 steps · 2 pages · 2 queued"
+    assert (scan["kind"], scan["scan"]) == ("AI scan", "run-p")
+    assert scan["progress"] == "3 / 400 steps · 2 pages · 2 queued"
     assert scan["running"] and scan["href"] == "/app/scans/run-p"
-    assert scan["quiet"]["word"].startswith("Nothing for")
+    assert scan["last"].startswith("no new step for ") and scan["last"].endswith(" min")
+    assert scan["last_muted"]
 
 
 def test_a_finished_run_is_not_quiet_and_no_run_has_no_line(empty_store: Store) -> None:
@@ -93,4 +96,4 @@ def test_a_finished_run_is_not_quiet_and_no_run_has_no_line(empty_store: Store) 
     seed_progress_run(empty_store, status="completed")
     with make_chat_client(empty_store, Service()) as c:
         scan = c.get(API).json()["scan"]
-    assert not scan["running"] and scan["quiet"] is None and scan["status"]["word"]
+    assert not scan["running"] and not scan["last_muted"] and scan["status"]["word"]

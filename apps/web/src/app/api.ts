@@ -35,6 +35,8 @@ export interface ScanSummary {
   id: string;
   persona: string;
   mode: string;
+  /** AI scan or Check run (designer 19/12). */
+  kind: string;
   status: StatusOut;
   steps_used: number;
   max_steps: number | null;
@@ -110,7 +112,8 @@ export interface PortalHomeData {
   model_seq: number | null;
   model_built_at: string | null;
   lanes: { part: string; release: string; observed: boolean; since: string; was: string | null }[];
-  last_scan: { id: string; started_at: string; status: StatusOut; kind: string; steps: number } | null;
+  /** `kind`: AI scan or Check run; `summary`: "17 Oct 10:05Z · 64 checks" (the scan line's grammar). */
+  last_scan: { id: string; started_at: string; status: StatusOut; kind: string; steps: number; summary: string } | null;
   needs: {
     total: number;
     by_kind: { kind: string; label: string; count: number }[];

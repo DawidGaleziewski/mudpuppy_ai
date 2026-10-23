@@ -12,7 +12,6 @@ from . import queries, queries_docs, queries_hooks, queries_run_graph
 from .formats import fmt_duration
 from .map_layout import NODE_H
 from .queries_app import Chip, StatusOut, status_out
-from .queries_app_recorded import RecordedEdge
 from .queries_app_screens import Option
 from .queries_plan import VARIATIONS
 
@@ -165,11 +164,17 @@ class Recovery(BaseModel):
     queued: int
 
 
+class ScanEdge(BaseModel):
+    #: failed; None: the first move into a screen.
+    state: str | None
+    d: str
+
+
 class ScanGraph(BaseModel):
     scan: str
     recovery: Recovery
     nodes: list[ScanNode]
-    edges: list[RecordedEdge]
+    edges: list[ScanEdge]
     width: int
     height: int
     node_h: int
@@ -250,7 +255,7 @@ def scan_graph(conn: sqlite3.Connection, scan: str) -> ScanGraph | None:
             queued=r.pending,
         ),
         nodes=[_node(n) for n in g.nodes],
-        edges=[RecordedEdge(state=e.kind if e.kind == "failed" else None, d=e.d) for e in g.edges],
+        edges=[ScanEdge(state=e.kind if e.kind == "failed" else None, d=e.d) for e in g.edges],
         width=g.width,
         height=g.height,
         node_h=NODE_H,

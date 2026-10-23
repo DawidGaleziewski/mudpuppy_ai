@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import {
+  Button,
   Callout,
   Check,
   Cluster,
@@ -7,19 +8,26 @@ import {
   Disclosure,
   Facts,
   Fieldset,
+  PhaseBar,
+  PhaseKey,
   Plate,
   Row,
   Rows,
+  shortScanId,
   Stack,
   SubHead,
   Table,
   Text,
 } from '../design-system';
 import {
+  callsParams,
   useSpanChildren,
   useTraceCalls,
+  useTracePhases,
   useTraceSummary,
   type Fact,
+  type ScanPhase,
+  type ScanPhases,
   type TraceCall,
   type TraceCalls,
   type TraceEvent,
@@ -240,16 +248,68 @@ function Filters({ d }: { d: TraceCalls }) {
   );
 }
 
-function emptyText(d: TraceCalls) {
+function emptyText(d: TraceCalls, phase: ScanPhase | null) {
+  if (phase && phase.first_step === null) return `No steps in ${phase.name}: the scan made no call then.`;
   const filtered = d.filter.tool.length > 0 || d.filter.status.length > 0;
   if (!filtered && !d.filter.problems) return 'No trace recorded for this scan. It predates tracing or never reached the server.';
   if (!filtered) return 'No problems in this scan. Every call and decision completed as expected.';
   return 'No calls match these filters. Clear the tool, status or problems filters.';
 }
 
-function Calls({ scan }: { scan: string }) {
+/** The pressed phase (`?phase=` is its index), or null. */
+function usePhase(p: ScanPhases | undefined) {
+  const { params, setFilter } = useSectionParams();
+  const raw = params.get('phase');
+  const index = raw === null || raw === '' ? null : Number(raw);
+  const phase = index !== null && p ? (p.phases[index] ?? null) : null;
+  return { index: phase ? index : null, phase, select: (i: number | null) => setFilter('phase', i === null ? '' : String(i)) };
+}
+
+const stepsOf = (p: ScanPhase) => {
+  if (p.first_step === null || p.last_step === null) return 'no steps';
+  return p.first_step === p.last_step ? `step ${String(p.first_step)}` : `steps ${String(p.first_step)}–${String(p.last_step)}`;
+};
+
+const clock = (iso: string) => `${iso.slice(11, 19)}Z`;
+
+/** The phase bar above the trace (designer 19/02): pressing a phase filters the calls to its steps. */
+function PhaseSection({ scan, p }: { scan: string; p: ScanPhases }) {
+  const { index, phase, select } = usePhase(p);
+  if (!p.has_phases) return null;
+  return (
+    <Plate title="Phases">
+      <Stack>
+        <PhaseBar
+          caption={
+            <Cluster>
+              <Text small>{`AI scan ${shortScanId(scan)} · ${p.summary}`}</Text>
+              {p.status && <ShownStatus status={p.status} />}
+            </Cluster>
+          }
+          phases={p.phases.map((x) => ({ name: x.name, kind: x.kind, state: x.state, seconds: x.seconds, lastStep: x.last_step, timeLine: x.time_line }))}
+          axis={p.axis}
+          selected={index}
+          onSelect={select}
+        />
+        <PhaseKey />
+        {phase && (
+          <Callout live>
+            <Cluster>
+              <Text small>{`Showing ${phase.name}: ${stepsOf(phase)} · ${clock(phase.start)} – ${clock(phase.end)}`}</Text>
+              <Button size="sm" variant="quiet" onClick={() => select(null)}>
+                {`Show all ${String(p.steps)} steps`}
+              </Button>
+            </Cluster>
+          </Callout>
+        )}
+      </Stack>
+    </Plate>
+  );
+}
+
+function Calls({ scan, phase }: { scan: string; phase: ScanPhase | null }) {
   const { params } = useSectionParams();
-  const q = useTraceCalls(scan, params);
+  const q = useTraceCalls(scan, callsParams(params, phase));
   return (
     <QueryState query={q} what="the tool calls">
       {(d) => (
@@ -258,7 +318,7 @@ function Calls({ scan }: { scan: string }) {
           {d.items.length === 0 ? (
             <Plate title="Tool calls · 0">
               <Text small muted block>
-                {emptyText(d)}
+                {emptyText(d, phase)}
               </Text>
             </Plate>
           ) : (
@@ -296,12 +356,17 @@ function Calls({ scan }: { scan: string }) {
 /** A scan's Trace: the summary, then every tool call with the agent's context and, once opened, its phases and events. */
 export function TraceSection({ scan }: { scan: string }) {
   const q = useTraceSummary(scan);
+  const phases = useTracePhases(scan);
+  const { phase } = usePhase(phases.data);
   return (
     <Stack>
+      <QueryState query={phases} what="the scan's phases">
+        {(p) => <PhaseSection scan={scan} p={p} />}
+      </QueryState>
       <QueryState query={q} what="the trace summary">
         {(s) => <Summary s={s} />}
       </QueryState>
-      <Calls scan={scan} />
+      <Calls scan={scan} phase={phase} />
     </Stack>
   );
 }

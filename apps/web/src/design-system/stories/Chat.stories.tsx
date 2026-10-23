@@ -9,7 +9,7 @@ const meta = {
     docs: {
       description: {
         component:
-          "The assistant (screens 01–03): `Drawer` beside the main column (head, context, conversation; Esc closes it), `ChatLog` (a `log` region that follows the newest message), `Message` (the assistant's, or the person's own with `mine`), `ChatDivider` (a system line), `Composer` (the message box), `Vault` (a credential the assistant asked for: its name, never its value), `ProposalCard` (a change the assistant drafted, dashed until applied) and `Chips` (suggestions). Text from the person or the agent is shown exactly as written.",
+          "The assistant (screens 01–03): `Drawer` beside the main column (head, context, conversation; Esc closes it), `ChatLog` (a `log` region that follows the newest message unless the person scrolled up, then offers \"New messages ↓\"; the drawer is one window high and only the log scrolls, designer Q8), `Message` (the assistant's, or the person's own with `mine`), `ChatDivider` (a system line), `Composer` (the message box), `Vault` (a credential the assistant asked for: its name, never its value), `ProposalCard` (a change the assistant drafted, dashed until applied) and `Chips` (suggestions). Text from the person or the agent is shown exactly as written.",
       },
     },
   },

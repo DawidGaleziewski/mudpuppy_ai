@@ -39,17 +39,19 @@ export interface TextProps {
   href?: string;
   /** The language of a stored value in the portal's words ("pl"), for screen readers. */
   lang?: string | null | undefined;
+  /** For a control that names this text as its description (`aria-describedby`). */
+  id?: string;
 }
 
 /** Inline text in one of the system's faces and tones: pages never set a face or a size themselves. */
-export function Text({ children, block, strong, href, lang, ...looks }: TextProps) {
+export function Text({ children, block, strong, href, lang, id, ...looks }: TextProps) {
   const className =
     cx(...(Object.keys(LOOKS) as (keyof typeof LOOKS)[]).map((k) => looks[k] === true && LOOKS[k])) ||
     undefined;
   const language = lang ?? undefined;
   if (block)
     return (
-      <p className={className} lang={language}>
+      <p className={className} lang={language} id={id}>
         {children}
       </p>
     );
@@ -61,7 +63,7 @@ export function Text({ children, block, strong, href, lang, ...looks }: TextProp
     );
   const Inline = strong ? 'strong' : 'span';
   return (
-    <Inline className={className} lang={language}>
+    <Inline className={className} lang={language} id={id}>
       {children}
     </Inline>
   );

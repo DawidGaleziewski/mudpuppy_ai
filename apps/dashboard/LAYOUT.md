@@ -33,7 +33,7 @@ files, and the console itself at `/app/`.
 | `api_recorded` | `…/map/recorded[/{screen}]`, `…/screens/recorded` | `queries_app_recorded`, `queries_app_recorded_pages` |
 | `api_state` | `/api/states/{id}`, `…/screens/{key}/recordings` | `queries_app_state`, `queries_app_state_side`, `queries_app_screen_recordings` |
 | `api_same_screen` | `…/same-screen` (+ `/label`) | `queries_app_same_screen` |
-| `api_scan`, `api_scan_tabs`, `api_scan_trace` | `/api/scans/{id}`, `…/graph`, its sections, trace and process | `queries_app_scan`, `queries_app_scan_tabs`, `queries_app_trace`, `queries_app_trace_events` |
+| `api_scan`, `api_scan_tabs`, `api_scan_trace` | `/api/scans/{id}`, `…/graph`, its sections, trace (`…/trace/phases`: the phase bar) and process | `queries_app_scan`, `queries_app_scan_tabs`, `queries_app_trace`, `queries_app_trace_events`, `queries_app_trace_phases` over `queries_trace_phases` |
 | `api_plan` | `…/scans/plan` (+ start), `/api/scans/{id}/recovery` | `queries_app_plan` |
 | `api_processes`, `api_process`, `api_process_export` | the list and its writes; one process, Compare, History, the editor; the export | `queries_app_processes`, `queries_app_process`, `queries_app_process_editor`, `queries_app_process_compare`, `process_export` |
 | `api_review`, `api_review_items` | `…/review` and its decisions, records, amendments, proposals, probe suites | `queries_app_review`, `queries_app_review_rows`, `queries_app_review_detail` |
@@ -74,7 +74,10 @@ files, and the console itself at `/app/`.
   `queries_suites.py`, `queries_scans.py`, `queries_settings.py`, `queries_plan.py`.
 - Processes: `queries_processes.py`, `queries_process_doc.py`, `process_views.py`,
   `process_diff.py`, `change_spec.py`.
-- The recorded map: `map_layout.py` (pure layout), `queries_map.py`, `queries_map_node.py`,
+- Scan lines: `scan_words.py` (pure: the one grammar of a scan line, spec 072 FR-010; kind, progress,
+  last-step and when words used by the home, assistant and scan read models).
+- The recorded map: `map_layout.py` (pure layout), `map_edges.py` (pure: tree, off-tree,
+  other scans' and failed moves, labels, arrowheads, the hub chip), `queries_map.py`, `queries_map_node.py`,
   `queries_run_graph.py`.
 - The portal model (spec 039/040): `queries_model_screens.py`, `queries_model_map.py`,
   `queries_model_facts.py`, `queries_changes.py`, `queries_change_detail.py`,

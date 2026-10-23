@@ -1281,7 +1281,9 @@ class WorkbenchCommand(Row):
     id: str
     conversation_id: str
     turn: int
-    command: Literal["scan.start", "scan.resume", "scan.stop", "path.attempt", "mark.add"]
+    command: Literal[
+        "scan.start", "scan.resume", "scan.stop", "path.attempt", "mark.add", "persona.add"  # 0050
+    ]
     args_json: Json
     reason: str
     source: Literal["assistant", "button"]

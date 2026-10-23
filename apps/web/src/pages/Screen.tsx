@@ -21,6 +21,7 @@ import {
   Variant,
   Variants,
 } from '../design-system';
+import { sameScreenHref } from '../app/api-same-screen';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
 import { useScreenRecordings, type ScreenRecordings } from '../app/api-state';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -79,6 +80,8 @@ function VariantList({ d }: { d: ScreenDetailData }) {
   // the dialog steps through the variants that have a picture (← / →)
   const pictured = d.variants.filter((v) => v.picture?.shot ?? v.picture?.wire);
   const items = pictured.map((v) => ({ label: variantLabel(v), shot: v.picture?.shot, wire: v.picture?.wire }));
+  // Compare a variant with the first one side by side, what differs listed, persona too (designer Q10)
+  const base = d.variants[0];
   return (
     <Plate label="Variants">
       <Variants>
@@ -108,6 +111,11 @@ function VariantList({ d }: { d: ScreenDetailData }) {
             <Text small block>
               {v.explanation}
             </Text>
+            {base && v.state_id !== base.state_id && (
+              <Text small href={sameScreenHref(d.portal, { screen: d.screen.key, a: base.state_id, b: v.state_id })}>
+                {`Compare with r${String(base.ordinal)}`}
+              </Text>
+            )}
             {d.variants.length === 1 && (
               <Text small block>
                 One variant so far. A second one appears here when a scan sees this screen differently (another release,

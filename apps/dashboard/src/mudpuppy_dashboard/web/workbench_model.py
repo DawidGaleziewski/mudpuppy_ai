@@ -9,7 +9,7 @@ from dataclasses import dataclass, field
 from typing import Any
 from urllib.parse import quote
 
-from .. import chat_client, queries_wb, wb_render
+from .. import chat_client, queries_app_settings, queries_settings, queries_wb, wb_render
 from ..queries_chat import list_personas
 from ..queries_wb import WbConversation
 from ..queries_wb_scan import PageVisit, ScanLive, resolve_scan
@@ -73,6 +73,9 @@ def render_ctx(
     c: Ctx, conn: sqlite3.Connection, conv: WbConversation, tokens: dict[str, str]
 ) -> wb_render.Ctx:
     bound = queries_wb.bound_scans(conn, conv.id)
+    rows = queries_settings.persona_rows(c.settings.personas_dir, conv.portal)
+    refs = [r for p in rows for r in p.refs]
+    stored = [s.name for s in queries_settings.stored_credentials(conn, conv.portal)]
     rc = wb_render.Ctx(
         conn=conn,
         portal=conv.portal,
@@ -80,6 +83,7 @@ def render_ctx(
         viewer=c.settings.reviewer,
         tokens=tokens,
         personas=tuple(p.id for p in list_personas(c.settings.personas_dir, conv.portal)),
+        sign_ins=tuple(queries_app_settings.sign_ins(refs + stored)),
     )
     rc.bound = [r for s in bound if (r := resolve_scan(conn, conv.portal, s))]
     return rc

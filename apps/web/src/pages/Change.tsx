@@ -1,6 +1,6 @@
 import { useCallback, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
-import { Button, Cluster, Columns, Compare, CompareSide, Field, Input, LinkButton, PageHead, Plate, Row, Rows, ScanId, Shot, Split, Stack, SubHead, Table, Tag, Text, ViewNav } from '../design-system';
+import { Button, Cluster, Columns, Compare, CompareOverlay, CompareSide, Field, Input, LinkButton, PageHead, Plate, Row, Rows, ScanId, Shot, Split, Stack, SubHead, Table, Tag, Text, ViewNav } from '../design-system';
 import { changeHref, changesHref, changesKey, useChange, type ChangePage, type ChangeSide, type CompareMode } from '../app/api-changes';
 import { processHref } from '../app/api-processes';
 import { reviewHref, reviewWrites, undoAsk } from '../app/api-review';
@@ -21,6 +21,17 @@ const MODES: readonly [CompareMode, string][] = [
 
 const modeOf = (raw: string | null): CompareMode => (raw === 'overlay' || raw === 'wire' ? raw : 'side');
 
+/** "Not here" said in words: the mark itself is decoration (designer Q5a). */
+const goneWords = (shape: 'box' | 'line') =>
+  shape === 'line' ? ', without the change; a dashed line marks where it appears on the other visit' : ', without the change; a dashed box marks where it is on the other visit';
+
+/** One side's picture: "Changed" where the change is, "Not here" on the other side's screenshot. */
+function SideShot({ d, s, src, shot }: { d: ChangePage; s: ChangeSide; src: string; shot: string | null }) {
+  const gone = shot && !s.has_change ? d.gone : null;
+  const name = `${s.label}: ${s.title ?? s.route ?? 'recorded screen'}${shot ? '' : ' (wireframe)'}${gone ? goneWords(gone.shape) : ''}`;
+  return <Shot src={src} alt={name} region={shot && s.has_change ? d.region : null} gone={gone} />;
+}
+
 /** One side's page: the screenshot (the wireframe in Wireframe mode or without one), the change marked. */
 function SidePicture({ d, s, mode }: { d: ChangePage; s: ChangeSide; mode: CompareMode }) {
   const shot = mode === 'wire' ? null : s.shot;
@@ -34,7 +45,7 @@ function SidePicture({ d, s, mode }: { d: ChangePage; s: ChangeSide; mode: Compa
         {s.at && <Text mono small muted>{s.at}</Text>}
       </Cluster>
       {src ? (
-        <Shot src={src} alt={`${s.label}: ${s.title ?? s.route ?? 'recorded screen'}${shot ? '' : ' (wireframe)'}`} region={shot ? d.region : null} mark={s.has_change ? 'here' : 'gone'} />
+        <SideShot d={d} s={s} src={src} shot={shot} />
       ) : (
         <Text small muted>
           No picture was recorded.
@@ -51,10 +62,13 @@ function Pictures({ d, mode }: { d: ChangePage; mode: CompareMode }) {
   const both = d.before.shot && d.after.shot;
   if (mode === 'overlay' && d.before.shot && d.after.shot) {
     return (
-      <Stack>
-        <Shot src={d.before.shot} alt={d.before.label} over={{ src: d.after.shot, alt: `${d.after.label}, half transparent` }} />
-        <Text small muted>{`${d.after.label} over ${d.before.label} at 50%: small shifts show as a double edge.`}</Text>
-      </Stack>
+      <CompareOverlay
+        title={`${d.before.label}, with ${d.after.label} over it`}
+        under={<Shot layer="under" src={d.before.shot} alt={`${d.before.label}: ${d.before.title ?? d.before.route ?? 'recorded screen'}, with ${d.after.label} drawn over it`} />}
+        over={<Shot layer="over" src={d.after.shot} alt="" region={d.after.has_change ? d.region : null} />}
+      >
+        <Text small muted>Small shifts show as a double edge; the slider sets how strongly the after shows.</Text>
+      </CompareOverlay>
     );
   }
   return (

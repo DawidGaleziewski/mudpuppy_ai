@@ -43,9 +43,9 @@ export function Scans() {
         {(list) => (
           <Stack>
             {running.map((s) => (
-              <Plate key={s.id} title="Running now" label={`Scan ${shortScanId(s.id, ids)}`}>
+              <Plate key={s.id} title="Running now" label={`${s.kind} ${shortScanId(s.id, ids)}`}>
                 <Meter
-                  label={`Scan ${shortScanId(s.id, ids)}`}
+                  label={`${s.kind} ${shortScanId(s.id, ids)}`}
                   value={s.steps_used}
                   max={s.max_steps ?? Math.max(s.steps_used, 1)}
                   detail={`${String(s.steps_used)} / ${String(s.max_steps ?? '?')} steps`}

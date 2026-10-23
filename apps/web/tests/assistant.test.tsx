@@ -158,13 +158,16 @@ describe('The assistant on Home, the scan line and page actions (spec 070)', () 
     expect(sessionStorage.getItem('mudpuppy.assistant.say')).toBeNull();
   });
 
-  it('shows the conversation’s scan in one line', async () => {
-    const scan = { status: { shape: 'running', word: 'Running' }, what: 'Scan run-p · 3 / 400 steps · 2 pages · 2 queued', scan: 'run-p', href: '/app/scans/run-p', running: false, quiet: { shape: 'needs', word: 'Nothing for 9m 00s' } };
+  it('shows the conversation’s scan in one line, in the one grammar (designer Q12)', async () => {
+    const id = '01a110e7-2068-7d10-8c55-91e2b3f4a6d8';
+    const scan = { status: { shape: 'running', word: 'Running' }, kind: 'AI scan', scan: id, progress: '12 / 120 steps · 9 pages · 3 queued', last: 'no new step for 9 min', last_muted: true, href: `/app/scans/${id}`, running: true };
     at('/app/portals/shop/docs', routes(page({ scan })));
     await open();
-    expect(await within(drawer()).findByText('Scan run-p · 3 / 400 steps · 2 pages · 2 queued')).toBeTruthy();
-    expect(within(drawer()).getByText('Nothing for 9m 00s')).toBeTruthy();
-    expect(within(drawer()).getByRole('link', { name: 'Open in Scans' }).getAttribute('href')).toBe('/app/scans/run-p');
+    expect(await within(drawer()).findByText('12 / 120 steps · 9 pages · 3 queued')).toBeTruthy();
+    expect(within(drawer()).getByText('AI scan')).toBeTruthy();
+    expect(within(drawer()).getByText('01a110e7-2068').getAttribute('title')).toBe(id); // 13 characters, the whole id on hover
+    expect(within(drawer()).getByText('no new step for 9 min').className).toContain('sy-muted');
+    expect(within(drawer()).getByRole('link', { name: 'Open' }).getAttribute('href')).toBe(`/app/scans/${id}`);
   });
 
   it('turns the assistant’s page actions into addresses on this site', async () => {

@@ -12,10 +12,10 @@ from urllib.parse import quote
 from pydantic import BaseModel
 
 from . import queries_chat
-from .formats import fmt_duration, short_id
 from .models import ChatConversation, ChatMessage
 from .queries_app import StatusOut, status_out
 from .queries_proposals import ProposalView
+from .scan_words import kind_word, last_words, progress_words
 
 Kind = Literal["user", "assistant", "system", "error", "credential", "proposal"]
 
@@ -64,15 +64,18 @@ class Conversation(BaseModel):
 
 
 class ScanLine(BaseModel):
-    """The conversation's run in one line (FE-C02): what it is doing, from the store."""
+    """The conversation's run in one line (FE-C02; one grammar, designer 19/12, `scan_words`):
+    status · AI scan / Check run · 13-character id · progress · where or when · Open."""
 
     status: StatusOut
-    what: str  # "Scan 01a16624-db89 · 12 / 120 steps · 9 pages · 3 queued"
-    scan: str  # the run's id
+    kind: str  # AI scan · Check run
+    scan: str  # the run's whole id (the line shows 13 characters)
+    progress: str  # "12 / 120 steps · 9 pages · 3 queued"
+    #: "now at /porownanie", "no new step for 9 min" (muted), "at /kontakt", "17 Oct 10:05Z".
+    last: str | None
+    last_muted: bool
     href: str
     running: bool
-    #: A running run with no recorded activity for five minutes (F-22).
-    quiet: StatusOut | None
 
 
 class AssistantPage(BaseModel):
@@ -84,26 +87,19 @@ class AssistantPage(BaseModel):
     scan: ScanLine | None
 
 
-#: A running run quiet this long is called out.
-QUIET_MS = 5 * 60_000
-
-
 def scan_line(p: queries_chat.Progress | None, now: datetime) -> ScanLine | None:
     if p is None:
         return None
-    steps = f"{p.steps_used} / {p.max_steps}" if p.max_steps else str(p.steps_used)
-    kind = "Scan" if p.mode == "map" else "Trace"
-    quiet_ms = p.quiet_ms(now)
-    quiet = None
-    if quiet_ms is not None and quiet_ms >= QUIET_MS:
-        quiet = StatusOut(shape="needs", word=f"Nothing for {fmt_duration(quiet_ms)}")
+    last = last_words(p.status, p.quiet_ms(now), p.here, p.ended_at)
     return ScanLine(
         status=status_out("run", p.status),
-        what=f"{kind} {short_id(p.run_id)} · {steps} steps · {p.pages} pages · {p.queued} queued",
+        kind=kind_word(p.mode),
         scan=p.run_id,
+        progress=progress_words(p.mode, p.steps_used, p.max_steps, p.pages, p.queued),
+        last=last.text if last else None,
+        last_muted=last.muted if last else False,
         href=f"/app/scans/{quote(p.run_id, safe='')}",
         running=p.running,
-        quiet=quiet,
     )
 
 

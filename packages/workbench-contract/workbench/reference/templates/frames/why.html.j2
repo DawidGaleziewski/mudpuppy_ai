@@ -1,0 +1,15 @@
+{# "Why this view?" — the assistant's reasoning, in plain words. Drawn (dashed blueprint) because it is generated. #}
+<dl class="sy-facts">
+  <dt>Path</dt><dd>{{ PATH_LABEL[view.path] }} · {{ "your choice" if view.path_source == "you" else "picked by the assistant" }}</dd>
+  <dt>Because</dt><dd>{{ view.why }}</dd>
+  {% if view.asked %}<dt>You asked</dt><dd>“{{ view.asked }}”</dd>{% endif %}
+  <dt>This view</dt><dd>{{ r.summary(view, titles_only=True) }}</dd>
+  <dt>Data</dt><dd>{{ data }}</dd>
+  <dt>Composed by</dt><dd>{{ "the assistant (model call)" if view.origin == "assistant" else "the Workbench, from the path (no model call)" }}</dd>
+  {% if view.dropped %}<dt>Left out</dt><dd>{% for d in view.dropped %}{{ d.type }}: {{ d.text }} <span class="sy-mono sy-mono--sm">{{ d.code }}</span>{% if not loop.last %} · {% endif %}{% endfor %}</dd>{% endif %}
+</dl>
+<div class="sy-genwhy__switch"><span class="sy-small">Not what you need? Switch to</span>
+  {% for p in paths if p != view.path %}
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" hx-get="{{ r.url(view, path=p, sel=None) }}" hx-swap="none" hx-push-url="true">{{ PATH_LABEL[p] }}</button>
+  {% endfor %}
+</div>

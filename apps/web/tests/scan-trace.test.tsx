@@ -115,6 +115,53 @@ describe('Trace', () => {
   });
 });
 
+const phase = (name: string, kind: string, first: number | null, last: number | null, state = 'done') => ({
+  name,
+  kind,
+  state,
+  start: '2026-10-06T10:49:20.000Z',
+  end: '2026-10-06T10:53:40.000Z',
+  seconds: 60,
+  first_step: first,
+  last_step: last,
+  time_line: `10:49:20Z · 1 min 0 s · ${first === null ? 'no steps' : `steps ${String(first)}–${String(last)}`}`,
+});
+const phases = {
+  has_phases: true,
+  summary: '6 Oct 10:49:20Z – 10:58:44Z · 9 min 24 s · 171 steps',
+  status: { shape: 'stopped', word: 'Interrupted' },
+  steps: 171,
+  phases: [phase('Explore', 'work', 1, 76), phase('Waiting for you', 'wait', null, null), phase('Fill forms', 'work', 77, 139, 'failed')],
+  axis: [
+    { left: 0, label: '10:49:20Z' },
+    { left: 100, label: '10:58:44Z' },
+  ],
+};
+
+describe('Trace phase bar (spec 072, designer Q2)', () => {
+  it('draws the phases; one filters the calls to its steps and Show all clears it', async () => {
+    const fetch = at(`/app/scans/${SCAN}/trace`, {
+      [API]: scanHead,
+      [`${API}/trace/summary`]: summary,
+      [`${API}/trace/phases`]: phases,
+      [`${API}/trace`]: calls,
+      [`${API}/trace?first=77&last=139`]: { ...calls, total: 63 },
+    });
+    // a text query first: role queries over this whole page outlast findBy's default wait in jsdom
+    const fill = (await screen.findByText('Fill forms')).closest('button')!;
+    expect(fill.textContent).toMatch(/^Fill forms, 10:49:20Z.*, ended in a failure at step 139$/);
+    expect(fill.closest('li')?.getAttribute('data-state')).toBe('failed');
+    expect(screen.getByText('Waiting for you', { selector: '.sy-phasebar__name' }).closest('li')?.getAttribute('data-kind')).toBe('wait');
+    fireEvent.click(fill);
+    expect(fill.getAttribute('aria-pressed')).toBe('true');
+    expect(await screen.findByText('Showing Fill forms: steps 77–139 · 10:49:20Z – 10:53:40Z')).toBeTruthy();
+    await waitFor(() => expect(fetch.mock.calls.map((c) => c[0])).toContain(`${API}/trace?first=77&last=139`));
+    fireEvent.click(screen.getByRole('button', { name: 'Show all 171 steps' }));
+    expect(fill.getAttribute('aria-pressed')).toBe('false');
+    expect(screen.queryByText(/^Showing /)).toBeNull();
+  });
+});
+
 describe('Process', () => {
   it('shows a trace run’s process, its map source and its steps', async () => {
     at(`/app/scans/${SCAN}/process`, {

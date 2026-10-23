@@ -130,6 +130,27 @@ async def save_hints(request: Request, portal: str, part: str) -> JSONResponse:
     return await _send(request, "PUT", path, body, f"{word} saved.")
 
 
+@router.post("/personas", response_model=WriteResult)
+async def add_persona(request: Request, portal: str) -> JSONResponse:
+    """Add a persona (spec 072, designer 19/04: the `persona.add` args); the chat service checks
+    the name, the credential (a vault name, never a value) and the test data, and writes it."""
+    if (no := write_refused(request, "add a persona")) is not None:
+        return no
+    args = await read_json(request)
+    name = str(args.get("name") or "")
+    path = f"/portals/{quote(portal, safe='')}/personas"
+    return await _send(request, "POST", path, args, f"Persona {name} added to {portal}.")
+
+
+@router.post("/personas/{name}/remove", response_model=WriteResult)
+async def remove_persona(request: Request, portal: str, name: str) -> JSONResponse:
+    """Remove a persona no scan used yet (a used one stays: its scans cite it)."""
+    if (no := write_refused(request, "remove a persona")) is not None:
+        return no
+    path = f"/portals/{quote(portal, safe='')}/personas/{quote(name, safe='')}"
+    return await _send(request, "DELETE", path, None, f"Persona {name} removed.")
+
+
 @router.post("/model/accept", response_model=WriteResult)
 async def accept_model(request: Request, portal: str) -> JSONResponse:
     """Put the calibrated τ or the trained classifier in force (owner answers 5 and 14)."""

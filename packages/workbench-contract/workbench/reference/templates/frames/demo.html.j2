@@ -1,0 +1,13 @@
+{# Reference-app controls (not product UI): rollout phase, focus mode, replay, simulate a dropped stream. #}
+<div class="sy-cluster" style="--sy-gap: 6px 10px" aria-label="Reference controls">
+  <span class="sy-label">Phase</span>
+  <div class="sy-seg" role="group" aria-label="Rollout phase">
+    {% for ph in (1, 2, 3) %}<a href="/workbench?phase={{ ph }}" aria-current="{{ 'true' if sess.phase == ph else 'false' }}">{{ ph }}</a>{% endfor %}
+  </div>
+  {% if sess.phase >= 3 %}
+  <a class="sy-btn sy-btn--sm sy-btn--quiet" href="/workbench?focus={{ 0 if sess.focus else 1 }}" data-focus-toggle
+     aria-pressed="{{ 'true' if sess.focus else 'false' }}">Focus mode <span class="sy-kbd">F</span></a>
+  {% endif %}
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" hx-post="/demo/reset" hx-swap="none">Reset demo</button>
+  <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" hx-post="/demo/drop" hx-swap="none">Drop the stream 5 s</button>
+</div>

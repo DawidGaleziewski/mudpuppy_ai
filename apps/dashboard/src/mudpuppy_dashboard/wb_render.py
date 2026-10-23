@@ -81,6 +81,7 @@ class Ctx:
     scans: dict[str, ScanLive | None] = field(default_factory=dict)  # full scan id -> scan (cache)
     bound: list[str] = field(default_factory=list)  # run ids the conversation binds
     personas: tuple[str, ...] = ()  # the portal's persona ids, for a Start card (spec 044)
+    sign_ins: tuple[str, ...] = ()  # credential names a new persona can use (spec 072)
 
     def scan(self, scan_id: str) -> ScanLive | None:
         if scan_id not in self.scans:
@@ -267,8 +268,29 @@ def _scan_facts(rc: Ctx, scan_id: str) -> tuple[ScanLive | None, str]:
     return scan, kept
 
 
+def _persona_card(rc: Ctx, cmd: WbCommand) -> CommandCard:
+    """Add a persona (spec 072, designer 19/04): an editable card; its fields are the args."""
+    facts = (
+        ("Adds", f"a persona to {rc.portal}"),
+        ("Where", rc.env),
+        ("Undo", "Undo removes the persona until a scan uses it."),
+    )
+    card = _card_of(rc, cmd, facts)
+    undo = f"/api/workbench/commands/{cmd.id}/undo" if cmd.state == "done" else None
+    return replace(
+        card,
+        editable=True,
+        args=dict(cmd.args),
+        sign_ins=rc.sign_ins,
+        personas=rc.personas,
+        undo_url=undo,
+    )
+
+
 def command_card(rc: Ctx, cmd: WbCommand) -> CommandCard:
     """A command card with its facts in the designer's order (§ 5.12) and its state's words."""
+    if cmd.command == "persona.add":
+        return _persona_card(rc, cmd)
     scan_id = str(cmd.args.get("scan", ""))
     scan, kept = _scan_facts(rc, scan_id)
     short = queries_wb_scan.short_id(scan_id)
@@ -315,14 +337,35 @@ LABELS = {
     "scan.start": "Start a map scan",
     "scan.resume": "Resume from last checkpoint",
     "scan.stop": "Stop the scan",
+    "persona.add": "Add a persona",
 }
-RUNNING = {"scan.start": "Starting…", "scan.resume": "Resuming…", "scan.stop": "Stopping…"}
+RUNNING = {
+    "scan.start": "Starting…",
+    "scan.resume": "Resuming…",
+    "scan.stop": "Stopping…",
+    "persona.add": "Adding…",
+}
 
 
-def _result(cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
+def _persona_result(rc: Ctx, cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
+    name = str(cmd.result.get("persona") or cmd.args.get("name", ""))
+    if cmd.state == "undone":
+        return f"Persona {name} removed from {rc.portal}.", ()
+    if cmd.state != "done":
+        return "", ()
+    signs_in = " can now sign in as" if cmd.args.get("credential") else " can now browse as"
+    settings = f"/app/portals/{rc.portal}/settings"
+    return f"Persona {name} added to {rc.portal}. Scans on {rc.env}{signs_in} {name}.", (
+        ("Open in Settings ▸ Personas", settings),
+    )
+
+
+def _result(rc: Ctx, cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
     run = cmd.result.get("run_id")
     if cmd.state == "expired":
         return str(cmd.result.get("why", "it no longer applies")), ()
+    if cmd.command == "persona.add":
+        return _persona_result(rc, cmd)
     if cmd.state != "done" or not isinstance(run, str):
         return "", ()
     if cmd.command == "scan.stop":
@@ -333,7 +376,7 @@ def _result(cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
 
 
 def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> CommandCard:
-    result, links = _result(cmd)
+    result, links = _result(rc, cmd)
     base = f"/api/workbench/commands/{cmd.id}"
     return CommandCard(
         dom_id=f"cmd-{cmd.id}",

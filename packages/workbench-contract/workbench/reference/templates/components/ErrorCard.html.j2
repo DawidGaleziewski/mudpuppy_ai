@@ -1,0 +1,24 @@
+{# ErrorCard — why the scan stopped, where, what is kept, what you can do. The reason is red; the scan itself is "Stopped". #}
+<div id="{{ cid }}-error" class="sy-stack" style="--sy-gap: var(--sy-space-3)">
+{%- block live_error %}
+  {% set s = vm.scan %}
+  {% if vm.continued %}
+  <span class="sy-small">Resumed as scan <a class="sy-tag sy-tag--sm" href="/scans/{{ vm.continued }}" title="{{ vm.continued }}">{{ vm.continued | short_id }}</a>, which continues <span class="sy-id" title="{{ s.id }}">{{ s.id | short_id }}</span> from the last good checkpoint.</span>
+  {% elif vm.stopped %}
+  <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="failed">Failed</span>
+    {% if s.error %}<span class="sy-mono sy-mono--sm">{{ s.error }}</span>{% endif %}
+    <span class="sy-small sy-muted">step {{ s.stop_step }} · {{ s.at }}</span></span>
+  <span class="sy-small">{{ s.reason }} {{ s.pages }} pages and {{ s.queued }} queued links are kept.</span>
+  {% if live %}
+  <div class="sy-actions" style="--sy-gap: 6px">
+    <button class="sy-btn sy-btn--sm sy-btn--strong" type="button" hx-post="/workbench/commands/propose"
+            hx-vals='{"command": "scan.resume", "scan": "{{ s.id }}"}' hx-swap="none">Resume from last checkpoint…</button>
+    {% if vm.troubleshoot %}<button class="sy-btn sy-btn--sm" type="button" hx-get="{{ vm.troubleshoot }}" hx-swap="none" hx-push-url="true">Troubleshoot with me</button>{% endif %}
+    {% if vm.ask %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-ask="{{ vm.ask | tojson_attr }}" data-ask-send="Why did it stop here?">Ask why</button>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <span class="sy-small sy-muted">The scan is running; nothing has stopped it.</span>
+  {% endif %}
+{%- endblock %}
+</div>

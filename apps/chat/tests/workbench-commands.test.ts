@@ -2,7 +2,7 @@
 // one-time token; a changed precondition or 10 minutes expire a proposal; a confirmed start or
 // resume hands the crawler prompt to the assistant and is done once the run is in the store.
 
-import { cpSync, mkdtempSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
@@ -15,11 +15,12 @@ import {
   issueToken,
   proposeCommand,
   resolveScan,
-  settleCommands,
   shortScan,
+  undoCommand,
   type CommandRow,
   type ConfirmDeps,
 } from '../src/workbench-commands.js';
+import { settleCommands } from '../src/workbench-settle.js';
 
 const repo = join(import.meta.dirname, '..', '..', '..');
 const P = 'reference-insurer';
@@ -229,5 +230,34 @@ describe('workbench commands', () => {
     const [expired] = settleCommands(raw(), Date.now() + 11 * 60 * 1000);
     expect(expired).toMatchObject({ id: row.id, state: 'expired' });
     expect(getCommand(raw(), row.id).confirmed_at).toBeNull();
+  });
+});
+
+describe('persona.add (spec 072, designer 19/04)', () => {
+  const persona = (name: string) => join(root, 'personas', P, `${name}.yaml`);
+
+  it('adds what the person confirmed (their edits win), and Undo removes it', () => {
+    const row = propose('persona.add', { name: 'klient-nowy', credential: 'REF_INSURER_KLIENT' });
+    expect(existsSync(persona('klient-nowy'))).toBe(false); // nothing before Confirm
+    const edited = { name: 'client', about: 'A signed-in customer', credential: 'REF_INSURER_KLIENT' };
+    const done = confirmCommand(deps(), { id: row.id, token: issueToken(raw(), row.id), by: 'ba', args: edited });
+    expect(done.state).toBe('done');
+    expect(JSON.parse(done.args_json)).toEqual(edited); // the audit keeps what was confirmed
+    expect(JSON.parse(done.result_json ?? '{}')).toMatchObject({ persona: 'client' });
+    expect(existsSync(persona('client'))).toBe(true);
+    expect(existsSync(persona('klient-nowy'))).toBe(false);
+    expect(readFileSync(persona('client'), 'utf8')).toContain('ref:REF_INSURER_KLIENT_LOGIN');
+    expect(undoCommand(raw(), { repoRoot: root }, row.id).state).toBe('undone');
+    expect(existsSync(persona('client'))).toBe(false);
+  });
+
+  it('refuses edits that are not a persona, and fails a name taken meanwhile with its reason', () => {
+    const row = propose('persona.add', { name: 'client' });
+    expect(() => confirmCommand(deps(), { id: row.id, token: issueToken(raw(), row.id), by: 'ba', args: { name: 'Client!' } })).toThrow(/not valid/);
+    const taken = propose('persona.add', { name: 'klient' }); // klient.yaml exists
+    const failed = confirmCommand(deps(), { id: taken.id, token: issueToken(raw(), taken.id), by: 'ba' });
+    expect(failed.state).toBe('failed');
+    expect(messageOf(failed)).toContain('already exists');
+    expect(() => undoCommand(raw(), { repoRoot: root }, taken.id)).toThrow(/cannot be undone/);
   });
 });

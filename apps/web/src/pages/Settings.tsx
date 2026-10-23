@@ -153,7 +153,7 @@ function Body({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
         </Plate>
       )}
       <Grid min="22rem">
-        <Personas s={s} />
+        <Personas s={s} ask={ask} />
         <CrawlRules s={s} />
         <Hints s={s} ask={ask} />
         <Budgets s={s} ask={ask} />

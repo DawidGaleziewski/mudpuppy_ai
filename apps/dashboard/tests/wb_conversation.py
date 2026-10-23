@@ -114,6 +114,8 @@ class Chat:
             return httpx2.Response(202, json={"turn": 2})
         if path.endswith("/confirm") or path.endswith("/feedback"):
             return httpx2.Response(200, json={"state": "running", "value": "yes"})
+        if path.endswith("/undo"):  # a done persona.add (spec 072)
+            return httpx2.Response(200, json={"state": "undone"})
         return httpx2.Response(404, json={"message": "not mocked"})
 
 

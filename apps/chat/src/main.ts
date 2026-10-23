@@ -25,6 +25,7 @@ import {
   setEnvironment,
   setHints,
 } from './portals.js';
+import { addPersona, removePersona } from './persona-add.js';
 import { createProcessService } from './process-service.js';
 import { createProbeSuiteService } from './probe-suites.js';
 import { createMarkService } from './marks.js';
@@ -104,6 +105,8 @@ function buildApi({
       setEnvironment: (id, env, body) => setEnvironment({ repoRoot }, id, env, body),
       removeEnvironment: (id, env) => removeEnvironment({ repoRoot }, id, env),
       setHints: (id, body) => setHints({ repoRoot }, id, body),
+      addPersona: (id, body) => addPersona({ repoRoot }, id, body),
+      removePersona: (id, name) => removePersona(opened.raw, { repoRoot }, id, name),
     },
   });
 }

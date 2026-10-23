@@ -463,6 +463,12 @@ const SQL_0049 = readFileSync(
   fileURLToPath(new URL('../../../../../data/migrations/0049_workbench.up.sql', import.meta.url)),
   'utf-8',
 );
+const SQL_0050 = readFileSync(
+  fileURLToPath(
+    new URL('../../../../../data/migrations/0050_workbench_persona_add.up.sql', import.meta.url),
+  ),
+  'utf-8',
+);
 
 describe('Workbench schemas (0049)', () => {
   it('Zod enums equal the CHECK lists in the migration', () => {
@@ -475,7 +481,10 @@ describe('Workbench schemas (0049)', () => {
     expect(WorkbenchPathSource.options).toEqual(
       inList('workbench_conversations', 'path_source', SQL_0049),
     );
-    expect(WorkbenchCommandName.options).toEqual(inList('workbench_commands', 'command', SQL_0049));
+    // 0050 rebuilt the table for persona.add (spec 072)
+    expect(WorkbenchCommandName.options).toEqual(
+      inList('workbench_commands_new', 'command', SQL_0050),
+    );
     expect(WorkbenchCommandSource.options).toEqual(
       inList('workbench_commands', 'source', SQL_0049),
     );

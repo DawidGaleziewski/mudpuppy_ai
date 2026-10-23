@@ -101,6 +101,46 @@ export function useTraceCalls(scan: string, params: URLSearchParams) {
   });
 }
 
+/** One phase of the scan's time (`queries_app_trace_phases.PhaseOut`). */
+export interface ScanPhase {
+  name: string;
+  kind: 'work' | 'wait' | 'quiet';
+  state: 'done' | 'running' | 'failed';
+  start: string;
+  end: string;
+  seconds: number;
+  first_step: number | null;
+  last_step: number | null;
+  time_line: string;
+}
+
+/** The scan's time cut into its phases, for the phase bar (designer 19/02). */
+export interface ScanPhases {
+  has_phases: boolean;
+  summary: string;
+  status: StatusOut | null;
+  steps: number;
+  phases: ScanPhase[];
+  axis: { left: number; label: string }[];
+}
+
+export const useTracePhases = (scan: string) =>
+  useQuery({ queryKey: ['scans', scan, 'trace', 'phases'], queryFn: () => getJson<ScanPhases>(`${base(scan)}/trace/phases`) });
+
+/**
+ * The calls query for the page address: a pressed phase (`?phase=`) becomes its steps
+ * (`first`, `last`; a stretch without steps asks for none).
+ */
+export function callsParams(params: URLSearchParams, phase: ScanPhase | null): URLSearchParams {
+  const next = new URLSearchParams(params);
+  next.delete('phase');
+  if (phase) {
+    next.set('first', String(phase.first_step ?? 0));
+    next.set('last', String(phase.last_step ?? -1));
+  }
+  return next;
+}
+
 /** A call's phases and events, asked only once the call is opened. */
 export const useSpanChildren = (span: string, open: boolean) =>
   useQuery({

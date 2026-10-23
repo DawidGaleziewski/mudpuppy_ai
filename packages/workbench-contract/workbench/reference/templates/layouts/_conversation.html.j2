@@ -1,0 +1,15 @@
+{# The conversation column (inline + split). Turns are server-rendered; new ones are appended out of band. #}
+<section class="sy-plate sy-chat sy-wb__conv" aria-label="Conversation">
+  {% if layout == "inline" and view and view.scan and slots.card | selectattr("type", "equalto", "LiveMap") | list %}
+  <div class="sy-livebar" id="wb-livebar">{{ r.livebar(view) }}</div>
+  {% endif %}
+  {# hx-preserve: the log survives every layout swap; new turns are appended out of band. #}
+  <div class="sy-chat__log" id="wb-log" role="log" aria-label="Conversation" hx-preserve="true">
+    {% for t in sess.turns %}{{ r.turn(t) }}{% endfor %}
+    {% if not sess.turns %}
+    <div class="sy-msg"><span class="sy-msg__who">Assistant</span>
+      <p>Tell me what you're doing and I'll set up the screen for it: map a part of the portal, troubleshoot a stopped scan, or explain a change.</p></div>
+    {% endif %}
+  </div>
+  {% include "frames/composer.html.j2" %}
+</section>

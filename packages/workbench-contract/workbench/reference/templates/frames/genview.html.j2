@@ -1,0 +1,37 @@
+{# Generated view frame (genui.css .sy-genview). Every component the assistant places sits in one: a solid frame (the
+   facts are observed), the "generated" mark and the source line. The view's LEAD frame (its first component) also carries
+   "Why this view?" and "Right view?" — once per view, not per frame. framed=false: the person opened it → no mark.
+   Blocks named live_* are re-rendered by the stream and swapped out of band. #}
+{% set card = place in ("card", "conv") %}
+{% if not framed %}
+<section class="sy-stack" id="{{ cid }}" data-type="{{ c.type }}" aria-labelledby="{{ cid }}-title" style="--sy-gap: var(--sy-space-3)">
+  <h3 class="sy-plate__title sy-case-normal" id="{{ cid }}-title">{% block live_title %}{{ title }}{% endblock %}</h3>
+  <span id="{{ cid }}-status" hidden>{% block live_status %}{% if status %}<span class="sy-status" data-status="{{ status.status }}"><span>{{ status.word }}{% if status.ref %} <span class="sy-case-normal">{{ status.ref }}</span>{% endif %}</span></span>{% endif %}{% endblock %}</span>
+  {% include "components/" ~ c.type ~ ".html.j2" %}
+  <span class="sy-genview__source" id="{{ cid }}-source">{% block live_source %}{{ source }}{% endblock %}</span>
+</section>
+{% else %}
+<section class="sy-genview{% if card %} sy-genview--card{% endif %}{% if failure %} sy-genview--failure{% endif %}"
+         id="{{ cid }}" data-gen-state="ready" data-type="{{ c.type }}" aria-labelledby="{{ cid }}-title"
+         {% if live and vm.scan %}data-live{% if card %} aria-live="off"{% endif %}{% endif %}>
+  <header class="sy-genview__head">
+    <div class="sy-genview__title">
+      <h2 class="sy-plate__title{% if c.type in ('PageDetail', 'PageMiniature') %} sy-case-normal{% endif %}" id="{{ cid }}-title">{{ self.live_title() }}</h2>
+      <span class="sy-genmark">generated</span>
+      <span id="{{ cid }}-status">{{ self.live_status() }}</span>
+    </div>
+    <div class="sy-genview__tools">
+      {% if c.type == "LiveMap" and vm.mode == "graph" %}
+      <label class="sy-check"><input type="checkbox" data-follow="{{ cid }}-island" {% if vm.follow %}checked{% endif %}> Follow the crawler</label>
+      {% endif %}
+      {% if lead %}<button class="sy-genview__why" type="button" aria-expanded="false" aria-controls="{{ cid }}-why">Why this view?</button>{% endif %}
+    </div>
+  </header>
+  {% if lead %}<div class="sy-genwhy" id="{{ cid }}-why" hidden>{% include "frames/why.html.j2" %}</div>{% endif %}
+  <div class="sy-genview__body">{% include "components/" ~ c.type ~ ".html.j2" %}</div>
+  <footer class="sy-genview__foot">
+    <span class="sy-genview__source" id="{{ cid }}-source">{{ self.live_source() }}</span>
+    {% if lead %}{{ r.feedback(view.id, cid) }}{% endif %}
+  </footer>
+</section>
+{% endif %}

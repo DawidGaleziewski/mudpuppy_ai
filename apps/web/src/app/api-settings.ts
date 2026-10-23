@@ -5,6 +5,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getJson, type StatusOut } from './api';
 import type { Option } from './api-review';
 import type { Write } from './api-write';
+import type { PersonaArgs } from './PersonaForm';
 
 export interface SettingsEnvironment {
   name: string;
@@ -38,6 +39,8 @@ export interface SettingsPage {
   credentials: Option[];
   workbench: string | null;
   personas: { id: string; kind: string; refs: string[]; attributes: Option[] }[];
+  /** Credential names a new persona can sign in with (X: X_LOGIN and X_PASSWORD known). */
+  sign_ins: string[];
   rules: { robots: string; domains: string[]; allowed_urls: string[] | null; disallowed_urls: string[] } | null;
   hints: SettingsHints | null;
   identity: { profile: string | null; tau: string | null; same_labels: number; distinct_labels: number; classifier: string | null; can_accept_classifier: boolean };
@@ -75,4 +78,8 @@ export const settingsWrites = {
     body: fields,
   }),
   accept: (portal: string, what: 'tau' | 'classifier'): Write => ({ path: `${api(portal)}/model/accept`, body: { what } }),
+  /** Add a persona (spec 072): `persona.add`'s args. */
+  addPersona: (portal: string, args: PersonaArgs): Write => ({ path: `${api(portal)}/personas`, body: { ...args } }),
+  /** Remove a persona no scan used yet. */
+  removePersona: (portal: string, name: string): Write => ({ path: `${api(portal)}/personas/${encodeURIComponent(name)}/remove`, body: {} }),
 };

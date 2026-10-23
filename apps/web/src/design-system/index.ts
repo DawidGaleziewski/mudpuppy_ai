@@ -38,7 +38,7 @@ export {
   type ProposalCardProps,
 } from './components/Chat.js';
 export { Chip, type ChipProps } from './components/Chip.js';
-export { Compare, CompareSide, type CompareSideProps } from './components/Compare.js';
+export { Compare, CompareOverlay, CompareSide, type CompareOverlayProps, type CompareSideProps } from './components/Compare.js';
 export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
 export { Code } from './components/Code.js';
@@ -68,7 +68,9 @@ export { ScanId, shortScanId, type ScanIdProps } from './components/ScanId.js';
 export { Plate, type PlateProps } from './components/Plate.js';
 export { Releases, type ReleaseLane, type ReleaseScan, type ReleaseSpan, type ReleasesProps } from './components/Releases.js';
 export { Row, Rows, type RowProps } from './components/Rows.js';
-export { Shot, type ShotProps, type ShotRegion } from './components/Shot.js';
+export { thinTicks, useBoxWidth, type AxisTick } from './components/axis.js';
+export { PhaseBar, PhaseKey, type BarPhase, type PhaseBarProps } from './components/PhaseBar.js';
+export { Shot, type ShotGone, type ShotProps, type ShotRegion } from './components/Shot.js';
 export { Segmented, type SegmentedProps, type SegmentItem } from './components/Segmented.js';
 export { Status, type StatusProps } from './components/Status.js';
 export { Steps, type Step } from './components/Steps.js';

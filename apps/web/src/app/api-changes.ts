@@ -107,6 +107,8 @@ export interface ChangePage {
   before: ChangeSide;
   after: ChangeSide;
   region: { left: number; top: number; width: number; height: number } | null;
+  /** "Not here" on the unmarked side, in that picture's percent: a box, or a line where it was inserted (Q5a). */
+  gone: { shape: 'box' | 'line'; left: number; top: number; width: number; height: number } | null;
   differs: { label: string; before: string; after: string; differs: boolean }[];
   explained: boolean;
   hypothesis_status: StatusOut | null;

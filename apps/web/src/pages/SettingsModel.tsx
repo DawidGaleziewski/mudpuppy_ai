@@ -2,28 +2,80 @@ import { useState } from 'react';
 import { Button, Cluster, Count, Disclosure, Facts, Field, Input, Plate, Row, Rows, Stack, Text, Textarea } from '../design-system';
 import { settingsWrites, type SettingsHints, type SettingsPage } from '../app/api-settings';
 import type { Ask } from '../app/ConfirmedWrite';
+import { argsOf, emptyDraft, PersonaFields, problemsOf, type PersonaDraft } from '../app/PersonaForm';
 
 const list = (items: readonly string[], none: string, mono = true) =>
   items.length ? <Text mono={mono}>{items.join(', ')}</Text> : <Text muted>{none}</Text>;
 
 /** The personas of this portal, as written: kind, credential references, attributes. */
-export function Personas({ s }: { s: SettingsPage }) {
+export function Personas({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
+  const remove = (id: string) =>
+    ask({
+      title: `Remove persona ${id}?`,
+      text: 'Only a persona no scan used can be removed; a used one stays, because its scans cite it.',
+      confirm: 'Remove',
+      write: settingsWrites.removePersona(s.portal, id),
+    });
   return (
-    <Plate title="Personas" actions={<Count muted>{s.personas.length}</Count>} flush={s.personas.length > 0}>
-      {s.personas.length ? (
-        <Rows label="Personas">
-          {s.personas.map((p) => (
-            <Row key={p.id} aside={<Text small muted>{p.kind}</Text>}>
-              <Text mono>{p.id}</Text>
-              {p.refs.length > 0 && <Text small muted>{`needs ${p.refs.join(', ')}`}</Text>}
-              {p.attributes.length > 0 && <Text small>{p.attributes.map((a) => `${a.value} ${a.label}`).join('; ')}</Text>}
-            </Row>
-          ))}
-        </Rows>
-      ) : (
-        <Text small muted>{`No persona files for ${s.portal}. Ask the assistant to build one.`}</Text>
-      )}
+    <Plate title="Personas" actions={<Count muted>{s.personas.length}</Count>}>
+      <Stack>
+        {s.personas.length ? (
+          <Rows label="Personas">
+            {s.personas.map((p) => (
+              <Row
+                key={p.id}
+                aside={
+                  <Cluster>
+                    <Text small muted>{p.kind}</Text>
+                    <Button size="sm" variant="quiet" aria-label={`Remove ${p.id}`} onClick={() => remove(p.id)}>
+                      Remove
+                    </Button>
+                  </Cluster>
+                }
+              >
+                <Text mono>{p.id}</Text>
+                {p.refs.length > 0 && <Text small muted>{`needs ${p.refs.join(', ')}`}</Text>}
+                {p.attributes.length > 0 && <Text small>{p.attributes.map((a) => `${a.value} ${a.label}`).join('; ')}</Text>}
+              </Row>
+            ))}
+          </Rows>
+        ) : (
+          <Text small muted>{`No persona files for ${s.portal}. Add one below, or ask the assistant to build one.`}</Text>
+        )}
+        <AddPersona s={s} ask={ask} />
+      </Stack>
     </Plate>
+  );
+}
+
+/** Settings ▸ Personas ▸ Add persona (spec 072): the same fields as the Workbench's persona card. */
+function AddPersona({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
+  const [draft, setDraft] = useState<PersonaDraft>(emptyDraft);
+  const taken = s.personas.map((p) => p.id);
+  const ready = Object.keys(problemsOf(draft, taken)).length === 0;
+  return (
+    <Disclosure summary="Add persona">
+      <Stack>
+        <PersonaFields draft={draft} onChange={setDraft} signIns={s.sign_ins} taken={taken} />
+        <Cluster>
+          <Button
+            size="md"
+            disabled={!ready}
+            onClick={() =>
+              ask({
+                title: `Add persona ${draft.name.trim()}?`,
+                text: 'The chat service writes the persona file; scans you start can then use it. Nothing is saved before this.',
+                confirm: 'Add persona',
+                write: settingsWrites.addPersona(s.portal, argsOf(draft)),
+                onDone: () => setDraft(emptyDraft),
+              })
+            }
+          >
+            Add persona
+          </Button>
+        </Cluster>
+      </Stack>
+    </Disclosure>
   );
 }
 

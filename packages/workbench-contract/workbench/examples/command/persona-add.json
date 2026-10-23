@@ -1,0 +1,27 @@
+{
+  "command": "persona.add",
+  "args": {
+    "name": "client",
+    "about": "A signed-in customer with one active OC policy",
+    "credential": "CLIENT_LOGIN",
+    "test_data": [
+      {
+        "field": {
+          "route": "/kalkulator/kierowca",
+          "state": 1,
+          "label": "Data urodzenia"
+        },
+        "value": "1985-04-12"
+      },
+      {
+        "field": {
+          "route": "/kalkulator/kierowca",
+          "state": 1,
+          "label": "Kod pocztowy"
+        },
+        "value": "00-950"
+      }
+    ]
+  },
+  "reason": "Przedłuż polisę needs a signed-in customer, and no persona of this portal can sign in."
+}

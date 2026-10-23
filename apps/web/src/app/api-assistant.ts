@@ -33,7 +33,19 @@ export interface AssistantPage {
   conversation: AssistantConversation | null;
   items: AssistantItem[];
   /** The conversation's run in one line; none before it starts one. */
-  scan: { status: StatusOut; what: string; scan: string; href: string; running: boolean; quiet: StatusOut | null } | null;
+  /** The conversation's run in one line (designer 19/12): status · kind · id · progress · where or when. */
+  scan: {
+    status: StatusOut;
+    /** AI scan · Check run */
+    kind: string;
+    scan: string;
+    progress: string;
+    /** "now at /porownanie", "no new step for 9 min" (muted), "at /kontakt", "17 Oct 10:05Z". */
+    last: string | null;
+    last_muted: boolean;
+    href: string;
+    running: boolean;
+  } | null;
 }
 
 /** What "This page" means on a page (spec 022 R6, `apps/chat/src/page-context.ts`). */

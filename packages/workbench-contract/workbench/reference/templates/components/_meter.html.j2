@@ -1,0 +1,11 @@
+{# The scan meter (inside LiveMap, or alone as ScanMeter). A stopped scan is neutral (ash), not red. #}
+<div class="sy-meter" data-status="{{ m.status }}" style="--value: {{ m.pct }}%">
+  <div class="sy-meter__label"><span>Scan <span class="sy-id" title="{{ s.id }}">{{ s.id | short_id }}</span> · now at {{ s.cur or "—" }}</span>
+    <span>{{ s.steps }} / {{ s.limit }} steps · {{ s.pages }} pages · {{ s.queued }} queued</span></div>
+  <div class="sy-meter__track" role="progressbar" aria-label="Scan progress" aria-valuemin="0" aria-valuemax="{{ s.limit }}" aria-valuenow="{{ s.steps }}">
+    <div class="sy-meter__fill"></div></div>
+</div>
+{% if m.can_stop and live %}
+<div class="sy-actions" style="--sy-gap: 6px"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button"
+    hx-post="/workbench/commands/propose" hx-vals='{"command": "scan.stop", "scan": "{{ s.id }}"}' hx-swap="none">Stop the scan…</button></div>
+{% endif %}

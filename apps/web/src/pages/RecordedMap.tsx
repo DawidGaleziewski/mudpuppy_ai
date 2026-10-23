@@ -10,6 +10,7 @@ import {
   GraphNode,
   Legend,
   Plate,
+  type GraphEdge,
   Segmented,
   Select,
   shortScanId,
@@ -111,15 +112,20 @@ function Meta({ n }: { n: RecordedNode }) {
       {n.chips.map((c) => (
         <ShownChip key={c.word} chip={c} />
       ))}
+      {n.returns && <ShownChip chip={n.returns} said={n.returns_said} />}
     </>
   );
 }
+
+/** The API's edges as the graph draws them (its labels placed, its arrowheads). */
+const graphEdges = (m: RecordedMap): GraphEdge[] =>
+  m.edges.map((e) => ({ d: e.d, state: e.state, label: e.label ?? undefined, labelX: e.label_x ?? undefined, labelY: e.label_y ?? undefined, arrow: e.arrow ?? undefined }));
 
 function RecordedGraph({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
   const which = m.filter.scan ? `scan ${shortScanId(m.filter.scan, m.scans.map((s) => s.id))}` : 'every scan';
   return (
     <Stack>
-      <Graph label={`Map of ${m.portal} as ${which} recorded it, from the start page`} width={m.width} height={m.height} edges={m.edges} embedded>
+      <Graph label={`Map of ${m.portal} as ${which} recorded it, from the start page`} width={m.width} height={m.height} edges={graphEdges(m)} embedded>
         {m.nodes.map((n) =>
           n.kind === 'family' ? (
             <GraphNode
@@ -148,6 +154,7 @@ function RecordedGraph({ m, v, set }: { m: RecordedMap; v: View; set: SetView })
               fullTitle={n.title}
               state={n.state ?? undefined}
               deck={n.deck}
+              dim={n.dim}
               pressed={v.node === n.id}
               onSelect={() => set({ node: n.id })}
               marks={
@@ -174,8 +181,7 @@ function RecordedGraph({ m, v, set }: { m: RecordedMap; v: View; set: SetView })
         </Cluster>
       </Split>
       <Text small muted block>
-        Click a screen to inspect · arrows move along the tree · lines show the first move into each screen
-        {m.filter.layers.includes('links') ? '' : ' (tick All links for the rest)'}
+        Click a screen to inspect · arrows move along the tree · solid lines are this scan&apos;s moves, dashed ones it did not make · ↩ on a screen counts the moves back to it
       </Text>
     </Stack>
   );

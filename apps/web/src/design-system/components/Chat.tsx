@@ -1,10 +1,11 @@
-import { useEffect, useId, useRef, type CSSProperties, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useId, useRef, useState, type CSSProperties, type FormEvent, type ReactNode } from 'react';
 import { cx } from '../cx.js';
 
-// Layout only: the drawer stays in view beside a long page, as tall as the window, and its log
-// (`flex: 1` in the designer's CSS) scrolls inside it, so the message box is always at hand.
-const DRAWER: CSSProperties = { position: 'sticky', top: 0, alignSelf: 'flex-start', height: '100dvh' };
+// Layout only: a log outside the drawer (the Workbench) scrolls inside its box too. The drawer's
+// own height, stickiness and log scrolling are the designer's CSS (Q8, `.sy-drawer`).
 const LOG: CSSProperties = { minHeight: 0, overflowY: 'auto' };
+// How near the end still counts as "at the newest message".
+const NEAR_END = 24;
 
 export interface DrawerProps {
   /** The drawer's name ("Assistant"). */
@@ -33,7 +34,7 @@ export function Drawer({ title, actions, context, onClose, children }: DrawerPro
     return () => document.removeEventListener('keydown', key);
   }, [onClose]);
   return (
-    <aside className="sy-drawer" aria-labelledby={id} style={DRAWER}>
+    <aside className="sy-drawer" aria-labelledby={id}>
       <div className="sy-drawer__head">
         <h2 className="sy-plate__title" id={id}>
           {title}
@@ -46,17 +47,42 @@ export function Drawer({ title, actions, context, onClose, children }: DrawerPro
   );
 }
 
-/** A conversation's messages (`.sy-chat__log`, a `log` region): it follows the newest message. */
+/**
+ * A conversation's messages (`.sy-chat__log`, a `log` region): it opens at the newest message and
+ * stays there as messages arrive (`follow` changes), unless the person scrolled up; then a
+ * "New messages ↓" button takes them down (designer Q8).
+ */
 export function ChatLog({ children, label = 'Messages', follow }: { children: ReactNode; label?: string; follow?: unknown }) {
   const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
+  const atEnd = useRef(true);
+  const [unseen, setUnseen] = useState(false);
+  const toEnd = () => {
     const el = ref.current;
     if (el) el.scrollTop = el.scrollHeight;
+    atEnd.current = true;
+    setUnseen(false);
+  };
+  useEffect(() => {
+    if (atEnd.current) toEnd();
+    else setUnseen(true);
   }, [follow]);
+  const onScroll = () => {
+    const el = ref.current;
+    if (!el) return;
+    atEnd.current = el.scrollHeight - el.scrollTop - el.clientHeight <= NEAR_END;
+    if (atEnd.current) setUnseen(false);
+  };
   return (
-    <div ref={ref} className="sy-chat__log" role="log" aria-label={label} tabIndex={0} style={LOG}>
-      {children}
-    </div>
+    <>
+      <div ref={ref} className="sy-chat__log" role="log" aria-label={label} tabIndex={0} style={LOG} onScroll={onScroll}>
+        {children}
+      </div>
+      {unseen && (
+        <button className="sy-btn sy-btn--sm" type="button" onClick={toEnd}>
+          New messages ↓
+        </button>
+      )}
+    </>
   );
 }
 

@@ -12,13 +12,13 @@ def test_the_recorded_map_places_screens_with_their_chips(empty_store: Store) ->
     seed(empty_store)
     with client(empty_store) as c:
         body = c.get(f"/api/portals/{P}/map/recorded").json()
-        links = c.get(f"/api/portals/{P}/map/recorded?layers=&layers=links").json()
-        one = c.get(f"/api/portals/{P}/map/recorded?scan=r1").json()
+        links = c.get(f"/api/portals/{P}/map/recorded?layers=&layers=offtree").json()
+        one = c.get(f"/api/portals/{P}/map/recorded?scan=r1&layers=offtree&layers=others").json()
     assert body["has_model"] is False and body["views"] == []
     assert body["filter"] == {
         "scan": None,
         "persona": None,
-        "layers": ["states", "errors", "frontier"],
+        "layers": ["states", "errors", "frontier", "offtree"],
         "open": None,
     }
     assert [s["id"] for s in body["scans"]] == ["r2", "r1"]  # whole ids, newest first
@@ -30,15 +30,24 @@ def test_the_recorded_map_places_screens_with_their_chips(empty_store: Store) ->
     assert n["sc-a"]["chips"] == [{"word": "1 failed", "variant": "fail"}]
     assert n["sc-home"]["state"] is None and n["sc-home"]["first_state"] == "st-home"
     assert (body["screens"], body["transitions"], body["queued"]) == (5, 4, 2)
-    assert sorted(e["state"] or "" for e in body["edges"]) == ["", "", ""]
-    # All links only: the move back home is drawn; no chips for the layers left out
-    assert "retired" in {e["state"] for e in links["edges"]}
+    assert sorted(e["state"] for e in body["edges"]) == ["offtree", "tree", "tree", "tree"]
+    back = next(e for e in body["edges"] if e["state"] == "offtree")
+    assert back["arrow"] == "end" and back["label"].startswith("↩ step ")
+    assert [o["label"] for o in body["layer_options"]][3:] == [
+        "Moves off the tree",
+        "Other scans' moves (0)",
+    ]
+    # Moves off the tree only: no chips for the layers left out
+    assert "offtree" in {e["state"] for e in links["edges"]}
     assert all(x["chips"] == [] for x in links["nodes"])
-    # One scan: the screens the other scan saw are not in these scans, its moves other scans'
+    # One scan: what only the other scan reached is faint, "Not reached"; its moves other scans'
     m = {x["id"]: x for x in one["nodes"]}
     assert one["filter"]["scan"] == "r1"
-    assert m["sc-form"]["state"] == "unobserved"
-    assert "unseen" in {e["state"] for e in one["edges"]}
+    assert m["sc-form"]["state"] == "unobserved" and m["sc-form"]["dim"]
+    assert m["sc-form"]["status"]["word"] == "Not reached"
+    others = [e for e in one["edges"] if e["state"] == "others"]
+    assert others and all(e["label"] == "1 scan" for e in others)
+    assert one["layer_options"][4]["label"] == f"Other scans' moves ({len(others)})"
 
 
 def test_an_unknown_scan_or_persona_means_every_scan(empty_store: Store) -> None:

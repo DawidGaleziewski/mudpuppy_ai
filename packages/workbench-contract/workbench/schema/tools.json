@@ -179,6 +179,16 @@
           "pattern": "^[^<>{}]*$",
           "description": "Plain words. No markup, no template syntax."
         },
+        "personaName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,23}$",
+          "description": "A persona of the portal, lower case: guest, client, premium. The server resolves it (unknown → id_not_found)."
+        },
+        "vaultRef": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,47}$",
+          "description": "A credential's name in the vault, e.g. CLIENT_LOGIN. Never a value: values go to the vault through its own dialog."
+        },
         "LiveMap": {
           "type": "object",
           "additionalProperties": false,
@@ -857,7 +867,7 @@
   },
   {
     "name": "propose_command",
-    "description": "Propose a write (start, resume or stop a scan, run an attempt, add a mark). The person sees a command card and confirms it; nothing runs before that. Give a one-sentence reason in plain words. Args per command: scan.start {type, start?, persona?, limit_steps?} · scan.resume {scan} · scan.stop {scan} · path.attempt {scan, step, variation} · mark.add {target, kind}. You get back 'proposed, waiting for the person'.",
+    "description": "Propose a write (start, resume or stop a scan, run an attempt, add a mark, add a persona). The person sees a command card and confirms it; nothing runs before that. Give a one-sentence reason in plain words. Args per command: scan.start {type, start?, persona?, limit_steps?} · scan.resume {scan} · scan.stop {scan} · path.attempt {scan, step, variation} · mark.add {target, kind} · persona.add {name, about?, credential?, test_data?}: credential is a vault reference name or 'none', never a password or token. You get back 'proposed, waiting for the person'.",
     "input_schema": {
       "description": "A write the assistant proposes. The person confirms it in a command card; nothing runs before that.",
       "type": "object",
@@ -874,7 +884,8 @@
             "scan.resume",
             "scan.stop",
             "path.attempt",
-            "mark.add"
+            "mark.add",
+            "persona.add"
           ]
         },
         "args": {
@@ -937,6 +948,16 @@
           "type": "string",
           "pattern": "^[^<>{}]*$",
           "description": "Plain words. No markup, no template syntax."
+        },
+        "personaName": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9-]{1,23}$",
+          "description": "A persona of the portal, lower case: guest, client, premium. The server resolves it (unknown → id_not_found)."
+        },
+        "vaultRef": {
+          "type": "string",
+          "pattern": "^[A-Z][A-Z0-9_]{1,47}$",
+          "description": "A credential's name in the vault, e.g. CLIENT_LOGIN. Never a value: values go to the vault through its own dialog."
         }
       }
     }

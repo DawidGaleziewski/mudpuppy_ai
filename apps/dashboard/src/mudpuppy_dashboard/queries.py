@@ -382,10 +382,20 @@ def trace_calls(
     problems: bool = False,
     cursor: str | None = None,
     limit: int = DEFAULT_LIMIT,
+    steps: tuple[int, int] | None = None,
 ) -> Page[TraceSpan]:
-    """A run's call spans, ordered by boot start then seq (a run's spans may span boots)."""
+    """A run's call spans, ordered by boot start then seq (a run's spans may span boots).
+    `steps`: only calls first…last in that order (a phase of the phase bar, spec 072)."""
     where = ["s.run_id = ?", "s.kind = 'call'"]
     args: list[Any] = [run_id]
+    if steps:
+        where.append(
+            "s.id IN (SELECT id FROM (SELECT s2.id, row_number() OVER"
+            " (ORDER BY b2.started_at, s2.seq) AS n FROM trace_spans s2"
+            " JOIN trace_boots b2 ON b2.id = s2.boot_id WHERE s2.run_id = ? AND s2.kind = 'call')"
+            " WHERE n BETWEEN ? AND ?)"
+        )
+        args.extend([run_id, *steps])
     if tools:
         where.append(f"s.name IN ({','.join('?' * len(tools))})")
         args.extend(tools)

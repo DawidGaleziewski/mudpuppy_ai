@@ -1,0 +1,23 @@
+{# "Was this the right view?" — one tap; "No" asks why (four reasons). Logged as telemetry, never blocks anything. #}
+<div class="sy-genfeedback" role="group" aria-label="Was this the right view?" id="{{ cid }}-fb">
+  {% if reason %}
+  <span>Thanks, noted: {{ reason }}.</span>
+  {% else %}
+  <span>Right view?</span>
+  {% for v, label in (("yes", "Yes"), ("no", "No")) %}
+  <button class="sy-genfeedback__btn" type="button" aria-pressed="{{ 'true' if value == v else 'false' }}"
+          hx-post="/workbench/feedback" hx-vals='{"view": "{{ view_id }}", "cid": "{{ cid }}", "value": "{{ v }}"}'
+          hx-target="#{{ cid }}-fb" hx-swap="outerHTML">{{ label }}</button>
+  {% endfor %}
+  {% if value == "no" %}
+  <div class="sy-genfeedback__why"><span>What was wrong?</span>
+    {% for why in ("wrong path", "missing something", "too much", "wrong data") %}
+    <button class="sy-genfeedback__btn" type="button" hx-post="/workbench/feedback"
+            hx-vals='{"view": "{{ view_id }}", "cid": "{{ cid }}", "value": "no", "reason": "{{ why }}"}'
+            hx-target="#{{ cid }}-fb" hx-swap="outerHTML">{{ why | capitalize }}</button>
+    {% endfor %}
+  </div>
+  {% endif %}
+  {% if value == "yes" %}<span>Thanks.</span>{% endif %}
+  {% endif %}
+</div>

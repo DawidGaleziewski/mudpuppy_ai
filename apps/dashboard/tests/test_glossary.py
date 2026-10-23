@@ -315,6 +315,8 @@ EXPECTED_IDS = {
     "ba-replay", "rule-candidate",  # R-89 (spec 045)
     "separating-flag", "persona-sample",  # R-88 (spec 046)
     "react-console",  # R-96 (spec 050)
+    # R-101 (spec 072)
+    "phase-bar", "move-off-the-tree", "not-here", "scan-line", "sign-in-credential",
     # R-81 (spec 039): the portal model
     "portal-model", "model-screen", "journey", "step-result", "release", "deviation",
     "hypothesis", "derived-fact", "model-element-key",
@@ -338,7 +340,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 206
+    assert len(EXPECTED_IDS) == 211
     assert sum(e.category == "ba" for e in g.entries) == 23
 
 

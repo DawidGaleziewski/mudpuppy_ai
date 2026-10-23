@@ -1,0 +1,87 @@
+{
+  "description": "Agent messages the server drops before the client sees them.",
+  "examples": [
+    {
+      "why": "server_owned",
+      "message": {
+        "version": "v0.9.1",
+        "updateComponents": {
+          "surfaceId": "t1",
+          "components": [
+            {
+              "id": "cmd-9",
+              "component": "CommandCard",
+              "command": "scan.stop",
+              "data": {
+                "path": "/commands/cmd-9"
+              }
+            }
+          ]
+        }
+      }
+    },
+    {
+      "why": "observed_path",
+      "message": {
+        "version": "v0.9.1",
+        "updateDataModel": {
+          "surfaceId": "t1",
+          "path": "/scans/01a110d5-2028-7000-8f3e-5c1a9b27d460/meter/pages",
+          "value": 400
+        }
+      }
+    },
+    {
+      "why": "server_prop",
+      "message": {
+        "version": "v0.9.1",
+        "updateComponents": {
+          "surfaceId": "t1",
+          "components": [
+            {
+              "id": "map",
+              "component": "LiveMap",
+              "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460",
+              "data": {
+                "path": "/records"
+              }
+            }
+          ]
+        }
+      },
+      "result": "data is replaced by /scans/{scan}"
+    },
+    {
+      "why": "unknown_type",
+      "message": {
+        "version": "v0.9.1",
+        "updateComponents": {
+          "surfaceId": "t1",
+          "components": [
+            {
+              "id": "x",
+              "component": "Text",
+              "text": "<b>hi</b>"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "why": "reserved_id",
+      "message": {
+        "version": "v0.9.1",
+        "updateComponents": {
+          "surfaceId": "t1",
+          "components": [
+            {
+              "id": "root",
+              "component": "RecordCard",
+              "record": "PROC-001"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}

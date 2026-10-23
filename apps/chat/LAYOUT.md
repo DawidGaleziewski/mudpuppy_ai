@@ -32,7 +32,9 @@ keeps the map (spec 042 T050, G-30).
   an `edit` revision), sign-off records `as_is_rev`, and `process-from-record` (a PROC record
   opens a process linked by `record_key`; routes `…/processes/from-record`).
 - `portals`, `personas`, `credentials`: portal/user data. `test-data` (`save_test_data`, spec 032:
-  merge test values into an existing persona's `test_data`).
+  merge test values into an existing persona's `test_data`). `persona-add` (spec 072, `persona.add`:
+  a persona from a form or a confirmed card, credential `X` = `X_LOGIN` + `X_PASSWORD`; its Undo;
+  `POST /portals/{p}/personas`, `DELETE …/{name}` in `api-portals`).
 - Probe suites (spec 032 US3): `probe-suites` (approve: kept variants, changed expectations, the
   trace written into `portals/<p>/traces.yaml` with comments kept; dismiss) and
   `api-probe-suites` (`POST /portals/{p}/probe-suites/{id}/approve|dismiss`). Probe marks
@@ -65,8 +67,9 @@ keeps the map (spec 042 T050, G-30).
   server in Workbench mode; its fence: read and compose, the crawler only with a confirmed
   command's prompt, `Launches`); `mcp-workbench-tools` (`render_view`, `propose_command`: the
   designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
-  `workbench-commands` (proposals, one-time tokens, Confirm, expiry, settle; the audit row; spec
-  044: a Start card's chosen persona, else the newest scan's); `workbench-persona` (spec 044: the
+  `workbench-commands` (proposals, one-time tokens, Confirm, expiry; the audit row; spec
+  044: a Start card's chosen persona, else the newest scan's; spec 072: `persona.add`, its edited
+  args on Confirm and Undo); `workbench-settle` (the timer's pass); `workbench-persona` (spec 044: the
   persona name check and the `guest`-else-first fallback); `workbench-envs` (spec 048, D-6: the
   environments where commands may run, `MUDPUPPY_WORKBENCH_COMMAND_ENVS`, default local-dev and
   sandbox; a proposal and a confirm elsewhere are refused `PAUSED`);

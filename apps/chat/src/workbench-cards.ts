@@ -11,9 +11,10 @@ import {
   confirmCommand,
   issueToken,
   proposeCommand,
-  settleCommands,
+  undoCommand,
   type CommandRow,
 } from './workbench-commands.js';
+import { settleCommands } from './workbench-settle.js';
 import { asText, workbenchPortal, type Body, type WorkbenchDeps } from './workbench-service.js';
 import { currentTurn } from './workbench-turn.js';
 
@@ -97,6 +98,10 @@ export function cardActions(deps: WorkbenchDeps) {
         ...(typeof body.persona === 'string' && body.persona !== ''
           ? { persona: asText(body.persona, 'persona', 64) }
           : {}),
+        // An editable card's fields as the person left them (persona.add, spec 072).
+        ...(typeof body.args === 'object' && body.args !== null && !Array.isArray(body.args)
+          ? { args: body.args as Record<string, unknown> }
+          : {}),
       };
       const confirmDeps = {
         raw,
@@ -113,6 +118,13 @@ export function cardActions(deps: WorkbenchDeps) {
 
     cancel(id: string): { state: string } {
       const row = refusing(() => cancelCommand(raw, id));
+      tell(row);
+      return { state: row.state };
+    },
+
+    /** Undo a done persona.add (designer 19/04), while no scan used the persona. */
+    undo(id: string): { state: string } {
+      const row = refusing(() => undoCommand(raw, deps.paths, id));
       tell(row);
       return { state: row.state };
     },

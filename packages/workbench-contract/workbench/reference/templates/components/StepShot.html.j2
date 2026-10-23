@@ -1,0 +1,10 @@
+{# StepShot — the page at a step with the target region marked. Production: the recorded screenshot with
+   <mark class="sy-mark sy-mark--overlay" style="left/top/width/height from the DOM snapshot">. #}
+<figure class="sy-shot sy-askable" aria-label="{{ vm.title }} at step {{ vm.step }} (illustration)">
+  <span class="sy-shot__title">{{ vm.title }}</span>
+  <span>Imię i nazwisko [ ______ ]</span><span>E-mail [ ______ ]</span><span>Telefon [ ______ ]</span><span>Wiadomość [ ______ ]</span>
+  {% if vm.mark == "target" %}<mark class="sy-mark"><span class="sy-mark__label">Not found</span>the element for the next action (press "Wyślij")</mark>{% endif %}
+</figure>
+<dl class="sy-facts"><dt>Step</dt><dd class="sy-mono sy-mono--sm">{{ vm.step }}{% if vm.at %} · {{ vm.at }}{% endif %}</dd>
+  <dt>Waited</dt><dd>10 s after the page settled</dd>
+  <dt>Class</dt><dd><span class="sy-status" data-status="inferred">Crawler error?</span></dd></dl>

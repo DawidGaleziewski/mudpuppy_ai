@@ -131,11 +131,17 @@ async def open_card(request: Request) -> JSONResponse:
     if paused := _paused(web, c):
         return write_answer(409, paused)
     form = await read_json(request)
+    command = str(form.get("command") or "")
+    # persona.add opens with drafted args the person edits (spec 072); the others name a scan
+    if command == "persona.add" and isinstance(form.get("args"), dict):
+        args: dict[str, Any] = form["args"]
+    else:
+        args = {"scan": form["scan"]} if form.get("scan") else {}
     body = {
         "conversation_id": str(form.get("c") or ""),
         "turn": form.get("turn") if isinstance(form.get("turn"), int) else None,
-        "command": str(form.get("command") or ""),
-        "args": {"scan": form["scan"]} if form.get("scan") else {},
+        "command": command,
+        "args": args,
     }
     try:
         status, reply = await chat(web, "POST", "/workbench/commands", body)
@@ -148,28 +154,36 @@ async def open_card(request: Request) -> JSONResponse:
 
 @router.post("/commands/{command_id}/{action}")
 async def card_action(request: Request, command_id: str, action: str) -> JSONResponse:
-    """Confirm (with the card's one-time token, a Start card's persona) or Cancel."""
+    """Confirm (with the card's one-time token, a Start card's persona, an editable card's
+    args), Cancel, or Undo a done persona.add (spec 072)."""
     if not same_origin(request):
         return write_answer(403, "Cross-origin request refused.")
-    if action not in ("confirm", "cancel"):
-        return write_answer(404, "Confirm or cancel.")
+    if action not in DONE_WORDS:
+        return write_answer(404, "Confirm, cancel or undo.")
     web = web_of(request)
     c = web.ctx(request, None)
     if action == "confirm" and (paused := _paused(web, c)):
         return write_answer(409, paused)
     form = await read_json(request)
-    body = {"token": str(form.get("token") or ""), "by": web.settings.reviewer}
+    body: dict[str, Any] = {"token": str(form.get("token") or ""), "by": web.settings.reviewer}
     if form.get("persona"):
         body["persona"] = str(form["persona"])
+    if isinstance(form.get("args"), dict):
+        body["args"] = form["args"]
     try:
         status, reply = await chat(web, "POST", cmd_path(command_id, action), body)
     except chat_client.ChatUnavailable:
         return write_answer(503, chat_client.not_running(c.env))
     if status >= 300:
         return write_answer(502, f"Not done: {_message(reply, status)}.")
-    return write_answer(
-        200, "Confirmed." if action == "confirm" else "Cancelled · nothing changed."
-    )
+    return write_answer(200, DONE_WORDS[action])
+
+
+DONE_WORDS = {
+    "confirm": "Confirmed.",
+    "cancel": "Cancelled · nothing changed.",
+    "undo": "Undone.",
+}
 
 
 @router.post("/views/{view_id}/feedback")

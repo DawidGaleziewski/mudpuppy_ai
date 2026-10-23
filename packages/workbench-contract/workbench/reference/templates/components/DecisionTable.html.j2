@@ -1,0 +1,13 @@
+{# DecisionTable — a rule as inputs ║ result, with its boundary tests (2.0 Rules). #}
+{% set dt = vm.dt %}
+<span class="sy-cluster" style="--sy-gap: 6px 10px"><a class="sy-tag sy-tag--sm" href="{{ vm.rule.href }}">{{ vm.rule.id }}</a><b>{{ vm.rule.title }}</b>
+  <span class="sy-status" data-status="{{ vm.rule.status }}">{{ vm.rule.word }}</span></span>
+{% if dt %}
+<div class="sy-table-wrap"><table class="sy-table sy-table--decision" aria-label="{{ vm.rule.id }} decision table">
+  <thead><tr class="sy-dt-group"><th scope="col" colspan="2">Inputs</th><th scope="col" class="sy-dt-result">Result</th></tr>
+    <tr><th scope="col" class="sy-dt-n">#</th><th scope="col">{{ dt.input }}</th><th scope="col" class="sy-dt-result">{{ dt.result }}</th></tr></thead>
+  <tbody>{% for cond, res in dt.rows %}<tr><td class="sy-dt-n">{{ loop.index }}</td><td class="sy-dt-cond">{{ cond }}</td><td class="sy-dt-result">{{ res }}</td></tr>{% endfor %}</tbody>
+</table></div>
+<span class="sy-small sy-muted">{{ dt.note }} Tests: {% for v, out, res in dt.tests %}{{ v }} → {{ out }} ({{ res }}){% if not loop.last %} · {% endif %}{% endfor %}</span>
+{% endif %}
+<a class="sy-small" href="{{ vm.rule.href }}">Open {{ vm.rule.id }} in Rules</a>

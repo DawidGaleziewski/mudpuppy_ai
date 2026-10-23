@@ -2763,6 +2763,26 @@ for the password after a login run and expects no hit.
 
 <sub>Last changed in R-26, 2026-10-05.</sub>
 
+<a id="sign-in-credential"></a>
+
+#### Sign-in credential
+
+**One credential name X that a persona signs in with, standing for the pair X_LOGIN and X_PASSWORD in the vault.**
+
+Adding a persona (Settings ▸ Personas, or the Workbench's Add a persona card) asks for one
+name, not two. The card and the form never hold a value: a new name's values are stored
+through the vault as before.
+
+*Example:* REF_INSURER_KLIENT → REF_INSURER_KLIENT_LOGIN / REF_INSURER_KLIENT_PASSWORD.
+
+*Seen in:* Settings → Personas; Workbench → Add a persona
+
+*Labels:* `Sign-in`, `Add a persona`
+
+*Related:* [Credential vault](#credential-vault), [Credential reference (ref:NAME)](#credential-ref), [Persona](#persona)
+
+<sub>Last changed in R-101, 2026-10-24.</sub>
+
 ### Gates and evals
 
 <a id="quality-gate"></a>
@@ -3981,6 +4001,92 @@ the skill `mudpuppy-react-ui`.
 *Related:* [Persona sample](#persona-sample)
 
 <sub>Last changed in R-100, 2026-10-23.</sub>
+
+<a id="phase-bar"></a>
+
+#### Phase bar
+
+**The strip over a scan's Trace that shows how the scan's time went, work, waiting for you and quiet stretches, from its first call to its last.**
+
+The bar is drawn from the scan's call spans. A handoff (a captcha) followed by 10 s or more
+without a call is Waiting for you; 60 s or more without a call is Quiet; the rest is work. A
+work stretch under 3 steps between two stretches of one other kind joins them, so the bar
+stays readable. Pick a phase to see only its calls (`?phase=` in the address).
+
+*Example:* Work 4 min · Waiting for you 2 min (captcha) · Work 7 min · Quiet 1 min.
+
+*Seen in:* A scan's page → Trace
+
+*Labels:* `Phase bar`, `Waiting for you`, `Quiet`, `Work`
+
+*Related:* [Tool call / phase / span](#tool-call), [Run](#run)
+
+<sub>Last changed in R-101, 2026-10-24.</sub>
+
+<a id="move-off-the-tree"></a>
+
+#### Move off the tree
+
+**On a scan's recorded map, a move to a screen the scan had already reached another way, drawn as an arc with an arrowhead.**
+
+The recorded map draws each screen once, under the move that first reached it (the tree).
+A later move to a screen already on the map is off the tree: an arc with an arrowhead and
+the step it happened at. Moves other scans made are drawn faint, failed moves red. A screen
+with more than six moves out gets a chip with the count instead of every line; a screen
+the scan knew of but never opened is marked Not reached.
+
+*Example:* ↩ step 140: back to the home page from the cart.
+
+*Seen in:* A scan's page → Graph; Screens → One scan's path
+
+*Labels:* `Move off the tree`, `Moves other scans made`, `Not reached`
+
+*Related:* [Scan graph](#scan-graph), [Portal map](#portal-map)
+
+<sub>Last changed in R-101, 2026-10-24.</sub>
+
+<a id="not-here"></a>
+
+#### Not here
+
+**On Before / after, the mark on the side without the change, showing where the changed part would be.**
+
+When a part of a page is new or gone, the other side has nothing to circle, so the console
+marks the place with a dashed "Not here". When that page is shorter by about the region's
+height, the mark is a line where the part was inserted; otherwise a box. The overlay view
+lays both pictures over each other with a slider between them.
+
+*Example:* Before: Not here (a line under the price). After: the new Discount code field.
+
+*Seen in:* What changed → Before / after
+
+*Labels:* `Not here`, `Overlay`
+
+*Related:* [Variant (r1, r2…)](#screen-variant)
+
+<sub>Last changed in R-101, 2026-10-24.</sub>
+
+<a id="scan-line"></a>
+
+#### Scan line
+
+**The one-line summary of a scan the console shows in the assistant drawer, on Home, on Scans and in the Workbench, always in the same words.**
+
+One grammar everywhere: the status, the kind (AI scan, or Check run for a probe run with no
+AI) and the short id, then steps done of the limit, pages and what is queued, then where or
+when: "now at" a page while it runs, "no new step for N min" when a running scan has been
+quiet for 2 min or more, "at" the page it stopped on, or the time it completed. The same
+scan reads the same in every place.
+
+*Example:* Running AI scan 01a16add-1e29 · 12 / 120 steps · 9 pages · 3 queued · now at /porownanie.
+
+*Seen in:* Assistant drawer; Home; Scans; Workbench
+
+*Labels:* `scan line`
+
+*Related:* [Run](#run), [Workbench (beta)](#workbench)
+
+<sub>Last changed in R-101, 2026-10-24.</sub>
 
 ### Personas
 

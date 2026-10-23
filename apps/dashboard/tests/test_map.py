@@ -13,6 +13,7 @@ from fastapi.testclient import TestClient
 
 from mudpuppy_dashboard import queries_map, queries_map_node
 from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.map_edges import ARC_ROOM
 from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
@@ -131,14 +132,19 @@ def test_every_screen_is_a_node_layered_from_the_start(empty_store: Store) -> No
     assert len(n["sc-form"].states) == 2  # a deck: the step and its validation state
 
 
-def test_the_drawing_is_the_discovery_tree_and_links_only_on_their_layer(
+def test_the_drawing_is_the_discovery_tree_and_moves_off_it_on_their_layer(
     empty_store: Store,
 ) -> None:
+    """Designer 18/10: the tree, and a move back up it as one arrowed line with its step."""
     seed(empty_store)
-    kinds = [e.kind for e in view(empty_store).edges]
-    assert kinds.count("tree") == 3 and "link" not in kinds  # / → /a, /a → /a/b, / → /form
-    every = view(empty_store, layers=frozenset({"links"})).edges
-    assert [e.kind for e in every].count("link") == 1  # /a → / back home
+    edges = view(empty_store).edges
+    kinds = [e.kind for e in edges]
+    assert kinds.count("tree") == 3  # / → /a, /a → /a/b, / → /form
+    (back,) = [e for e in edges if e.kind == "offtree"]  # /a → / back home, on by default
+    assert back.arrow == "end" and back.label is not None and back.label.startswith("↩ step ")
+    assert back.label_y is not None and back.label_y < ARC_ROOM  # over the top row
+    bare = view(empty_store, layers=frozenset({"states"})).edges
+    assert [e.kind for e in bare].count("offtree") == 0
 
 
 def test_items_left_on_a_page_are_counted_and_a_failed_one_marks_its_page(

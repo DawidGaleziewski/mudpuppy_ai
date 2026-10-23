@@ -63,3 +63,64 @@ describe('Workbench', () => {
     expect(screen.getByRole<HTMLTextAreaElement>('textbox', { name: 'Message' }).value).toBe('Why did it stop here?');
   });
 });
+
+const persona = (over: Record<string, unknown> = {}) => ({
+  ...command,
+  dom_id: 'cmd-cmd-0003',
+  title: 'Add a persona',
+  facts: [['Undo', 'Undo removes the persona until a scan uses it.']],
+  reason: 'Przedłuż polisę needs a signed-in customer.',
+  running_word: 'Adding…',
+  personas: ['guest'],
+  editable: true,
+  args: { name: 'klient', credential: 'SHOP' },
+  sign_ins: ['SHOP'],
+  undo_url: null,
+  ...over,
+});
+const withCommands = (...commands: unknown[]) => ({ ...model, turns: [{ ...model.turns[0], commands }] });
+
+describe('Workbench: the persona card (spec 072, designer 19/04)', () => {
+  it('shows the drafted fields, marks what the person changed, and Confirm sends what is shown', async () => {
+    const fetch = at('/app/portals/shop/workbench', {
+      '/api/workbench/portals/shop': withCommands(persona()),
+      'POST /api/workbench/commands/cmd-0003/confirm': { ok: true, message: 'Confirmed.', href: null },
+    });
+    const card = (await screen.findByText('Add a persona', { selector: '.sy-cmd__title' })).closest('section') as HTMLElement;
+    expect(card.querySelector('form.sy-cmd__form')).toBeTruthy();
+    const name = within(card).getByLabelText<HTMLInputElement>('Name');
+    expect(name.value).toBe('klient');
+    fireEvent.change(name, { target: { value: 'client' } });
+    expect(within(card).getByText('Changed by you (was “klient”).')).toBeTruthy();
+    expect(name.closest('.sy-field')?.hasAttribute('data-edited')).toBe(true);
+    fireEvent.click(within(card).getByRole('button', { name: 'Confirm' }));
+    await vi.waitFor(() => {
+      const post = fetch.mock.calls.find((c) => c[0] === '/api/workbench/commands/cmd-0003/confirm');
+      expect(JSON.parse(post?.[1]?.body as string)).toEqual({ token: 'test-token-not-real', args: { name: 'client', credential: 'SHOP' } });
+    });
+  });
+
+  it('holds Confirm back while the name is taken, and a done card offers Undo', async () => {
+    const fetch = at('/app/portals/shop/workbench', {
+      '/api/workbench/portals/shop': withCommands(persona({ args: { name: 'guest' } }), persona({ dom_id: 'cmd-cmd-0004', state: 'done', result: 'Persona client added to shop.', undo_url: '/api/workbench/commands/cmd-0004/undo' })),
+      'POST /api/workbench/commands/cmd-0004/undo': { ok: true, message: 'Undone.', href: null },
+    });
+    const [proposed] = (await screen.findAllByText('Add a persona', { selector: '.sy-cmd__title' })).map((t) => t.closest('section') as HTMLElement);
+    expect(within(proposed!).getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    await vi.waitFor(() => expect(fetch.mock.calls.some((c) => c[0] === '/api/workbench/commands/cmd-0004/undo')).toBe(true));
+  });
+
+  it('a Start card offers "Add a persona…", which opens a card with a free name', async () => {
+    const start = { ...command, dom_id: 'cmd-cmd-0002', title: 'Start a map scan', ask_persona: true, personas: ['guest', 'persona-1'], persona: 'guest' };
+    const fetch = at('/app/portals/shop/workbench', {
+      '/api/workbench/portals/shop': withCommands(start),
+      'POST /api/workbench/commands': { ok: true, message: 'The card asks first: nothing runs until you confirm.', href: null },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Add a persona…' }));
+    await vi.waitFor(() => {
+      const post = fetch.mock.calls.find((c) => c[0] === '/api/workbench/commands');
+      expect(JSON.parse(post?.[1]?.body as string)).toEqual({ c: 'conv-1', turn: 1, command: 'persona.add', args: { name: 'persona-2' } });
+    });
+  });
+});

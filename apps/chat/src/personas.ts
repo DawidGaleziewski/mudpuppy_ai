@@ -5,7 +5,7 @@
 
 import { existsSync, mkdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
-import { stringify } from 'yaml';
+import { Document } from 'yaml';
 import { z } from 'zod';
 import {
   ConfigError,
@@ -46,7 +46,8 @@ export interface SavedPersona {
 
 const REF = /^ref:(.+)$/;
 
-export function savePersona(paths: WorkspacePaths, input: SavePersonaInput): SavedPersona {
+/** `about`: who this persona is, in plain words, written as the file's top comment (spec 072). */
+export function savePersona(paths: WorkspacePaths, input: SavePersonaInput, about?: string): SavedPersona {
   const { portal, persona } = input;
   const portalPath = portalFile(paths, portal);
   if (!existsSync(portalPath))
@@ -82,7 +83,9 @@ export function savePersona(paths: WorkspacePaths, input: SavePersonaInput): Sav
     );
 
   mkdirSync(dirname(file), { recursive: true });
-  writeFileSync(file, stringify(persona), { flag: 'wx' });
+  const doc = new Document(persona);
+  if (about) doc.commentBefore = ` ${about.replace(/\s+/g, ' ').trim()}`;
+  writeFileSync(file, doc.toString(), { flag: 'wx' });
   try {
     const fence = [
       join(paths.repoRoot, 'personas', '_mixins'),

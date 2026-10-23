@@ -146,7 +146,7 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
     # The map (spec 033): a node's `data-state` and its word. Red only where the crawler failed.
     "map_node": {
         "observed": _s("ok", "Observed"),
-        "unobserved": _s("unobserved", "Not in these scans"),
+        "unobserved": _s("unobserved", "Not reached"),  # by the scans shown (designer 18/10)
         "failed": _s("failed", "Failed"),
         "blocked": _s("skipped", "Blocked"),
         "frontier": _s("queued", "Queued"),

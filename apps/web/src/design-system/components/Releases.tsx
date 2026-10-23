@@ -1,5 +1,6 @@
-import { useId, type CSSProperties } from 'react';
+import { useId, useRef, type CSSProperties } from 'react';
 import { Anchor } from './Anchor.js';
+import { thinTicks, useBoxWidth } from './axis.js';
 import { shortScanId } from './ScanId.js';
 
 /** One release of a portal part, placed in percent of the track (the server computes it). */
@@ -53,13 +54,15 @@ const NAME = 'calc(var(--sy-releases-name, 140px) + var(--sy-space-3))';
 const TRACK = `(100% - ${NAME})`;
 
 function rangeStyle(left: number, width: number): CSSProperties {
-  return { top: LABEL_ROOM.paddingTop, left: `calc(${NAME} + ${TRACK} * ${String(left / 100)})`, width: `calc(${TRACK} * ${String(width / 100)})` };
+  return { left: `calc(${NAME} + ${TRACK} * ${String(left / 100)})`, width: `calc(${TRACK} * ${String(width / 100)})` };
 }
 
-// A label near the right end hangs left of the bracket's end, so it stays on the page.
-const END_LABEL: CSSProperties = { left: 'auto', right: 0, transform: 'none' };
-// The range's label sits above the tracks: room for it, so it never covers what is above.
-const LABEL_ROOM: CSSProperties = { paddingTop: 22 };
+/** Where the range's label aligns (designer Q6): to an end the bracket touches, else centred. */
+function labelAt(left: number, width: number): 'start' | 'end' | undefined {
+  if (left + width >= 99.5) return 'end';
+  if (left <= 0.5) return 'start';
+  return undefined;
+}
 
 const spanClass = (s: ReleaseSpan) =>
   ['sy-releases__span', s.current && 'sy-releases__span--current', s.rollout ? 'sy-releases__span--rollout' : s.unknown && 'sy-releases__span--unknown']
@@ -111,12 +114,14 @@ function summary({ lanes, scans, start, end }: ReleasesProps): string {
 export function Releases(props: ReleasesProps) {
   const { lanes, scans, axis, range } = props;
   const id = useId();
+  const axisRef = useRef<HTMLDivElement>(null);
+  const ticks = thinTicks(axis, useBoxWidth(axisRef));
   return (
     <>
       <p id={id} className="sy-sr-only">
         {summary(props)}
       </p>
-      <div className="sy-releases" aria-describedby={id} style={range ? LABEL_ROOM : undefined}>
+      <div className={range ? 'sy-releases sy-releases--ranged' : 'sy-releases'} aria-describedby={id}>
         {lanes.length ? (
           lanes.map((lane) => (
             <div key={lane.scope} className="sy-releases__lane">
@@ -153,16 +158,16 @@ export function Releases(props: ReleasesProps) {
             ))}
           </div>
         </div>
-        <div className="sy-releases__axis" aria-hidden="true">
-          {axis.map((t) => (
+        <div className="sy-releases__axis" aria-hidden="true" ref={axisRef}>
+          {ticks.map((t) => (
             <span key={t.left} style={{ left: `${String(t.left)}%` }}>
               {t.label}
             </span>
           ))}
         </div>
         {range && (
-          <div className="sy-releases__range" style={rangeStyle(range.left, range.width)}>
-            <span style={range.left > 50 ? END_LABEL : undefined}>{range.label}</span>
+          <div className="sy-releases__range" data-label={labelAt(range.left, range.width)} style={rangeStyle(range.left, range.width)}>
+            <span>{range.label}</span>
           </div>
         )}
       </div>

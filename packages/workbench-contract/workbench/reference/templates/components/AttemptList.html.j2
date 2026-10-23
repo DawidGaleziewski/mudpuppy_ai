@@ -1,0 +1,13 @@
+{# AttemptList — attempts so far at a step. Attempts never overwrite each other. #}
+<ol class="sy-timeline" id="{{ cid }}-attempts" aria-label="Attempts">
+{%- block live_attempts %}
+  {% for a in vm.rows %}
+  <li data-status="{{ 'ok' if a.result == 'passed' else ('failed' if a.result == 'failed' else 'skipped') }}">
+    <div class="sy-timeline__head"><b>#{{ a.n }} · {{ a.label }}</b>
+      <span class="sy-status" data-status="{{ 'ok' if a.result == 'passed' else ('failed' if a.result == 'failed' else 'skipped') }}">{{ a.result | capitalize }}</span>
+      <span class="sy-small sy-muted">{{ a.at }}</span></div>
+    <div class="sy-timeline__body">{{ a.note }}</div>
+  </li>
+  {% endfor %}
+{%- endblock %}
+</ol>

@@ -28,7 +28,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A graph the API laid out (the portal map): edges are SVG paths in their state (`sy-edge--<state>`), nodes are `GraphNode` buttons at their place, with `aria-pressed` for the selected one; a folded route family is a link drawn as a deck. It sits in a `.sy-graphview` frame (design answer Q4): as tall as the graph, at most the screen below the header, or 520 px with `embedded` (a scan\'s graph, the recorded map). The zoom bar floats top right and stays in view while the graph does: −, the level (resets to 100 %), +, Fit (pressed while fitted); steps 50 · 67 · 80 · 100 · 125 · 150 %. It opens fitted when wider than its box. Keys in the graph: + / − zoom, 0 back to 100 %, arrow keys move to the neighbour that way (`near`). A graph is never the only way to its facts: the page also has the list. `Legend` names the edge states, `Bundle` says the links it does not draw (the menu on every page).',
+          'A graph the API laid out (the portal map): edges are SVG paths in their state (`sy-edge--<state>`), nodes are `GraphNode` buttons at their place, with `aria-pressed` for the selected one; a folded route family is a link drawn as a deck. It sits in a `.sy-graphview` frame (design answer Q4): as tall as the graph, at most the screen below the header, or 520 px with `embedded` (a scan\'s graph, the recorded map). The zoom bar floats top right and stays in view while the graph does: −, the level (resets to 100 %), +, Fit (pressed while fitted); steps 25 · 33 · 50 · 67 · 80 · 100 · 125 · 150 %. It opens readable (round-3 Q3): fitted when that is 80 % or more, else at 80 % on the selected node or the start page; under 50 % it is an overview (`.sy-graph--overview`), where a click zooms to 100 % on the node. An edge with `arrow` gets an arrowhead from the graph\'s own marker (a move off the tree, designer 18/10). Keys in the graph: + / − zoom, 0 back to 100 %, arrow keys move to the neighbour that way (`near`). A graph is never the only way to its facts: the page also has the list. `Legend` names the edge states, `Bundle` says the links it does not draw (the menu on every page).',
       },
     },
   },
@@ -132,6 +132,37 @@ export const RecordedNodes: Story = {
         }
       />
     </Graph>
+  ),
+};
+
+/** The recorded map's moves (designer 18/10, 19/01): the tree, a move back up it with its arrowhead and step, another scan's move. */
+export const RecordedMoves: Story = {
+  args: {
+    width: 420,
+    height: 28 + H * 2 + 60,
+    edges: [
+      { d: `M80 ${String(28 + H)} C80 ${String(28 + H + 30)} 80 ${String(28 + H + 30)} 80 ${String(28 + H + 60)}`, state: 'tree' },
+      { d: `M300 ${String(28 + H + 60)} C300 -40 80 -40 80 28`, state: 'offtree', arrow: 'end', label: '↩ step 140', labelX: 190, labelY: 16 },
+      { d: `M80 ${String(28 + H)} C80 ${String(28 + H + 30)} 300 ${String(28 + H + 30)} 300 ${String(28 + H + 60)}`, state: 'others', label: '2 scans', labelX: 200, labelY: 28 + H + 26 },
+    ],
+  },
+  render: (args) => (
+    <Stack>
+      <Graph {...args}>
+        <GraphNode id="h" x={0} y={28} height={H} route="/" title="Start" />
+        <GraphNode id="k" x={0} y={28 + H + 60} height={H} route="/kontakt" title="Kontakt" />
+        <GraphNode id="p" x={220} y={28 + H + 60} height={H} route="/porownanie" title="Porównanie" dim meta={<Status status="unobserved">Not reached</Status>} />
+      </Graph>
+      <Legend
+        label="Moves of this scan"
+        items={[
+          { state: 'tree', label: 'First visit' },
+          { state: 'offtree', label: 'Move off the tree' },
+          { state: 'others', label: "Other scans' move" },
+          { state: 'failed', label: 'Failed' },
+        ]}
+      />
+    </Stack>
   ),
 };
 

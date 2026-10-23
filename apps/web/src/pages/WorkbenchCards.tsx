@@ -3,6 +3,7 @@ import { Button, Cluster, CommandCard, Facts, Film, FilmItem, GenView, Meter, Mi
 import type { StatusOut } from '../app/api';
 import { stateHref } from '../app/api-state';
 import type { WbCard, WbCommandCard, WbPage, WbPageModel, WbScan, WbTurn } from '../app/api-workbench';
+import { argsOf, draftOf, PersonaFields, problemsOf, type PersonaArgs, type PersonaDraft } from '../app/PersonaForm';
 import { ShownStatus } from '../app/ShownStatus';
 
 /** What a card can do on the page: select a page, ask about something, open a command, switch path, answer feedback. */
@@ -14,8 +15,13 @@ export interface WbActions {
   open: (turn: number, command: string, scan: string) => void;
   switchPath: (path: string) => void;
   feedback: (view: string, answer: { value: string; toggle?: string; text?: string }) => void;
-  confirm: (id: string, token: string, persona: string | null) => void;
+  /** `args`: an editable card's fields as the person left them (persona.add, spec 072). */
+  confirm: (id: string, token: string, persona: string | null, args?: Record<string, unknown>) => void;
   cancel: (id: string) => void;
+  /** Undo a done persona.add. */
+  undo: (id: string) => void;
+  /** Open an Add-a-persona card from a Start card (spec 072, designer 19/04). */
+  addPersona: (turn: number, name: string) => void;
 }
 
 const clock = (iso: string | null | undefined) => (iso && iso.length >= 19 ? `${iso.slice(11, 19)}Z` : '—');
@@ -29,7 +35,7 @@ function ScanMeter({ s }: { s: WbScan }) {
   const where = s.here?.route ?? '—';
   return (
     <Meter
-      label={`Scan ${shortScanId(s.run_id)} · ${s.status === 'running' ? 'now at' : 'ended at'} ${where}`}
+      label={`AI scan ${shortScanId(s.run_id)} · ${s.status === 'running' ? 'now at' : 'ended at'} ${where}`}
       value={s.status === 'running' ? 0 : 100}
       max={100}
       detail={`${String(s.steps)} steps · ${String(s.pages)} pages · ${String(s.queued)} queued`}
@@ -145,7 +151,8 @@ function Folded({ card, a }: { card: WbCard; a: WbActions }) {
   return (
     <GenView id={card.frame.dom_id} title={card.frame.title} source={card.frame.source} card status={status(a.model.statuses.wb_scan[s.status])}>
       <Stack>
-        <Text small>{`Scan ${shortScanId(s.run_id)} · ${String(s.steps)} steps · ${String(s.pages)} pages · ${String(s.queued)} queued · ${s.status === 'stopped' ? 'stopped' : 'ended'} at ${s.here?.route ?? '—'}`}</Text>
+        {/* the scan line's one grammar (designer 19/12); the card's status says stopped or done */}
+        <Text small>{`AI scan ${shortScanId(s.run_id)} · ${String(s.steps)} steps · ${String(s.pages)} pages · ${String(s.queued)} queued${s.here ? ` · at ${s.here.route}` : ''}`}</Text>
         <Button size="sm" variant="quiet" aria-expanded={open} onClick={() => setOpen(!open)}>{open ? 'Fold' : 'Expand'}</Button>
         {open && <LiveMap s={s} a={a} />}
       </Stack>
@@ -176,8 +183,44 @@ export function Card({ card, view, a }: { card: WbCard; view: string | null; a: 
   );
 }
 
-export function Command({ c, a }: { c: WbCommandCard; a: WbActions }) {
+/** A name for a persona the person opens a card for: the first `persona-N` not taken (they change it). */
+const freeName = (taken: readonly string[]) => {
+  let n = 1;
+  while (taken.includes(`persona-${String(n)}`)) n += 1;
+  return `persona-${String(n)}`;
+};
+
+/** Add a persona (spec 072, designer 19/04): an editable card; Confirm sends the fields as shown. */
+function PersonaCommand({ c, a }: { c: WbCommandCard; a: WbActions }) {
   const id = c.dom_id.replace(/^cmd-/, '');
+  const signIns = c.sign_ins ?? [];
+  const drafted = draftOf(c.args as unknown as PersonaArgs, signIns);
+  const [draft, setDraft] = useState<PersonaDraft>(drafted);
+  const ready = Object.keys(problemsOf(draft, c.personas)).length === 0;
+  return (
+    <CommandCard
+      title={c.title}
+      state={c.state}
+      status={status(a.model.statuses.wb_cmd[c.state])}
+      facts={c.facts}
+      reason={c.reason}
+      proposedBy={c.proposed_by}
+      edit={{ body: <PersonaFields draft={draft} onChange={setDraft} signIns={signIns} taken={c.personas} drafted={drafted} />, ready }}
+      runningWord={c.running_word}
+      result={c.result}
+      resultLinks={c.result_links}
+      error={c.error}
+      errorRef={c.error_ref && <Text mono small href={`/app/errors/${encodeURIComponent(c.error_ref)}`}>{c.error_ref}</Text>}
+      onConfirm={() => a.confirm(id, c.token ?? '', null, argsOf(draft) as unknown as Record<string, unknown>)}
+      onCancel={() => a.cancel(id)}
+      {...(c.undo_url ? { onUndo: () => a.undo(id) } : {})}
+    />
+  );
+}
+
+export function Command({ c, a, turn }: { c: WbCommandCard; a: WbActions; turn: number }) {
+  const id = c.dom_id.replace(/^cmd-/, '');
+  if (c.editable) return <PersonaCommand c={c} a={a} />;
   return (
     <CommandCard
       title={c.title}
@@ -197,6 +240,7 @@ export function Command({ c, a }: { c: WbCommandCard; a: WbActions }) {
       errorRef={c.error_ref && <Text mono small href={`/app/errors/${encodeURIComponent(c.error_ref)}`}>{c.error_ref}</Text>}
       onConfirm={(persona) => a.confirm(id, c.token ?? '', persona)}
       onCancel={() => a.cancel(id)}
+      {...(c.ask_persona ? { onAddPersona: () => a.addPersona(turn, freeName(c.personas)) } : {})}
     />
   );
 }

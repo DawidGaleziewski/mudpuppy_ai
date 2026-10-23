@@ -3,10 +3,10 @@ One scan's path, and the whole map of a portal without a model (the model's is
 `queries_model_map`, spec 039 T100).
 
 Every screen of the portal is a node; its states (form steps, validation and technical states)
-stack on it as a deck. Moves between screens come from executed transitions; the drawing keeps the
-discovery tree plus failed and blocked items, the other links only on the Links layer
-(`map_layout`). Queued, failed and blocked items hang off their page as one small node each.
-Read-only, like every dashboard query.
+stack on it as a deck. Moves between screens come from executed transitions; the layout is the
+discovery tree (`map_layout`), the edges are `map_edges`: the tree, moves off it (layer on by
+default), other scans' moves (layer off) and failed moves. Queued, failed and blocked items hang
+off their page as chips. Read-only, like every dashboard query.
 """
 
 from __future__ import annotations
@@ -17,10 +17,11 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from . import map_layout
+from .map_edges import ARC_ROOM, Edge, Pair, Returns, edges
 from .map_layout import NODE_H, NODE_W
 
-LAYERS = ("states", "errors", "frontier", "links")
-DEFAULT_LAYERS = frozenset({"states", "errors", "frontier"})
+LAYERS = ("states", "errors", "frontier", "offtree", "others")
+DEFAULT_LAYERS = frozenset({"states", "errors", "frontier", "offtree"})
 BLOCKED = ("skipped_unsafe", "denylisted", "robots_disallowed")
 FAILED_ITEM = "unreachable"  # the crawler could not find the control again (its failure)
 
@@ -53,13 +54,17 @@ class MapNode:
     x: int = 0
     y: int = 0
     depth: int = 0
+    # More than six off-tree lines end here: drawn as a chip instead (map_edges).
+    returns: Returns | None = None
 
 
 @dataclass(frozen=True)
 class MapEdge:
-    kind: str  # tree · link · failed
+    """A scan graph's edge (`queries_run_graph`); the recorded map's are `map_edges.Edge`."""
+
+    kind: str  # tree · failed
     d: str  # SVG path
-    shown: bool  # seen by the chosen scans; drawn greyed when not
+    shown: bool
 
 
 @dataclass(frozen=True)
@@ -73,7 +78,7 @@ class ScanChoice:
 @dataclass(frozen=True)
 class MapView:
     nodes: list[MapNode]
-    edges: list[MapEdge]
+    edges: list[Edge]
     width: int
     height: int
     screens: int
@@ -81,6 +86,7 @@ class MapView:
     queued: int
     scans: list[ScanChoice]
     personas: list[str]
+    others: int = 0  # page pairs only other scans moved between
 
 
 def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sqlite3.Row]:
@@ -161,15 +167,19 @@ def _seen(conn: sqlite3.Connection, portal: str) -> tuple[dict[str, set[str]], l
 
 
 def _moves(conn: sqlite3.Connection, portal: str) -> list[sqlite3.Row]:
-    """Executed moves between two screens, oldest first (the discovery order)."""
+    """Executed moves between two screens, oldest first (the discovery order), each with its step:
+    its place among its scan's executed moves (`↩ step 140`)."""
     return _rows(
         conn,
-        "SELECT f.screen_id AS a, t.screen_id AS b, e.run_id, e.error IS NOT NULL AS failed"
-        " FROM transitions e JOIN states f ON f.id = e.from_state"
-        " JOIN states t ON t.id = e.to_state"
-        " WHERE f.portal_id = ? AND e.status = 'executed'"
-        "   AND f.screen_id IS NOT NULL AND t.screen_id IS NOT NULL AND f.screen_id <> t.screen_id"
-        " ORDER BY e.created_at, e.id",
+        "SELECT a, b, run_id, failed, step FROM ("
+        "  SELECT f.screen_id AS a, t.screen_id AS b, e.run_id, e.error IS NOT NULL AS failed,"
+        "   e.created_at, e.id,"
+        "   row_number() OVER (PARTITION BY e.run_id ORDER BY e.created_at, e.id) AS step"
+        "  FROM transitions e JOIN states f ON f.id = e.from_state"
+        "  JOIN states t ON t.id = e.to_state"
+        "  WHERE f.portal_id = ? AND e.status = 'executed')"
+        " WHERE a IS NOT NULL AND b IS NOT NULL AND a <> b"
+        " ORDER BY created_at, id",
         (portal,),
     )
 
@@ -297,27 +307,6 @@ def _count_items(
             node.status = "failed"
 
 
-def _edges(
-    nodes: dict[str, MapNode],
-    pairs: dict[tuple[str, str], tuple[bool, bool]],
-    parents: dict[str, str | None],
-    links: bool,
-) -> list[MapEdge]:
-    out = []
-    tree = set()
-    for child, parent in parents.items():
-        if parent is None:
-            continue
-        tree.add((parent, child))
-        shown, failed = pairs.get((parent, child), (True, False))
-        kind = "failed" if failed else "tree"
-        out.append(MapEdge(kind, _curve(nodes[parent], nodes[child]), shown))
-    for (a, b), (shown, failed) in pairs.items():
-        if (a, b) not in tree and (links or failed):
-            out.append(MapEdge("failed" if failed else "link", _curve(nodes[a], nodes[b]), shown))
-    return out
-
-
 @dataclass(frozen=True)
 class MapFilters:
     """What the page address asks for (FR-007); unknown values fall back to the default."""
@@ -335,42 +324,40 @@ def map_view(conn: sqlite3.Connection, portal: str, filters: MapFilters | None =
     scans = scans_of(conn, portal)
     runs = _chosen(scans, f.scan, f.persona)
     nodes, drawn, starts = _screen_nodes(conn, portal, runs, f.open_family)
-    pairs: dict[tuple[str, str], tuple[bool, bool]] = {}
+    pairs: dict[tuple[str, str], Pair] = {}
     moves = []
     for m in _moves(conn, portal):
         a, b = drawn.get(m["a"]), drawn.get(m["b"])
         if a is None or b is None or a == b:
             continue
         moves.append((a, b))
-        shown, failed = pairs.get((a, b), (False, False))
-        pairs[(a, b)] = (shown or m["run_id"] in runs, failed or bool(m["failed"]))
+        pairs.setdefault((a, b), Pair()).add(
+            m["run_id"], m["step"], m["run_id"] in runs, bool(m["failed"])
+        )
     _count_items(nodes, drawn, _items(conn, portal, runs))
     starts_drawn = list(dict.fromkeys(drawn[s] for s in starts if s in drawn))
     lay = map_layout.layout(list(nodes), moves, starts_drawn)
     for nid, p in lay.placed.items():
-        nodes[nid].x, nodes[nid].y, nodes[nid].depth = p.x, p.y, p.depth
+        # room above the top row for the arcs of moves back up the tree (map_edges)
+        nodes[nid].x, nodes[nid].y, nodes[nid].depth = p.x, p.y + ARC_ROOM, p.depth
     parents = {nid: p.parent for nid, p in lay.placed.items()}
     for child, parent in parents.items():
         if parent is not None:
             nodes[child].near.append(parent)
             nodes[parent].near.append(child)
-    edges = _edges(nodes, pairs, parents, "links" in layers)
+    drawing = edges(dict(nodes), pairs, parents, layers, (NODE_W, NODE_H))
+    for nid, r in drawing.returns.items():
+        nodes[nid].returns = r
     return MapView(
         nodes=list(nodes.values()),
-        edges=edges,
+        edges=drawing.edges,
         width=lay.width,
-        height=lay.height,
+        height=lay.height + ARC_ROOM,
         screens=sum(1 for n in nodes.values() if n.kind == "screen")
         + sum(n.count for n in nodes.values() if n.kind == "family"),
         transitions=len(pairs),
         queued=sum(n.queued for n in nodes.values()),
         scans=scans,
         personas=sorted({s.persona for s in scans}),
+        others=drawing.others,
     )
-
-
-def _curve(a: MapNode, b: MapNode) -> str:
-    x1, y1 = a.x + NODE_W // 2, a.y + NODE_H
-    x2, y2 = b.x + NODE_W // 2, b.y
-    ym = (y1 + y2) // 2
-    return f"M{x1} {y1} C{x1} {ym} {x2} {ym} {x2} {y2}"

@@ -116,3 +116,61 @@ def test_send_confirm_and_feedback_go_to_the_chat_service(client: TestClient, ch
     assert ("POST", f"/workbench/commands/{CMD}/confirm") in calls
     body = next(b for m, p, b in chat.calls if p.endswith("/confirm"))
     assert body == {"token": "t", "by": "dawid"}
+
+
+def _persona_command(store: Store, state: str, result: dict[str, object] | None = None) -> None:
+    conn = store.connect()
+    at = "2026-10-06T10:47:00.000Z"
+    args = {"name": "client", "about": "A signed-in customer", "credential": "SHOP"}
+    done = state != "proposed"
+    insert(
+        conn, "workbench_commands", id="cmd-0003", conversation_id=CONV, turn=1,
+        command="persona.add", args_json=json.dumps(args),
+        reason="Przedłuż polisę needs a signed-in customer.", source="assistant", state=state,
+        token_hash="0" * 64, precondition_hash="p", idempotency_key="k3",
+        expires_at="2999-01-01T00:00:00Z", created_at=at, updated_at=at,
+        confirmed_by="dawid" if done else None, confirmed_at=at if done else None,
+        result_json=json.dumps(result) if result else None,
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+
+
+def test_a_persona_card_is_editable_and_confirm_sends_the_edited_args(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+    chat: Chat,  # noqa: F811
+) -> None:
+    """Spec 072 (designer 19/04): persona.add's card carries its args and the sign-ins; Confirm
+    sends what the person left in the fields."""
+    _persona_command(empty_store, "proposed")
+    cards = {
+        c["dom_id"]: c for c in client.get(API, params={"c": CONV}).json()["turns"][0]["commands"]
+    }
+    card = cards["cmd-cmd-0003"]
+    assert card["title"] == "Add a persona" and card["editable"]
+    assert card["args"]["name"] == "client" and card["undo_url"] is None
+    assert ("Undo", "Undo removes the persona until a scan uses it.") in map(tuple, card["facts"])
+    edited = {"name": "klient", "credential": "SHOP"}
+    client.post(
+        "/api/workbench/commands/cmd-0003/confirm",
+        json={"token": "test-token-not-real", "args": edited},
+        headers=ORIGIN,
+    )
+    *_, body = next(c for c in chat.calls if c[1].endswith("/confirm"))
+    assert body == {"token": "test-token-not-real", "by": "dawid", "args": edited}
+
+
+def test_a_done_persona_card_says_so_and_can_be_undone(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+    chat: Chat,  # noqa: F811
+) -> None:
+    _persona_command(empty_store, "done", {"persona": "client", "credential_refs": []})
+    page = client.get(API, params={"c": CONV}).json()
+    card = next(c for c in page["turns"][0]["commands"] if c["dom_id"] == "cmd-cmd-0003")
+    assert card["result"].startswith("Persona client added to ")
+    assert card["undo_url"] == "/api/workbench/commands/cmd-0003/undo"
+    r = client.post("/api/workbench/commands/cmd-0003/undo", json={}, headers=ORIGIN)
+    assert r.json()["message"] == "Undone."
+    assert ("POST", "/workbench/commands/cmd-0003/undo") in {(m, p) for m, p, _ in chat.calls}

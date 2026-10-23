@@ -4,6 +4,13 @@ sides, changed region, what differs and the changes that need you around it."""
 
 from __future__ import annotations
 
+from pathlib import Path
+from types import SimpleNamespace
+
+import pytest
+
+from mudpuppy_dashboard import queries_app_change as qac
+
 from .conftest import Store, ts
 from .test_changes import (
     P,
@@ -96,6 +103,8 @@ def test_one_change_has_its_sides_region_and_neighbours(empty_store: Store) -> N
     assert d["after"]["has_change"] and d["after"]["shot"] == f"/evidence/{'b' * 64}.png"
     assert d["after"]["status"] == {"shape": "ok", "word": "Observed"}
     assert d["region"] == {"left": 10.0, "top": 10.0, "width": 20.0, "height": 5.0}
+    # the before side has no layout: "Not here" is a box at the same place (designer Q5a)
+    assert d["gone"] == {"shape": "box", "left": 10.0, "top": 10.0, "width": 20.0, "height": 5.0}
     assert d["decidable"] and d["hypothesis_status"]["word"]
     assert d["process"] == {"value": "PRC-001", "label": "Oblicz składkę"}
     assert d["back"] == f"/app/portals/{P}/changes?process=PRC-001"
@@ -116,3 +125,25 @@ def test_a_change_waiting_for_a_check_is_not_decided_here(empty_store: Store) ->
     assert not d["decidable"] and not d["rule_link"] and d["hypothesis_status"] is None
     assert c.get(f"{API}/nope").status_code == 404
     assert c.get("/api/portals/no-such-portal/changes").status_code == 404
+
+
+def test_not_here_is_a_line_where_an_inserted_region_pushed_the_page(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Designer Q5a: the marked page is taller by the region's height → a line at the insertion
+    point on the other picture; otherwise a box placed in that picture's own percent."""
+    heights = {"after": 1100.0, "before": 1000.0}
+    monkeypatch.setattr(qac, "_page_height", lambda _d, ref: heights[ref])
+    d = SimpleNamespace(
+        marked_side="after",
+        before=SimpleNamespace(layout_ref="before"),
+        after=SimpleNamespace(layout_ref="after"),
+    )
+    banner = qac.Region(left=0, top=10, width=100, height=100 / 11)  # 100 px of 1100
+    line = qac._gone(Path(), d, banner)  # type: ignore[arg-type]
+    assert line is not None and line.shape == "line" and line.height == 0
+    assert round(line.top, 3) == 11.0  # 110 px of the 1000 px page
+    heights["before"] = 1100.0
+    box = qac._gone(Path(), d, banner)  # type: ignore[arg-type]
+    assert box is not None and box.shape == "box" and round(box.height, 3) == round(100 / 11, 3)
+    assert qac._gone(Path(), d, None) is None  # type: ignore[arg-type]

@@ -1,0 +1,12 @@
+{# EventTail — the last raw events up to a step. Observed data: solid, mono times, the stop line in red. #}
+<ol class="sy-evtail" id="{{ cid }}-tail" aria-label="Last events">
+{%- block live_tail %}
+  {% for e in vm.rows %}
+  <li{% if e.failed %} data-status="failed"{% endif %}><time>{{ e.at }}</time><span>{{ e.text }} <span class="sy-evtail__id">{{ e.ref }}</span></span></li>
+  {% else %}
+  <li><time>—</time><span>No events yet.</span></li>
+  {% endfor %}
+{%- endblock %}
+</ol>
+<div class="sy-actions" style="--sy-gap: 6px"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" data-copy="#{{ cid }}-tail">Copy</button>
+  <a class="sy-btn sy-btn--sm sy-btn--quiet" href="/screens/10-scans.html">Open in Scans</a></div>

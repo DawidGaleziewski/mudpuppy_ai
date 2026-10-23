@@ -1,0 +1,15 @@
+{# One conversation turn. Slots have stable ids so the stream can fill them out of band:
+   t3--text (answer text, streamed) · t3--cmds (command cards) · t3--view (this turn's view, or its folded line). #}
+{% if t.role == "user" %}
+<div class="sy-msg sy-msg--user" id="{{ t.id }}">
+  {% if t.chips %}<span class="sy-cluster" style="--sy-gap: 4px">{% for ch in t.chips %}<span class="sy-chip">@ {{ ch.label }}</span>{% endfor %}</span>{% endif %}
+  <span>{{ t.text }}</span>
+</div>
+{% else %}
+<div class="sy-msg" id="{{ t.id }}">
+  <span class="sy-msg__who">{{ "Workbench" if t.role == "system" else "Assistant" }}</span>
+  <div id="{{ t.id }}--text" class="sy-stack" style="--sy-gap: 6px">{% include "frames/turn_text.html.j2" %}</div>
+  <div id="{{ t.id }}--cmds" class="sy-stack" style="--sy-gap: 8px">{% for cid in t.commands %}{{ r.command(r.cmds.items[cid]) }}{% endfor %}</div>
+  <div id="{{ t.id }}--view" class="sy-stack" style="--sy-gap: 8px">{{ r.view_slot(t) }}</div>
+</div>
+{% endif %}

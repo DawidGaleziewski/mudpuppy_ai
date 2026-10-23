@@ -29,7 +29,7 @@ function Turn({ rt, a, last, streaming }: { rt: WbTurn; a: WbActions; last: bool
           ))}
           <Suggestions items={rt.suggestions} onPick={a.ask} />
           {rt.commands.map((c) => (
-            <Command key={c.dom_id} c={c} a={a} />
+            <Command key={c.dom_id} c={c} a={a} turn={t.n} />
           ))}
         </Stack>
       </Message>
@@ -123,8 +123,10 @@ function Body({ m, portal }: { m: WbPageModel; portal: string }) {
     open: (turn, command, scan) => conv && post(wbWrites.open(conv, turn, command, scan)),
     switchPath: (path) => conv && post(wbWrites.path(conv, path)),
     feedback: (view, answer) => post(wbWrites.feedback(view, answer)),
-    confirm: (id, token, persona) => post(wbWrites.confirm(id, token, persona)),
+    confirm: (id, token, persona, args) => post(wbWrites.confirm(id, token, persona, args)),
     cancel: (id) => post(wbWrites.cancel(id)),
+    undo: (id) => post(wbWrites.undo(id)),
+    addPersona: (turn, name) => conv && post(wbWrites.addPersona(conv, turn, name)),
   };
   const send = () => {
     const t = text.trim();

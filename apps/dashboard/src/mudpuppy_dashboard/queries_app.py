@@ -16,6 +16,7 @@ from .models import Run
 from .queries_chat import portals_by_environment
 from .queries_queue import QueueItem
 from .queries_scans import max_steps
+from .scan_words import kind_word
 from .status_map import status_of
 
 
@@ -97,6 +98,8 @@ class ScanSummary(BaseModel):
     id: str
     persona: str
     mode: str
+    #: AI scan or Check run, the scan line's kind word (designer 19/12, `scan_words`).
+    kind: str
     status: StatusOut
     steps_used: int
     max_steps: int | None
@@ -158,6 +161,7 @@ def scan_list(conn: sqlite3.Connection, portal: str, limit: int = 25) -> ScanLis
                 id=run.id,
                 persona=run.persona_id,
                 mode=run.mode,
+                kind=kind_word(run.mode),
                 status=status_out("run", run.status),
                 steps_used=run.steps_used,
                 max_steps=max_steps(run),

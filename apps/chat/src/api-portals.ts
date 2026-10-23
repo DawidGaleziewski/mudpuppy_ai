@@ -5,6 +5,7 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { Environment } from '@mudpuppy/config';
 import { parseBody, readJson, sendJson } from './http-io.js';
 import { HttpError } from './http-error.js';
+import { PersonaRefusal, type SavedPersona } from './personas.js';
 import {
   EnvironmentBody,
   HintsBody,
@@ -20,6 +21,49 @@ export interface PortalCommands {
   removeEnvironment: (id: string, env: Environment) => PortalSummary;
   /** Settings ▸ Hints and Budgets (spec 040 T021). */
   setHints?: (id: string, body: HintsBody) => PortalSummary;
+  /** Add a persona (spec 072, `persona.add`'s API): its args, checked by `addPersona`. */
+  addPersona?: (id: string, body: unknown) => SavedPersona;
+  /** Its Undo: remove it while no scan used it. */
+  removePersona?: (id: string, name: string) => { portal: string; persona: string };
+}
+
+const PERSONA_STATUS: Record<PersonaRefusal['code'], number> = {
+  MISSING_INPUT: 404,
+  PERSONA_EXISTS: 409,
+  INLINE_SECRET: 400,
+  CEILING_WIDENED: 400,
+  INVALID: 400,
+};
+
+/** Run a persona command; a refusal becomes its HTTP status with the reasons in the message. */
+function personaCall<T>(run: () => T): T {
+  try {
+    return run();
+  } catch (error) {
+    if (error instanceof PersonaRefusal)
+      throw new HttpError(PERSONA_STATUS[error.code], error.details.length > 0 ? `${error.message}: ${error.details.join('; ')}` : `${error.message}.`);
+    throw error;
+  }
+}
+
+/** POST /portals/{id}/personas, DELETE /portals/{id}/personas/{name}; false when not one of them. */
+async function personaRoutes(req: IncomingMessage, res: ServerResponse, method: string, path: string, portals: PortalCommands | undefined): Promise<boolean> {
+  const add = /^\/portals\/([^/]+)\/personas$/.exec(path);
+  if (method === 'POST' && add !== null) {
+    const addPersona = portals?.addPersona;
+    if (addPersona === undefined) throw new HttpError(404, 'This address does not exist.');
+    const body = await readJson(req);
+    sendJson(res, 201, personaCall(() => addPersona(decodeURIComponent(add[1]!), body)));
+    return true;
+  }
+  const one = /^\/portals\/([^/]+)\/personas\/([^/]+)$/.exec(path);
+  if (method === 'DELETE' && one !== null) {
+    const removePersona = portals?.removePersona;
+    if (removePersona === undefined) throw new HttpError(404, 'This address does not exist.');
+    sendJson(res, 200, personaCall(() => removePersona(decodeURIComponent(one[1]!), decodeURIComponent(one[2]!))));
+    return true;
+  }
+  return false;
 }
 
 const PORTAL_STATUS: Record<PortalRefusal['code'], number> = {
@@ -119,5 +163,5 @@ export async function portalRoutes(
     await environmentRoute(req, res, method, portalEnv, portals);
     return true;
   }
-  return false;
+  return personaRoutes(req, res, method, path, portals);
 }

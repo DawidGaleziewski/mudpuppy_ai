@@ -141,3 +141,29 @@ def test_hints_budgets_and_accepting_go_through_the_chat_service(world: World) -
     assert sent[1] == {"replay_budget": 5, "probes": {"per_step": 12, "per_run": 60}}
     (accept,) = [q for q in service.requests if q.url.path.endswith("/model/accept")]
     assert json.loads(accept.content) == {"what": "tau", "by": "Anna"}
+
+
+def test_a_persona_is_added_and_removed_through_the_chat_service(world: World) -> None:  # noqa: F811
+    """Spec 072 (designer 19/04): the args go to the chat service as given; its refusal is said."""
+    service = up()
+    service.routes[("POST", "/portals/shop/personas")] = httpx2.Response(201, json={})
+    service.routes[("DELETE", "/portals/shop/personas/client")] = httpx2.Response(
+        409, json={"message": 'a scan already used persona "client", so it stays'}
+    )
+    args = {"name": "reader", "about": "Browses only", "test_data": []}
+    with signed(world, service) as c:
+        added = c.post(f"{API}/personas", json=args, headers=ORIGIN)
+        kept = c.post(f"{API}/personas/client/remove", json={}, headers=ORIGIN)
+        foreign = c.post(f"{API}/personas", json=args)
+    assert added.json() == {"ok": True, "message": "Persona reader added to shop.", "href": None}
+    (sent,) = [q for q in service.requests if q.url.path == "/portals/shop/personas"]
+    assert json.loads(sent.content) == args
+    assert kept.status_code == 409 and "already used" in kept.json()["message"]
+    assert foreign.status_code == 403
+
+
+def test_sign_ins_are_credentials_with_both_halves() -> None:
+    from mudpuppy_dashboard.queries_app_settings import sign_ins
+
+    names = ["SHOP_LOGIN", "SHOP_PASSWORD", "ADMIN_LOGIN", "TOKEN"]
+    assert sign_ins(names) == ["SHOP"]

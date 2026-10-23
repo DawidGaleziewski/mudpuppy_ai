@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, ChatDivider, Cluster, Confirm, Field, Input, Message, ProposalCard, Stack, Tag, Text, Vault } from '../design-system';
+import { Button, ChatDivider, Cluster, Confirm, Field, Input, Message, ProposalCard, ScanId, Stack, Tag, Text, Vault } from '../design-system';
 import { chatCall, type AssistantConversation, type AssistantItem, type AssistantPage, type LiveLine } from './api-assistant';
 import { ShownStatus } from './ShownStatus';
 
@@ -127,15 +127,24 @@ export function Item({ item, conversation, onStored }: { item: AssistantItem; co
   }
 }
 
-/** The conversation's run in one line (FE-C02), with the way to its scan page. */
+/**
+ * The conversation's run in one line (FE-C02; one grammar, designer 19/12): status · AI scan or
+ * Check run · its 13-character id · progress · where or when · Open.
+ */
 export function ScanLine({ scan }: { scan: NonNullable<AssistantPage['scan']> }) {
   return (
     <Cluster>
       <ShownStatus status={scan.status} />
-      <Text small>{scan.what}</Text>
-      {scan.quiet && <ShownStatus status={scan.quiet} />}
+      <Text small>{scan.kind}</Text>
+      <ScanId id={scan.scan} />
+      <Text small>{scan.progress}</Text>
+      {scan.last && (
+        <Text small muted={scan.last_muted}>
+          {scan.last}
+        </Text>
+      )}
       <Text small href={scan.href}>
-        Open in Scans
+        Open
       </Text>
     </Cluster>
   );

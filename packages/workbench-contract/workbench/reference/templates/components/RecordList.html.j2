@@ -1,0 +1,6 @@
+{# RecordList — up to 12 records in the order given. #}
+<div class="sy-table-wrap"><table class="sy-table sy-table--dense" aria-label="{{ vm.title or 'Records' }}">
+  <thead><tr><th scope="col">Id</th><th scope="col">Title</th><th scope="col">Status</th></tr></thead>
+  <tbody>{% for rec in vm.rows %}<tr><td><a class="sy-tag sy-tag--sm" href="{{ rec.href }}">{{ rec.id }}</a></td><td>{{ rec.title }}</td>
+    <td><span class="sy-status" data-status="{{ rec.status }}">{{ rec.word }}</span></td></tr>{% endfor %}</tbody>
+</table></div>

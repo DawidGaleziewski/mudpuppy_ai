@@ -24,6 +24,11 @@ export interface RecordedNode {
   deck: boolean;
   kind_status: StatusOut | null;
   chips: ChipOut[];
+  /** More than six moves off the tree end here: their chip ("↩ 14") and what it means. */
+  returns: ChipOut | null;
+  returns_said: string | null;
+  /** Reached only by other scans than the ones shown. */
+  dim: boolean;
   marked: boolean;
   first_state: string | null;
   states: number;
@@ -34,8 +39,15 @@ export interface RecordedNode {
 }
 
 export interface RecordedEdge {
-  state: string | null;
+  /** tree, offtree (a later move between pages the scan had), others (other scans' move), failed. */
+  state: string;
   d: string;
+  /** "↩ 3×", "↩ step 140", "2 scans", at (label_x, label_y). */
+  label: string | null;
+  label_x: number | null;
+  label_y: number | null;
+  /** The arrowhead of a move off the tree: at its end, or both ends. */
+  arrow: 'end' | 'both' | null;
 }
 
 /** The recorded map's view, as the URL carries it. */

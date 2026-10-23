@@ -34,6 +34,7 @@ const page = (over: Record<string, unknown> = {}) => ({
   credentials: [{ value: 'SHOP_LOGIN', label: 'staging · 2026-09-25T19:00:00Z' }],
   workbench: '3 of 40 turns used today. The count starts again at 00:00Z.',
   personas: [{ id: 'client', kind: 'logged-in', refs: ['SHOP_LOGIN'], attributes: [{ value: 'tariff', label: 'premium' }] }],
+  sign_ins: ['SHOP'],
   rules: { robots: 'respect', domains: ['shop.example.pl'], allowed_urls: null, disallowed_urls: ['/admin/*'] },
   hints: { release_marker: null, ab_flags: [], refusals: [], marker_header: '', marker_meta: '', checks_per_scan: 20, probes_per_step: 24, probes_per_scan: 120 },
   identity: { profile: 'v2', tau: null, same_labels: 1, distinct_labels: 2, classifier: null, can_accept_classifier: false },
@@ -99,5 +100,38 @@ describe('Settings', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Accept the calibrated τ' }));
     confirmIn('Accept the calibrated τ?', 'Accept the calibrated τ');
     expect(await screen.findByText('The calibrated τ is in force from the next rebuild.')).toBeTruthy();
+  });
+});
+
+describe('Settings ▸ Personas (spec 072, designer 19/04)', () => {
+  it('adds a persona after asking: a sign-in by name, test data as rows; a taken name is said first', async () => {
+    const fetch = at('/app/portals/shop/settings', {
+      [`${API}/settings`]: page(),
+      [`POST ${API}/personas`]: { ok: true, message: 'Persona reader added to shop.', href: null },
+    });
+    const name = await screen.findByLabelText('Name');
+    fireEvent.change(name, { target: { value: 'client' } });
+    expect(screen.getByText('client is already a persona of this portal.')).toBeTruthy();
+    expect(screen.getByRole('button', { name: 'Add persona' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.change(name, { target: { value: 'reader' } });
+    fireEvent.change(screen.getByLabelText('Signs in with'), { target: { value: 'SHOP' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add a value' }));
+    fireEvent.change(screen.getByLabelText('Field 1'), { target: { value: 'Kod pocztowy' } });
+    fireEvent.change(screen.getByLabelText('Value for Kod pocztowy'), { target: { value: '00-950' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Add persona' }));
+    confirmIn('Add persona reader?', 'Add persona');
+    expect(await screen.findByText('Persona reader added to shop.')).toBeTruthy();
+    expect(bodyOf(fetch, `${API}/personas`)).toEqual({ name: 'reader', credential: 'SHOP', test_data: [{ field: { label: 'Kod pocztowy' }, value: '00-950' }] });
+  });
+
+  it('removes a persona after asking', async () => {
+    const fetch = at('/app/portals/shop/settings', {
+      [`${API}/settings`]: page(),
+      [`POST ${API}/personas/client/remove`]: { ok: false, message: 'Not done: a scan already used persona "client", so it stays.', href: null },
+    });
+    fireEvent.click(await screen.findByRole('button', { name: 'Remove client' }));
+    confirmIn('Remove persona client?', 'Remove');
+    expect(await screen.findByText(/so it stays/)).toBeTruthy();
+    expect(fetch.mock.calls.some((c) => c[0] === `${API}/personas/client/remove`)).toBe(true);
   });
 });

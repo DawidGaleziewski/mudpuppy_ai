@@ -83,6 +83,12 @@ export interface WbCommandCard {
   personas: string[];
   persona: string | null;
   no_persona_url: string | null;
+  /** An editable card (spec 072, persona.add): its fields from `args`, the sign-ins it may use. */
+  editable?: boolean;
+  args?: Record<string, unknown>;
+  sign_ins?: string[];
+  /** done persona.add: Undo removes the persona while no scan used it. */
+  undo_url?: string | null;
 }
 
 export interface WbTurn {
@@ -153,7 +159,14 @@ export const wbWrites = {
   send: (portal: string, c: string | null, text: string): Write => ({ path: `${base}/portals/${encodeURIComponent(portal)}/turns`, body: { c: c ?? '', text, ctx: [] } }),
   path: (c: string, path: string): Write => ({ path: `${base}/conversations/${encodeURIComponent(c)}/path`, body: { path } }),
   open: (c: string, turn: number, command: string, scan: string): Write => ({ path: `${base}/commands`, body: { c, turn, command, scan } }),
-  confirm: (id: string, token: string, persona: string | null): Write => ({ path: `${base}/commands/${encodeURIComponent(id)}/confirm`, body: { token, ...(persona ? { persona } : {}) } }),
+  confirm: (id: string, token: string, persona: string | null, args?: Record<string, unknown>): Write => ({
+    path: `${base}/commands/${encodeURIComponent(id)}/confirm`,
+    body: { token, ...(persona ? { persona } : {}), ...(args ? { args } : {}) },
+  }),
+  /** Undo a done persona.add (spec 072). */
+  undo: (id: string): Write => ({ path: `${base}/commands/${encodeURIComponent(id)}/undo`, body: {} }),
+  /** An Add-a-persona card opened by the person, with a name to change (spec 072). */
+  addPersona: (c: string, turn: number, name: string): Write => ({ path: `${base}/commands`, body: { c, turn, command: 'persona.add', args: { name } } }),
   cancel: (id: string): Write => ({ path: `${base}/commands/${encodeURIComponent(id)}/cancel`, body: {} }),
   feedback: (view: string, answer: { value: string; toggle?: string; text?: string }): Write => ({ path: `${base}/views/${encodeURIComponent(view)}/feedback`, body: answer }),
 };

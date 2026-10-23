@@ -1,0 +1,10 @@
+{# FindingCard — a finding and its proposed explanation. Decisions stay in Review, with a reason: no decide buttons here. #}
+{% set f = vm.f %}
+<div class="sy-stack" style="--sy-gap: 8px">
+  <b>{{ f.title }}</b>
+  <dl class="sy-facts"><dt>Screen</dt><dd>{{ f.screen }}</dd>
+    <dt>Explanation</dt><dd><span class="sy-status" data-status="{{ f.status }}">{{ f.word }}</span> {{ f.explanation }}</dd>
+    <dt>Linked</dt><dd>{% for l in f.linked %}{{ l }}{% if not loop.last %} · {% endif %}{% endfor %}</dd></dl>
+  <div class="sy-actions"><a class="sy-btn sy-btn--sm sy-btn--primary" href="{{ f.href }}">Open in Review</a>
+    <span class="sy-small sy-muted">Deciding settles the linked items together.</span></div>
+</div>

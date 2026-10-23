@@ -47,13 +47,13 @@ describe('Scans page', () => {
         portal: 'shop',
         total: 2,
         scans: [
-          { id: RUN_2, persona: 'guest', mode: 'map', status: { shape: 'running', word: 'Running' }, steps_used: 10, max_steps: 40, started_at: '2026-10-23T01:00:00Z', ended_at: null, warning: null },
-          { id: RUN_1, persona: 'guest', mode: 'map', status: { shape: 'ok', word: 'Completed' }, steps_used: 49, max_steps: 400, started_at: '2026-10-22T23:00:00Z', ended_at: '2026-10-22T23:20:00Z', warning: null },
-          { id: RUN_0, persona: 'guest', mode: 'map', status: { shape: 'ok', word: 'Completed' }, steps_used: 9, max_steps: 400, started_at: '2026-10-22T22:00:00Z', ended_at: '2026-10-22T22:20:00Z', warning: null },
+          { id: RUN_2, persona: 'guest', mode: 'map', kind: 'AI scan', status: { shape: 'running', word: 'Running' }, steps_used: 10, max_steps: 40, started_at: '2026-10-23T01:00:00Z', ended_at: null, warning: null },
+          { id: RUN_1, persona: 'guest', mode: 'map', kind: 'AI scan', status: { shape: 'ok', word: 'Completed' }, steps_used: 49, max_steps: 400, started_at: '2026-10-22T23:00:00Z', ended_at: '2026-10-22T23:20:00Z', warning: null },
+          { id: RUN_0, persona: 'guest', mode: 'map', kind: 'AI scan', status: { shape: 'ok', word: 'Completed' }, steps_used: 9, max_steps: 400, started_at: '2026-10-22T22:00:00Z', ended_at: '2026-10-22T22:20:00Z', warning: null },
         ],
       },
     });
-    expect((await screen.findByRole('progressbar', { name: 'Scan 01a16391-7c00' })).getAttribute('aria-valuenow')).toBe('10');
+    expect((await screen.findByRole('progressbar', { name: 'AI scan 01a16391-7c00' })).getAttribute('aria-valuenow')).toBe('10');
     // the 13-character short form, linking with the full id; two that share it show the third group (Q6)
     const row = screen.getByRole('rowheader', { name: /^01a16388-1f2c-7000/ });
     expect(within(row).getByRole('link').getAttribute('href')).toBe(`/app/scans/${RUN_1}`);
@@ -81,7 +81,7 @@ const home = {
   model_seq: 4,
   model_built_at: '2026-10-22T20:00:00Z',
   lanes: [{ part: 'shop', release: 'r-12', observed: true, since: '2026-10-22T19:00:00Z', was: 'r-11' }],
-  last_scan: { id: 'run-7', started_at: '2026-10-22T21:00:00Z', status: { shape: 'ok', word: 'Completed' }, kind: 'scan', steps: 49 },
+  last_scan: { id: 'run-7', started_at: '2026-10-22T21:00:00Z', status: { shape: 'ok', word: 'Completed' }, kind: 'AI scan', steps: 49, summary: '22 Oct 21:00Z · 49 steps' },
   needs: {
     total: 12,
     by_kind: [{ kind: 'questions', label: 'Questions', count: 12 }],

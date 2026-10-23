@@ -24,6 +24,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   chat relay, the evidence files and the console at `/app/`. Leftovers in R-102.
 
 ### Added
+- **R-101: the designer's console answers, round 3** (spec 072, v2.8.0, 2026-10-24). A scan's
+  recorded map draws its first visits as a tree, moves off the tree as arcs with arrowheads (a
+  chip when more than six go into one screen) and other scans' moves on a layer you switch on;
+  every map opens readable (never below 80 %), Fit draws an overview under 50 % where a click
+  zooms to the screen. A scan's Trace has a phase bar (Start, Replay, Explore, Fill forms, Probe,
+  Waiting for you, Quiet); pressing a phase shows only its calls. A persona can be added and
+  removed in Settings ▸ Personas, or from the Workbench's editable Add a persona card, with one
+  sign-in credential name and never a value (migration 0050). Before / after marks "Not here" as
+  a box or a line and has an overlay with a slider; the release timeline shows its range; a
+  decision table's facts sit above it; the drawer is one window high with "New messages ↓"; "This
+  page" is disabled with its reason where a page has no context. Every scan line reads the same
+  on Home, Scans, the drawer and the Workbench. A Screen's variants open "Compare with r1". Q13
+  (the A2UI catalogue) stays with R-96; leftovers in R-102.
 - **R-96 step 21: the assistant on Home, the scan line and page actions** (spec 070, v2.6.20,
   2026-10-23). Home has the Assistant beside Changes by process: suggestions and a message box
   that open the drawer and send there; a message waits in this browser until the drawer's

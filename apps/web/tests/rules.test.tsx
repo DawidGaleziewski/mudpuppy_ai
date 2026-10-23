@@ -131,4 +131,13 @@ describe('DecisionTable', () => {
     expect(screen.getByRole('rowheader', { name: '1' })).toBeTruthy();
     expect(container.querySelector('td.sy-dt-result')?.textContent).toBe('X');
   });
+
+  it('puts the facts above, describing the table; the caption only names it (Q7)', () => {
+    const { container } = render(<DecisionTable label="BR-021 decision table" inputs={['a']} result="→" rows={[]} facts={[['Hit policy', 'First match']]} />);
+    const facts = container.querySelector('dl.sy-facts.sy-facts--table');
+    expect(facts?.id).toBeTruthy();
+    const table = screen.getByRole('table', { name: 'BR-021 decision table' });
+    expect(table.getAttribute('aria-describedby')).toBe(facts?.id);
+    expect(table.querySelector('caption')?.textContent).toBe('BR-021 decision table');
+  });
 });

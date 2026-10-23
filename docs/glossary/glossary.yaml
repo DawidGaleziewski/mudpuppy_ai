@@ -3314,6 +3314,92 @@ entries:
     changed_in: R-100
     changed_on: 2026-10-23
 
+  - id: phase-bar
+    term: Phase bar
+    category: mudpuppy
+    group: Dashboard
+    short: The strip over a scan's Trace that shows how the scan's time went, work, waiting for you and quiet stretches, from its first call to its last.
+    explanation: |
+      The bar is drawn from the scan's call spans. A handoff (a captcha) followed by 10 s or more
+      without a call is Waiting for you; 60 s or more without a call is Quiet; the rest is work. A
+      work stretch under 3 steps between two stretches of one other kind joins them, so the bar
+      stays readable. Pick a phase to see only its calls (`?phase=` in the address).
+    example: "Work 4 min · Waiting for you 2 min (captcha) · Work 7 min · Quiet 1 min."
+    appears_in: ["A scan's page → Trace"]
+    labels: [Phase bar, Waiting for you, Quiet, Work]
+    related: [tool-call, run]
+    changed_in: R-101
+    changed_on: 2026-10-24
+
+  - id: move-off-the-tree
+    term: Move off the tree
+    category: mudpuppy
+    group: Dashboard
+    short: On a scan's recorded map, a move to a screen the scan had already reached another way, drawn as an arc with an arrowhead.
+    explanation: |
+      The recorded map draws each screen once, under the move that first reached it (the tree).
+      A later move to a screen already on the map is off the tree: an arc with an arrowhead and
+      the step it happened at. Moves other scans made are drawn faint, failed moves red. A screen
+      with more than six moves out gets a chip with the count instead of every line; a screen
+      the scan knew of but never opened is marked Not reached.
+    example: "↩ step 140: back to the home page from the cart."
+    appears_in: ["A scan's page → Graph", "Screens → One scan's path"]
+    labels: [Move off the tree, Moves other scans made, Not reached]
+    related: [scan-graph, portal-map]
+    changed_in: R-101
+    changed_on: 2026-10-24
+
+  - id: not-here
+    term: Not here
+    category: mudpuppy
+    group: Dashboard
+    short: On Before / after, the mark on the side without the change, showing where the changed part would be.
+    explanation: |
+      When a part of a page is new or gone, the other side has nothing to circle, so the console
+      marks the place with a dashed "Not here". When that page is shorter by about the region's
+      height, the mark is a line where the part was inserted; otherwise a box. The overlay view
+      lays both pictures over each other with a slider between them.
+    example: "Before: Not here (a line under the price). After: the new Discount code field."
+    appears_in: ["What changed → Before / after"]
+    labels: [Not here, Overlay]
+    related: [screen-variant]
+    changed_in: R-101
+    changed_on: 2026-10-24
+
+  - id: scan-line
+    term: Scan line
+    category: mudpuppy
+    group: Dashboard
+    short: The one-line summary of a scan the console shows in the assistant drawer, on Home, on Scans and in the Workbench, always in the same words.
+    explanation: |
+      One grammar everywhere: the status, the kind (AI scan, or Check run for a probe run with no
+      AI) and the short id, then steps done of the limit, pages and what is queued, then where or
+      when: "now at" a page while it runs, "no new step for N min" when a running scan has been
+      quiet for 2 min or more, "at" the page it stopped on, or the time it completed. The same
+      scan reads the same in every place.
+    example: "Running AI scan 01a16add-1e29 · 12 / 120 steps · 9 pages · 3 queued · now at /porownanie."
+    appears_in: [Assistant drawer, Home, Scans, Workbench]
+    labels: [scan line]
+    related: [run, workbench]
+    changed_in: R-101
+    changed_on: 2026-10-24
+
+  - id: sign-in-credential
+    term: Sign-in credential
+    category: mudpuppy
+    group: Login and credentials
+    short: One credential name X that a persona signs in with, standing for the pair X_LOGIN and X_PASSWORD in the vault.
+    explanation: |
+      Adding a persona (Settings ▸ Personas, or the Workbench's Add a persona card) asks for one
+      name, not two. The card and the form never hold a value: a new name's values are stored
+      through the vault as before.
+    example: "REF_INSURER_KLIENT → REF_INSURER_KLIENT_LOGIN / REF_INSURER_KLIENT_PASSWORD."
+    appears_in: [Settings → Personas, Workbench → Add a persona]
+    labels: [Sign-in, Add a persona]
+    related: [credential-vault, credential-ref, persona]
+    changed_in: R-101
+    changed_on: 2026-10-24
+
   - id: persona-sample
     term: Persona sample
     category: mudpuppy

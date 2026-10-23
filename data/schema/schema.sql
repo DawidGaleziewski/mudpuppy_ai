@@ -1,4 +1,4 @@
--- GENERATED from data/migrations/*.up.sql applied in order (currently through 0049_workbench). Do not edit by hand.
+-- GENERATED from data/migrations/*.up.sql applied in order (currently through 0050_workbench_persona_add). Do not edit by hand.
 -- Regenerate after every migration; see data/schema/README.md.
 
 CREATE TABLE runs (
@@ -1493,8 +1493,9 @@ CREATE TABLE workbench_commands (
   id              TEXT PRIMARY KEY,                                  -- UUIDv7
   conversation_id TEXT NOT NULL REFERENCES chat_conversations(id),
   turn            INTEGER NOT NULL CHECK (turn >= 1),
-  command         TEXT NOT NULL CHECK (command IN ('scan.start','scan.resume','scan.stop','path.attempt','mark.add')),
-  args_json       TEXT NOT NULL CHECK (json_valid(args_json) AND json_type(args_json) = 'object'),
+  -- 0050 (table rebuilt): persona.add, an editable card whose Undo removes the persona (spec 072).
+  command         TEXT NOT NULL CHECK (command IN ('scan.start','scan.resume','scan.stop','path.attempt','mark.add','persona.add')),
+  args_json       TEXT NOT NULL CHECK (json_valid(args_json) AND json_type(args_json) = 'object'),  -- persona.add: the args as confirmed
   reason          TEXT NOT NULL CHECK (length(reason) > 0),
   source          TEXT NOT NULL CHECK (source IN ('assistant','button')),
   state           TEXT NOT NULL DEFAULT 'proposed'
