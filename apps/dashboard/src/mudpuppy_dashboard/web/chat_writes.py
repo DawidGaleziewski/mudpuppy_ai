@@ -9,7 +9,53 @@ import json
 from typing import Any
 from urllib.parse import quote
 
+from fastapi import Request
+from fastapi.responses import JSONResponse
+from pydantic import BaseModel
+
 from .. import chat_client, queries_map_node, queries_plan
+from .deps import same_origin, web_of
+
+
+class WriteResult(BaseModel):
+    """What every React console write answers (spec 054)."""
+
+    ok: bool
+    message: str
+    #: Where to follow it up: the conversation a restart was sent to, a new process's page.
+    href: str | None = None
+
+
+def write_answer(status: int, message: str, href: str | None = None) -> JSONResponse:
+    body = WriteResult(ok=status in (200, 201), message=message, href=href).model_dump()
+    return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
+
+
+def write_refused(request: Request, what: str) -> JSONResponse | None:
+    """403 for a call from another origin, 409 while no reviewer is named (`what` the person
+    cannot do without one: "mark screens")."""
+    if not same_origin(request):
+        return write_answer(403, "Cross-origin request refused.")
+    if not web_of(request).settings.reviewer:
+        return write_answer(
+            409, f"Set MUDPUPPY_REVIEWER to your name, then restart the dashboard, to {what}."
+        )
+    return None
+
+
+async def chat_write(
+    web: Any, env: str, method: str, path: str, body: dict[str, Any]
+) -> tuple[int, dict[str, Any]]:
+    """One write call to the chat service: its status and JSON body; 0 and the start command
+    when it is not running."""
+    try:
+        status, answer = await chat_client.call(
+            web.settings, method, path, body, web.chat_transport
+        )
+    except chat_client.ChatUnavailable:
+        return 0, {"message": chat_client.not_running(env)}
+    return status, answer if isinstance(answer, dict) else {}
+
 
 SCAN_TYPES = (
     ("focused", "Focused", "Replays to the Start here and Focus marks and explores from there."),

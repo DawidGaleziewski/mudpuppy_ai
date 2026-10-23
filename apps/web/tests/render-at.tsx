@@ -6,17 +6,21 @@ import { routes } from '../src/app/App';
 
 /**
  * Render the app at `path` with the API answering `bodies[url]` (status `status`) and 404 for any
- * other URL. Returns the fetch mock, to read the URLs the page asked for.
+ * other URL; a key "POST /api/…" answers only that method (a list and its create share a URL).
+ * Returns the fetch mock, to read the URLs the page asked for.
  */
 export function at(path: string, bodies: Record<string, unknown>, status = 200) {
-  const fetch = vi.fn((url: string) =>
-    Promise.resolve(
-      new Response(JSON.stringify(bodies[url] ?? { detail: 'This address does not exist.' }), {
-        status: url in bodies ? status : 404,
+  const fetch = vi.fn((url: string, init?: RequestInit) => {
+    // "POST /api/…" answers only that method; a plain URL answers every method.
+    const method = init?.method ?? 'GET';
+    const key = `${method} ${url}` in bodies ? `${method} ${url}` : url;
+    return Promise.resolve(
+      new Response(JSON.stringify(bodies[key] ?? { detail: 'This address does not exist.' }), {
+        status: key in bodies ? status : 404,
         headers: { 'content-type': 'application/json' },
       }),
-    ),
-  );
+    );
+  });
   vi.stubGlobal('fetch', fetch);
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   render(

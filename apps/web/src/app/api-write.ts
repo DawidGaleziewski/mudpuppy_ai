@@ -13,7 +13,7 @@ export interface WriteResult {
 /** A write the page asks for: the API path and its JSON body. */
 export interface Write {
   path: string;
-  body: Record<string, string>;
+  body: Record<string, string | number | string[]>;
 }
 
 export async function postJson(w: Write): Promise<WriteResult> {
@@ -62,5 +62,18 @@ export const writes = {
   retry: (scan: string, transition: string, variation: string): Write => ({
     path: `/api/scans/${encodeURIComponent(scan)}/restart`,
     body: { run_type: 'retry', transition_id: transition, variation },
+  }),
+  newProcess: (portal: string, name: string, persona: string, states: string[]): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes`,
+    body: { name, persona, state_ids: states },
+  }),
+  unarchive: (portal: string, process: string, baseRev: number): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/unarchive`,
+    body: { base_rev: baseRev },
+  }),
+  /** Accept, dismiss, split (`at`: the step the second half starts at) or merge (`with`). */
+  suggestion: (portal: string, id: string, action: 'accept' | 'dismiss' | 'split' | 'merge', body: Record<string, string | number> = {}): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/suggestions/${encodeURIComponent(id)}/${action}`,
+    body,
   }),
 };

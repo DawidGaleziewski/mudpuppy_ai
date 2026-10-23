@@ -10,7 +10,7 @@ import { stateHref } from './RecordedInspector';
 const stateColumns = [
   {
     header: 'Picture',
-    cell: (s: StateRow) => <Picture shot={s.picture} title={s.title || '(untitled page)'} route={s.route} href={stateHref(s.state)} />,
+    cell: (s: StateRow) => <Picture size="sm" shot={s.picture} title={s.title || '(untitled page)'} route={s.route} href={stateHref(s.state)} />,
   },
   {
     header: 'Title',

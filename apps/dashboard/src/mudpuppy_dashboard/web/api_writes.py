@@ -11,44 +11,27 @@ from typing import Any
 
 from fastapi import APIRouter, Request
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
 
 from .. import db, queries_plan, queries_screens, queries_suites
 from .chat_forward import read_json
 from .chat_writes import (
     PROBE_MARK_DONE,
     SCREEN_MARK_KINDS,
+    WriteResult,
     mark_call,
     plan_from_form,
     scan_request_text,
     send_to_chat,
+    write_refused,
 )
+from .chat_writes import write_answer as _answer
 from .deps import Ctx, same_origin, web_of
 
 router = APIRouter(prefix="/api")
 
-NO_REVIEWER = "Set MUDPUPPY_REVIEWER to your name, then restart the dashboard, to mark screens."
-
-
-class WriteResult(BaseModel):
-    ok: bool
-    message: str
-    #: Where to follow it up: the conversation a restart was sent to.
-    href: str | None = None
-
-
-def _answer(status: int, message: str, href: str | None = None) -> JSONResponse:
-    body = WriteResult(ok=status == 200, message=message, href=href).model_dump()
-    return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
-
 
 def _refused(request: Request) -> JSONResponse | None:
-    """403 for a call from another origin, 409 while no reviewer is named."""
-    if not same_origin(request):
-        return _answer(403, "Cross-origin request refused.")
-    if not web_of(request).settings.reviewer:
-        return _answer(409, NO_REVIEWER)
-    return None
+    return write_refused(request, "mark screens")
 
 
 async def _mark(c: Ctx, portal: str, action: str, body: dict[str, Any], done: str):

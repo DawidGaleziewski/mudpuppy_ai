@@ -137,3 +137,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `trace_event_detail` in Python); `queries_trace.py` holds `agent_context_for_run` and
   `process_run_diagram` for `web/runs.py` and the API; `web/api_common.py` holds `scan_store` and
   `page_at` for the scan routers.
+- Spec 057 (R-96, the Processes list): `web/api_processes.py` (`GET /api/portals/{p}/processes`;
+  `POST …/processes`, `…/processes/{id}/unarchive`, `…/suggestions/{id}/{accept|dismiss|split|merge}`)
+  over `queries_app_processes.py`; every console write's answer and checks (`WriteResult`,
+  `write_answer`, `write_refused`, `chat_write`) live in `web/chat_writes.py`.

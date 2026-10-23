@@ -12,7 +12,7 @@ const columns = [
   {
     header: 'Picture',
     cell: (r: RecordedPage) => (
-      <Picture shot={r.picture} title={r.title || '(untitled page)'} route={r.route} scans={r.scans} href={stateHref(r.state)} />
+      <Picture size="sm" shot={r.picture} title={r.title || '(untitled page)'} route={r.route} scans={r.scans} href={stateHref(r.state)} />
     ),
   },
   {

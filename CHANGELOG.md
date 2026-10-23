@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 8: the Processes list in React** (spec 057, v2.6.7, 2026-10-23).
+  `/app/portals/{p}/processes`: the BA's processes with their stage, models (with an open draft),
+  what is live where, screens and amendments, and the archived ones with Restore; the assistant's
+  suggestions as drawn plates with Accept, Edit first, Dismiss, Split before a step and Merge with
+  another; the screens in no process with their pictures, ticked in the order a person walks them
+  into a new process (move up, down, remove). Every write asks first and says what happened;
+  Processes joins the nav. One process, Compare and History still open the htmx pages. API:
+  `/api/portals/{p}/processes` and its writes.
 - **R-96 step 7: a scan's Trace and Process in React** (spec 056, v2.6.6, 2026-10-23).
   `/app/scans/{id}/trace`: the trace summary (calls by tool and status, tokens, health, time per
   phase, slowest calls) and every tool call with the agent's stated rationale, its tokens and

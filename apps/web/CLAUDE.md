@@ -21,9 +21,10 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   `stories/` (a stories file per component, `Introduction.mdx`, `Rules.mdx`, `Tokens.mdx`),
   `assets/` (the designer's CSS and fonts, a copy: never edit), `index.ts` (the one import).
 - `src/app/`: `App.tsx` (routes under `/app/`, the query client), `api.ts` (typed endpoints and
-  TanStack Query hooks; one `api-<page>.ts` per page group, e.g. `api-recorded.ts`, `api-scan.ts`),
+  TanStack Query hooks; one `api-<page>.ts` per page group, e.g. `api-recorded.ts`, `api-scan.ts`, `api-processes.ts`),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
-  first, post, show the answer: every write goes through it), `ShownStatus.tsx` (a status as the
+  first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
+  link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the
   API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
   address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
   section's address), `Shell.tsx`, `QueryState.tsx`.

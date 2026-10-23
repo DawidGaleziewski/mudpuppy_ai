@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
 import type { QueryKey } from '@tanstack/react-query';
 import { Callout, Confirm, Text } from '../design-system';
-import { useWrite, type Write } from './api-write';
+import { useWrite, type Write, type WriteResult } from './api-write';
 
 /** A write the page offers: the question, what will happen, the confirming word and the call. */
 export interface Ask {
@@ -9,6 +9,10 @@ export interface Ask {
   text: ReactNode;
   confirm: string;
   write: Write;
+  /** The link's word when the answer says where to follow it up (a restart: the conversation). */
+  follow?: string;
+  /** Run after a write that was recorded (Edit first: open the new process at once). */
+  onDone?: (result: WriteResult) => void;
 }
 
 /**
@@ -19,6 +23,7 @@ export interface Ask {
  */
 export function useConfirmedWrite(refresh: QueryKey) {
   const [pending, setPending] = useState<Ask | null>(null);
+  const [follow, setFollow] = useState('Open the conversation');
   const write = useWrite(refresh);
   const result = write.data;
   const view = (
@@ -30,7 +35,15 @@ export function useConfirmedWrite(refresh: QueryKey) {
         busy={write.isPending}
         onCancel={() => setPending(null)}
         onConfirm={() => {
-          if (pending) write.mutate(pending.write, { onSettled: () => setPending(null) });
+          if (!pending) return;
+          setFollow(pending.follow ?? 'Open the conversation');
+          const { onDone } = pending;
+          write.mutate(pending.write, {
+            onSettled: () => setPending(null),
+            onSuccess: (r) => {
+              if (r.ok) onDone?.(r);
+            },
+          });
         }}
       >
         {pending?.text}
@@ -41,7 +54,7 @@ export function useConfirmedWrite(refresh: QueryKey) {
           {result.href && (
             <>
               {' '}
-              <Text href={result.href}>Open the conversation</Text>
+              <Text href={result.href}>{follow}</Text>
             </>
           )}
         </Callout>

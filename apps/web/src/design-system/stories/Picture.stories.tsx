@@ -32,3 +32,5 @@ type Story = StoryObj<typeof meta>;
 export const WithScreenshot: Story = {};
 export const WireframeOnly: Story = { args: { shot: null, wire: shot } };
 export const NoPicture: Story = { args: { shot: null, wire: null } };
+/** In a row or a table cell (a list of screens): a 96 px thumbnail. */
+export const Small: Story = { args: { size: 'sm' } };

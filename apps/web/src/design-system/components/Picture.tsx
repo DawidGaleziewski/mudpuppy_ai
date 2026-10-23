@@ -16,11 +16,14 @@ export interface PictureProps {
   scans?: number;
   /** The recorded page, the dialog's way on. */
   href?: string;
+  /** `sm`: a 96 px thumbnail in a row or a table cell; by default it fills its box (a screen's page). */
+  size?: 'sm';
 }
 
 // Layout only (no paint): the library has no class for the thumbnail's button nor a wide dialog;
 // the designer is asked for both (spec 052). Until then they stay here, never in a page.
 const BUTTON: CSSProperties = { display: 'block', width: '100%', padding: 0, border: 0, background: 'none', cursor: 'zoom-in' };
+const SMALL: CSSProperties = { ...BUTTON, width: 96, flex: 'none' };
 const WIDE: CSSProperties = { width: 'min(960px, calc(100vw - 32px))' };
 const LARGE: CSSProperties = { display: 'block', maxWidth: '100%', maxHeight: '65vh', margin: '0 auto' };
 
@@ -28,7 +31,7 @@ const LARGE: CSSProperties = { display: 'block', maxWidth: '100%', maxHeight: '6
  * A recorded screen's picture: a thumbnail that opens a dialog with the large screenshot, a
  * Screenshot / Wireframe switch and the way to the recorded page. It never selects anything.
  */
-export function Picture({ shot, wire, title, route, scans, href }: PictureProps) {
+export function Picture({ shot, wire, title, route, scans, href, size }: PictureProps) {
   const dialog = useRef<HTMLDialogElement>(null);
   const [view, setView] = useState(shot ? 'shot' : 'wire');
   const thumb = shot ?? wire;
@@ -42,7 +45,7 @@ export function Picture({ shot, wire, title, route, scans, href }: PictureProps)
   const large = view === 'shot' ? shot : wire;
   return (
     <>
-      <button type="button" style={BUTTON} aria-label={`Picture of ${title}`} onClick={() => dialog.current?.showModal()}>
+      <button type="button" style={size === 'sm' ? SMALL : BUTTON} aria-label={`Picture of ${title}`} onClick={() => dialog.current?.showModal()}>
         <img className="sy-thumb" src={thumb} alt="" loading="lazy" />
       </button>
       <dialog ref={dialog} className="sy-dialog" style={WIDE} aria-label={title}>
