@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 16: Business rules in React** (spec 065, v2.6.15, 2026-10-23).
+  `/app/portals/{p}/rules`: every decision rule grouped by status, what needs a person first,
+  with where it is decided, its boundary tests and when it was last tested; a status filter; Run
+  the rule tests (asks first); the export of all rules and `rules.csv`. One rule shows its
+  documented key, the sentence in the documentation with Reword (asks first), the decision table,
+  the boundary tests, the history with a person's reasons as notes, and the rule as the export
+  has it with its Markdown and DMN. Rules is in the console's menu; Review, a process's rules and
+  Before / after open the React pages.
 - **R-96 step 15: What changed and Before / after in React** (spec 064, v2.6.14, 2026-10-23).
   `/app/portals/{p}/changes`: choose the range (since the previous release, from a model version,
   a date or a scan, to a version) over the release lanes, whose releases start the range at

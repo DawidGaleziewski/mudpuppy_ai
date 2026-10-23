@@ -40,6 +40,7 @@ def test_needs_you_lists_the_groups_with_mapped_rows_and_the_first_item_selected
     assert {o["value"] for o in body["empty_kinds"]} >= {"records", "suites"}
     assert body["selected"]["row"]["kind"] == "findings" and body["selected"]["in_react"] is True
     assert body["selected"]["link"]["label"] == "Before / after"
+    assert body["selected"]["link"]["value"].startswith(f"/app/portals/{P}/changes/")
     assert body["neighbours"]["index"] == 1 and body["neighbours"]["total"] == 2
     assert body["filters"] is not None
 
@@ -51,7 +52,7 @@ def test_a_group_tab_lists_its_rows_and_selects_by_kind_and_id(empty_store: Stor
         records = c.get(f"{API}?show=records").json()
     assert [g["kind"] for g in rules["groups"]] == ["rules"]
     assert rules["selected"]["row"]["id"] == "H-0002"
-    assert rules["selected"]["link"]["value"] == "/rules/H-0002"
+    assert rules["selected"]["link"]["value"] == f"/app/portals/{P}/rules/H-0002"
     assert processes["selected"]["link"]["value"] == f"/app/portals/{P}/processes"
     (empty,) = records["groups"]
     assert empty["count"] == 0 and empty["empty"].startswith("No draft records wait.")

@@ -180,7 +180,7 @@ describe('Review tabs', () => {
   it('lists the decisions with their reasons and an undone one marked', async () => {
     const decided = { ...base, tab: 'decided', groups: [], decided: [{ key: 'BR-021', kind: 'decision rule', claim: 'Driver age', status: status('ok', 'Confirmed'), undone: true, actor: 'Anna', reason: 'Seen the release.', at: '2026-10-23T00:00:00Z', is_rule: true }] };
     at('/app/portals/shop/review?tab=decided', { [`${API}?tab=decided`]: decided });
-    expect((await screen.findByRole('link', { name: 'BR-021' })).getAttribute('href')).toBe('/rules/BR-021');
+    expect((await screen.findByRole('link', { name: 'BR-021' })).getAttribute('href')).toBe('/app/portals/shop/rules/BR-021');
     expect(screen.getByText('Undone')).toBeTruthy();
     expect(screen.getByText('Seen the release.')).toBeTruthy();
     const tabs = screen.getByRole('navigation', { name: 'Review views' });

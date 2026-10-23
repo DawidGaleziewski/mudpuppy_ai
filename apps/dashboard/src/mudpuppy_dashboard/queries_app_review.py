@@ -234,16 +234,19 @@ def _neighbours(inbox: Any, kind: str, ident: str) -> Neighbours:
 
 
 def _link(portal: str, kind: str, it: QueueItem) -> Option | None:
-    """Where a queue item lives: Processes is in React; Before / after and a rule still on htmx."""
+    """Where a queue item lives, in React: Processes, a rule (spec 065), Before / after (spec 064);
+    any other address as the queue gives it."""
     if not it.href:
         return None
+    base = f"/app/portals/{portal}"
     if kind == "processes":
-        return Option(
-            value=f"/app/portals/{portal}/processes", label="Accept or dismiss it on Processes"
-        )
+        return Option(value=f"{base}/processes", label="Accept or dismiss it on Processes")
+    href = it.href
+    if href.startswith(("/rules/", "/changes/")):
+        href = base + href
     if kind == "rules" and it.href.startswith("/rules"):
-        return Option(value=it.href, label="Open the rule: its decision table and tests")
-    return Option(value=it.href, label="Before / after")
+        return Option(value=href, label="Open the rule: its decision table and tests")
+    return Option(value=href, label="Before / after")
 
 
 def _also(conn: sqlite3.Connection, portal: str, it: QueueItem) -> list[AlsoPair]:

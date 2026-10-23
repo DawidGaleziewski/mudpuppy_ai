@@ -173,3 +173,8 @@ card's "As" persona choice), `wb_frames.py` (frame,
   sides with evidence URLs, the changed region from `visuals.region`, what differs, tests,
   neighbours), built on the htmx page's `queries_changes`, `queries_change_detail` and
   `queries_releases`.
+- Spec 065 (R-96, Rules): `web/api_rules.py` (`GET /api/portals/{p}/rules`, `…/rules/{key}`,
+  `…/rules/{key}/export` (the rule's Markdown from `rules_export`) and the write
+  `…/rules/{key}/reword`; Run the rule tests is `…/check-runs` with `kind: replay`) over
+  `queries_app_rules.py`, built on the htmx pages' `queries_rules`; the Review API's links to a
+  rule and to Before / after now open the React pages.

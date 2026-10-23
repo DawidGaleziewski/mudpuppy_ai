@@ -4,6 +4,7 @@ import { Button, Check, Cluster, Columns, Disclosure, Field, Note, PageHead, Pla
 import { useReviewKeys } from '../app/useReviewKeys';
 import { changeHref } from '../app/api-changes';
 import { reviewHref, reviewKey, useReview, type ReviewPage, type ReviewView } from '../app/api-review';
+import { ruleHref } from '../app/api-rules';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -166,7 +167,7 @@ function Decided({ page }: { page: ReviewPage }) {
           {page.decided.map((d, i) => (
             <Row key={`${d.key}-${String(i)}`}>
               <Cluster>
-                <Tag size="sm" {...(d.is_rule ? { href: `/rules/${encodeURIComponent(d.key)}` } : {})}>
+                <Tag size="sm" {...(d.is_rule ? { href: ruleHref(page.portal, d.key) } : {})}>
                   {d.key}
                 </Tag>
                 <ShownStatus status={d.status} />

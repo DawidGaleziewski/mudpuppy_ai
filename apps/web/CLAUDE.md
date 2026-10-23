@@ -36,7 +36,9 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   J/K/C/R/U/? and the switch that turns them off; Before / after adds Esc));
   `api-changes.ts` is What changed (`Changes.tsx`: range, release lanes, filters, the groups) and
   Before / after (`Change.tsx`: the sides as `Shot`s in three modes, what differs, the
-  explanation with the decision bar through Review's decide),
+  explanation with the decision bar through Review's decide); `api-rules.ts` is Business rules
+  (`Rules.tsx`: by status, Run the rule tests; `Rule.tsx`: wording and Reword, decision table,
+  tests, history, the export),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the

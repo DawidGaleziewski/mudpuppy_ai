@@ -8,6 +8,7 @@ export { Compare, CompareSide, type CompareSideProps } from './components/Compar
 export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
 export { Code } from './components/Code.js';
+export { DecisionTable, type DecisionRow, type DecisionTableProps } from './components/DecisionTable.js';
 export { Diagram, type DiagramProps } from './components/Diagram.js';
 export { Disclosure, type DisclosureProps } from './components/Disclosure.js';
 export { Facts } from './components/Facts.js';

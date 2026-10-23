@@ -1,5 +1,6 @@
 import { Button, Cluster, Facts, Path, Plate, Stack, Table, Tag, Text } from '../design-system';
 import type { ModelFacts, ProcessPage } from '../app/api-process';
+import { ruleHref } from '../app/api-rules';
 import { writes } from '../app/api-write';
 import type { Ask } from '../app/ConfirmedWrite';
 import { ShownStatus } from '../app/ShownStatus';
@@ -60,14 +61,14 @@ function Explored({ d, m, ask }: { d: ProcessPage; m: ModelFacts; ask: (a: Ask) 
   );
 }
 
-/** The business rules decided on the process's screens (htmx Rules until it moves). */
-function Rules({ m }: { m: ModelFacts }) {
+/** The business rules decided on the process's screens. */
+function Rules({ portal, m }: { portal: string; m: ModelFacts }) {
   if (m.rules.length === 0) return <Text muted>No rule decided on these screens.</Text>;
   return (
     <Stack>
       {m.rules.map((r) => (
         <Cluster key={r.key}>
-          <Tag size="sm" href={`/rules/${encodeURIComponent(r.key)}`}>
+          <Tag size="sm" href={ruleHref(portal, r.key)}>
             {r.key}
           </Tag>
           <Text asIs>{r.claim}</Text>
@@ -107,7 +108,7 @@ export function ProcessFacts({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void
             ['Outcomes', m.outcomes.length ? m.outcomes.join(' · ') : '—'],
             ['Explored', <Explored d={d} m={m} ask={ask} />],
             ['Checked', m.checked ?? <Text muted>No action on its screens yet.</Text>],
-            ['Business rules', <Rules m={m} />],
+            ['Business rules', <Rules portal={d.portal} m={m} />],
           ]}
         />
       </Plate>

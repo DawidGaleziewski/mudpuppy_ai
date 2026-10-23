@@ -4,6 +4,7 @@ import { Button, Cluster, Columns, Compare, CompareSide, Field, Input, LinkButto
 import { changeHref, changesHref, changesKey, useChange, type ChangePage, type ChangeSide, type CompareMode } from '../app/api-changes';
 import { processHref } from '../app/api-processes';
 import { reviewHref, reviewWrites, undoAsk } from '../app/api-review';
+import { rulesHref } from '../app/api-rules';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -200,7 +201,7 @@ function WhereItShows({ d }: { d: ChangePage }) {
         )}
         {d.rule_link && (
           <Row>
-            <Text href="/rules">Business rules</Text>
+            <Text href={rulesHref(d.portal)}>Business rules</Text>
             <Text small muted>the rule that decides it</Text>
           </Row>
         )}
