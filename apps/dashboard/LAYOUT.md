@@ -187,3 +187,8 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `queries_app_doc_content.py` (a revision's content as blocks per record kind) and
   `…/docs/sessions/{id}` over `queries_app_doc_session.py`; `web/api_processes.py` adds
   `…/processes/from-record` (Open in Processes). Every console link to a record opens React.
+- Spec 068 (R-96, Settings): `web/api_settings.py` (`GET /api/portals/{p}/settings`, reading the
+  portal and the Workbench's use from the chat service; the writes `…/environments`,
+  `…/environments/{e}/revoke`, `…/hints/{hints|budgets}`, `…/model/accept`, each through the chat
+  service) over `queries_app_settings.py`; `settings_forms.py` holds `hints_body`, shared with
+  `web/hints.py` (G-13).

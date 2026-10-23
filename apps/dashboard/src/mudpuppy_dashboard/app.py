@@ -50,6 +50,7 @@ from .web import (
     api_scan_tabs,
     api_scan_trace,
     api_screens,
+    api_settings,
     api_writes,
     spa,
 )
@@ -210,6 +211,7 @@ def create_app(
     app.include_router(api_changes.router)
     app.include_router(api_rules.router)
     app.include_router(api_docs.router)
+    app.include_router(api_settings.router)
     app.include_router(api_scan.router)
     app.include_router(api_scan_tabs.router)
     app.include_router(api_scan_trace.router)

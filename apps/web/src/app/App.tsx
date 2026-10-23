@@ -19,6 +19,7 @@ import { Rules } from '../pages/Rules';
 import { Scan } from '../pages/Scan';
 import { Scans } from '../pages/Scans';
 import { Screen } from '../pages/Screen';
+import { Settings } from '../pages/Settings';
 import { Screens } from '../pages/Screens';
 import { ScreensMap } from '../pages/ScreensMap';
 
@@ -39,6 +40,7 @@ export const routes = [
   { path: '/app/portals/:portal/rules', element: <Rules /> },
   { path: '/app/portals/:portal/rules/:key', element: <Rule /> },
   { path: '/app/portals/:portal/scans', element: <Scans /> },
+  { path: '/app/portals/:portal/settings', element: <Settings /> },
   { path: '/app/portals/:portal/screens', element: <Screens /> },
   { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },
   { path: '/app/portals/:portal/screens/recorded', element: <RecordedPages /> },

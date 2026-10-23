@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 19: Settings in React** (spec 068, v2.6.18, 2026-10-23).
+  `/app/portals/{p}/settings`: the portal's environments with their address, how far the crawler
+  may go and robots.txt, saved or revoked (the last one stays); stored credentials by name only;
+  the Workbench's turns today; personas with their credential references and attributes; crawl
+  rules; the hints (release marker, A/B cookies, business refusals) and budgets, each saved from
+  the page; screen identity with Accept the calibrated τ or the classifier; the data store. Every
+  write goes through the chat service and asks first; without the chat service the page says how
+  to start it and the read-only parts keep working. Settings is in the console's menu.
 - **R-96 step 18: Docs in React, part 2** (spec 067, v2.6.17, 2026-10-23). One record:
   its status, confidence and revision with the session that wrote it; the content of the
   revision shown as each kind is written (a requirement's acceptance criteria, a use case's

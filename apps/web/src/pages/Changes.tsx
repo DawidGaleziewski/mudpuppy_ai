@@ -4,6 +4,7 @@ import { Button, Callout, Cluster, Facts, Field, Input, LinkButton, PageHead, Pl
 import { changeHref, changesHref, useChanges, type ChangeRow, type ChangeScreenGroup, type ChangesPage, type ChangesView } from '../app/api-changes';
 import { processHref } from '../app/api-processes';
 import { reviewHref } from '../app/api-review';
+import { settingsHref } from '../app/api-settings';
 import { plural } from '../app/plural';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -104,7 +105,7 @@ function Range({ page }: { page: ChangesPage }) {
         {rel && rel.lanes.length === 0 && (
           <Text small muted>
             No release was told apart yet: without a release marker, changes are found by comparing pages. Ask the assistant to add the marker;{' '}
-            <Text href={`/portals/${encodeURIComponent(page.portal)}/settings#hints`}>Settings ▸ Hints</Text> shows it.
+            <Text href={settingsHref(page.portal)}>Settings ▸ Hints</Text> shows it.
           </Text>
         )}
       </Stack>

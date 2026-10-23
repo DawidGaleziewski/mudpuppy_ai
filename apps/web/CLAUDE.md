@@ -39,7 +39,8 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   explanation with the decision bar through Review's decide); `api-rules.ts` is Business rules
   (`Rules.tsx`: by status, Run the rule tests; `Rule.tsx`: wording and Reword, decision table,
   tests, history, the export); `api-docs.ts` is Docs (`Docs.tsx`: sections, records, pages) and
-  `api-doc.ts` one record (`DocRecord.tsx`, its parts in `DocContent.tsx`) and a session (`DocSession.tsx`),
+  `api-doc.ts` one record (`DocRecord.tsx`, its parts in `DocContent.tsx`) and a session (`DocSession.tsx`);
+  `api-settings.ts` is Settings (`Settings.tsx`, the model's parts in `SettingsModel.tsx`),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the
