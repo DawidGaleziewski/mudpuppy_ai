@@ -14,6 +14,7 @@ from pydantic import BaseModel
 from .models import Run
 from .queries_chat import portals_by_environment
 from .queries_scans import max_steps
+from .status_map import status_of
 
 
 class PortalSummary(BaseModel):
@@ -30,11 +31,23 @@ class PortalList(BaseModel):
     other_environments: list[str]
 
 
+class StatusOut(BaseModel):
+    """A status as the one mapping (`status_map.py`) gives it: the shape and the word."""
+
+    shape: str | None
+    word: str
+
+
+def status_out(vocabulary: str, value: object) -> StatusOut:
+    s = status_of(vocabulary, value)
+    return StatusOut(shape=s.shape, word=s.word)
+
+
 class ScanSummary(BaseModel):
     id: str
     persona: str
     mode: str
-    status: str
+    status: StatusOut
     steps_used: int
     max_steps: int | None
     started_at: str
@@ -95,7 +108,7 @@ def scan_list(conn: sqlite3.Connection, portal: str, limit: int = 25) -> ScanLis
                 id=run.id,
                 persona=run.persona_id,
                 mode=run.mode,
-                status=run.status,
+                status=status_out("run", run.status),
                 steps_used=run.steps_used,
                 max_steps=max_steps(run),
                 started_at=run.started_at,

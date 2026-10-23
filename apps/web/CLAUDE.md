@@ -21,7 +21,8 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   `stories/` (a stories file per component, `Introduction.mdx`, `Rules.mdx`, `Tokens.mdx`),
   `assets/` (the designer's CSS and fonts, a copy: never edit), `index.ts` (the one import).
 - `src/app/`: `App.tsx` (routes under `/app/`, the query client), `api.ts` (typed endpoints and
-  TanStack Query hooks), `status.ts` (product values as statuses), `Shell.tsx`, `QueryState.tsx`.
+  TanStack Query hooks), `ShownStatus.tsx` (a status as the API maps it), `Shell.tsx`,
+  `QueryState.tsx`.
 - `src/pages/`: one file per page.
 - `tests/`: Vitest + Testing Library (components, pages with a stubbed API, the design-system drift).
 

@@ -1,6 +1,7 @@
 // The dashboard's JSON API (`apps/dashboard/src/mudpuppy_dashboard/web/api_*.py`), typed as the
 // pydantic models in `queries_app.py` declare it, and one TanStack Query hook per endpoint.
 import { useQuery } from '@tanstack/react-query';
+import type { StatusKind } from '../design-system';
 
 export interface PortalSummary {
   id: string;
@@ -15,13 +16,20 @@ export interface PortalList {
   other_environments: string[];
 }
 
-export type ScanStatus = 'running' | 'completed' | 'stopped_warning' | 'interrupted';
+/**
+ * A status as the dashboard's one status map gives it (`status_map.py`): the shape and the word.
+ * The app never maps a product value itself; `shape` null is a kind, shown as a plain label.
+ */
+export interface StatusOut {
+  shape: StatusKind | null;
+  word: string;
+}
 
 export interface ScanSummary {
   id: string;
   persona: string;
   mode: string;
-  status: ScanStatus;
+  status: StatusOut;
   steps_used: number;
   max_steps: number | null;
   started_at: string;
@@ -63,5 +71,44 @@ export const useScans = (portal: string) =>
     queryKey: ['portals', portal, 'scans'],
     queryFn: () => getJson<ScanList>(`/api/portals/${encodeURIComponent(portal)}/scans`),
     // A running scan moves: refresh while one runs (live data never goes through the model).
-    refetchInterval: (q) => (q.state.data?.scans.some((s) => s.status === 'running') ? 2000 : false),
+    refetchInterval: (q) =>
+      q.state.data?.scans.some((s) => s.status.shape === 'running') ? 2000 : false,
+  });
+
+export interface PortalHomeData {
+  portal: string;
+  environment: string;
+  model_seq: number | null;
+  model_built_at: string | null;
+  lanes: { part: string; release: string; observed: boolean; since: string; was: string | null }[];
+  last_scan: { id: string; started_at: string; status: StatusOut; kind: string; steps: number } | null;
+  needs: {
+    total: number;
+    by_kind: { kind: string; label: string; count: number }[];
+    top: {
+      kind: string;
+      id: string;
+      chip: { word: string; variant: 'fail' | 'ok' | 'tobe' | 'dashed' | null };
+      claim: string;
+      where: string | null;
+      hint: string;
+      at: string;
+      status: StatusOut | null;
+    }[];
+  };
+  changes: {
+    all: number;
+    needs: number;
+    explained: number;
+    by_process: { key: string | null; name: string; changes: number; needs: number; explained: number }[];
+  };
+  processes: number;
+  proposed: number;
+  rules: { total: number; by_status: { status: StatusOut; count: number }[] };
+}
+
+export const usePortalHome = (portal: string) =>
+  useQuery({
+    queryKey: ['portals', portal, 'home'],
+    queryFn: () => getJson<PortalHomeData>(`/api/portals/${encodeURIComponent(portal)}/home`),
   });

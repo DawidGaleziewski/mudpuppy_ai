@@ -60,6 +60,28 @@ def test_an_unknown_portal_is_not_found(client: TestClient) -> None:
     assert client.get("/api/portals/bank/scans").json()["total"] == 0
 
 
+def test_home_gives_the_last_scan_with_a_mapped_status(client: TestClient) -> None:
+    body = client.get("/api/portals/shop/home").json()
+    assert body["portal"] == "shop"
+    assert body["last_scan"]["id"] == "run-1"
+    assert body["last_scan"]["status"] == {"shape": "ok", "word": "Completed"}
+    assert body["needs"] == {"total": 0, "by_kind": [], "top": []}
+    assert body["changes"]["by_process"] == []
+
+
+def test_scans_carry_the_status_maps_shape_and_word(client: TestClient) -> None:
+    status = client.get("/api/portals/shop/scans").json()["scans"][0]["status"]
+    assert status == {"shape": "ok", "word": "Completed"}
+
+
+def test_home_of_an_unknown_portal_is_not_found(client: TestClient) -> None:
+    r = client.get("/api/portals/nowhere/home")
+    assert r.status_code == 404
+    assert r.json()["detail"] == "There is no portal nowhere here."
+    # a configured portal without scans has a home, with no last scan
+    assert client.get("/api/portals/bank/home").json()["last_scan"] is None
+
+
 def test_the_app_route_without_a_build_says_how_to_make_one(client: TestClient) -> None:
     r = client.get("/app/")
     assert r.status_code == 404

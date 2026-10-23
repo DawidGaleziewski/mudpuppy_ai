@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 2: the portal home in React** (spec 051, v2.6.1, 2026-10-23). `/app/portals/{p}`:
+  what needs you first, then the last scan, the model, each part's latest release and the changes
+  by process, from the new `/api/portals/{p}/home`. Every status the API gives is mapped by the
+  dashboard's one status map (shape and word), so the React app no longer maps statuses itself.
+  Tables scroll sideways in a keyboard-reachable region on a phone; the home, Scans and Portals
+  pass the UI check at 1280 and 390 px.
 - **R-96 step 1: the React console's foundation** (spec 050, v2.6.0, 2026-10-23). A new app,
   `apps/web` (Vite, React 19, TypeScript, React Router, TanStack Query): the Salvage Yard design
   system as typed React components (the designer's tokens, fonts and CSS copied unchanged, a

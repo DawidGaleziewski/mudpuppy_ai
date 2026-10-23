@@ -38,8 +38,9 @@ Commands (in `apps/web`): `pnpm dev` (Vite on 5173, `/api` proxied to the dashbo
 3. **The eight Salvage Yard rules hold** (Storybook "Design system / Rules"): ids are `Tag`s,
    at most one `primary` button and one `intent` plate per view, to-be is `drawn`, human text is
    `Note`, content in `Plate`s, square and flat, short caps only, every status a `Status`.
-4. **Statuses through one vocabulary.** Map a product value to a `StatusKind` in one function per
-   domain (scan status, record status, finding status), never inline at a call site.
+4. **Statuses come mapped from the API.** The dashboard's one status map (`status_map.py`) gives
+   every status as `{shape, word}` (`StatusOut` in `api.ts`); show it with `ShownStatus`. The app
+   never maps a product value itself; a status the API sends raw is an API bug, fixed there.
 5. **Show stored values exactly**: Polish labels, ids, UTC timestamps with `Z`. Never invent copy.
 6. **Every view has its states**: loading, empty, error (with the reference and the next move),
    not found. A region without its empty state is not finished.

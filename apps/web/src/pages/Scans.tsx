@@ -1,18 +1,15 @@
 import { useParams } from 'react-router';
-import { Meter, PageHead, Plate, Stack, Status, Table, Tag, Text } from '../design-system';
+import { Meter, PageHead, Plate, Stack, Table, Tag, Text } from '../design-system';
 import { useScans, type ScanSummary } from '../app/api';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
-import { SCAN_STATUS } from '../app/status';
+import { ShownStatus } from '../app/ShownStatus';
 
 const columns = [
   { header: 'Scan', cell: (s: ScanSummary) => <Tag size="sm">{s.id}</Tag>, rowHeader: true },
   { header: 'Persona', cell: (s: ScanSummary) => s.persona },
   { header: 'Kind', cell: (s: ScanSummary) => s.mode },
-  {
-    header: 'Status',
-    cell: (s: ScanSummary) => <Status status={SCAN_STATUS[s.status].status}>{SCAN_STATUS[s.status].word}</Status>,
-  },
+  { header: 'Status', cell: (s: ScanSummary) => <ShownStatus status={s.status} /> },
   { header: 'Steps', cell: (s: ScanSummary) => (s.max_steps ? `${String(s.steps_used)} / ${String(s.max_steps)}` : s.steps_used), numeric: true },
   { header: 'Started (UTC)', cell: (s: ScanSummary) => <Text mono>{s.started_at}</Text> },
 ];
@@ -21,11 +18,15 @@ const columns = [
 export function Scans() {
   const portal = useParams().portal ?? '';
   const q = useScans(portal);
-  const running = q.data?.scans.filter((s) => s.status === 'running') ?? [];
+  const running = q.data?.scans.filter((s) => s.status.shape === 'running') ?? [];
   return (
     <Shell current="scans">
       <PageHead
-        crumbs={[{ label: 'Portals', href: '/app/' }, { label: portal }]}
+        crumbs={[
+          { label: 'Portals', href: '/app/' },
+          { label: portal, href: `/app/portals/${encodeURIComponent(portal)}` },
+          { label: 'Scans' },
+        ]}
         title="Scans"
         meta={q.data ? `${String(q.data.total)} scans · ${String(running.length)} running` : undefined}
       />

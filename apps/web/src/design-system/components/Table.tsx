@@ -28,7 +28,10 @@ export interface TableProps<Row> {
   empty?: ReactNode;
 }
 
-/** A data table: headers with scope, numbers aligned, an empty state that says so. */
+/**
+ * A data table: headers with scope, numbers aligned, an empty state that says so. On a narrow
+ * screen the table scrolls sideways in its own region, which a keyboard can focus and scroll.
+ */
 export function Table<Row>({
   caption,
   showCaption = false,
@@ -41,7 +44,12 @@ export function Table<Row>({
   empty = 'Nothing yet.',
 }: TableProps<Row>) {
   return (
-    <div className={cx('sy-table-wrap', flush && 'sy-table-wrap--flush')}>
+    <div
+      className={cx('sy-table-wrap', flush && 'sy-table-wrap--flush')}
+      role="region"
+      aria-label={caption}
+      tabIndex={0}
+    >
       <table
         className={cx('sy-table', dense && 'sy-table--dense', interactive && 'sy-table--interactive')}
       >

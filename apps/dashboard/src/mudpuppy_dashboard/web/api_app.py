@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 
-from .. import db, queries_app
-from .deps import web_of
+from .. import db, queries_app, queries_app_home
+from .deps import Ctx, Web, web_of
 
 router = APIRouter(prefix="/api")
 
@@ -20,6 +20,32 @@ def portals(request: Request, env: str | None = None) -> queries_app.PortalList:
             return queries_app.portal_list(conn, web.settings.portals_dir, c.env)
     except db.StoreMissing:
         return queries_app.portal_list(None, web.settings.portals_dir, c.env)
+
+
+@router.get("/portals/{portal}/home")
+def home(request: Request, portal: str, env: str | None = None) -> queries_app_home.PortalHomeData:
+    """A portal's home (v2-01): releases, the last scan, what needs you, the counts."""
+    web = web_of(request)
+    c = web.ctx(request, env)
+    _known(web, c, portal)
+    try:
+        with c.conn() as conn:
+            return queries_app_home.portal_home_data(conn, portal, c.env)
+    except db.StoreMissing as e:
+        raise HTTPException(404, "This store does not exist yet. Start a scan first.") from e
+
+
+def _known(web: Web, c: Ctx, portal: str) -> None:
+    """404 for a portal that is neither configured nor scanned in this store."""
+    if (web.settings.portals_dir / portal / "portal.yaml").is_file():
+        return
+    try:
+        with c.conn() as conn:
+            if queries_app_home.portal_scanned(conn, portal):
+                return
+    except db.StoreMissing:
+        pass
+    raise HTTPException(404, f"There is no portal {portal} here.")
 
 
 @router.get("/portals/{portal}/scans")

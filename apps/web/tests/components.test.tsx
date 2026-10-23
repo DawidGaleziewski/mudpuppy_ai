@@ -125,6 +125,8 @@ describe('Table', () => {
     );
     expect(screen.getByRole('columnheader', { name: 'States' }).className).toBe('sy-num');
     expect(screen.getByRole('rowheader', { name: '/kontakt' })).toBeTruthy();
+    // its sideways scroll on a phone is a named region a keyboard can reach
+    expect(screen.getByRole('region', { name: 'Screens' }).tabIndex).toBe(0);
     rerender(<Table caption="Screens" columns={columns} rows={[]} rowKey={(r) => r.id} empty="No screens yet." />);
     expect(screen.getByText('No screens yet.')).toBeTruthy();
   });

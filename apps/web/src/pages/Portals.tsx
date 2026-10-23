@@ -32,7 +32,7 @@ export function Portals() {
                         )
                       }
                     >
-                      <a href={`/app/portals/${encodeURIComponent(p.id)}/scans`}>{p.id}</a>
+                      <a href={`/app/portals/${encodeURIComponent(p.id)}`}>{p.id}</a>
                       {p.last_scan_at && (
                         <>
                           {' '}

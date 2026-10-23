@@ -109,3 +109,6 @@ card's "As" persona choice), `wb_frames.py` (frame,
   read-only JSON) over `queries_app.py` (pydantic response models the React app mirrors in
   `apps/web/src/app/api.ts`); `web/spa.py` (serves `apps/web/dist` at `/app/`, every other path
   under it gets `index.html`; setting `web_dist`).
+- Spec 051 (R-96, the React portal home): `GET /api/portals/{p}/home` in `web/api_app.py` over
+  `queries_app_home.py` (the htmx home's `queries_portal_home.portal_home` as JSON); every status
+  in the API is `queries_app.StatusOut` (`{shape, word}` from `status_map.py`).
