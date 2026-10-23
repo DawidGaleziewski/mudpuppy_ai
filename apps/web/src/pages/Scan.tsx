@@ -1,9 +1,10 @@
 import type { ReactNode } from 'react';
 import { useParams } from 'react-router';
-import { isSection, type SectionId } from '../app/api-scan-tabs';
-import { scanTabHref as tabHref } from '../app/scanLinks';
+import { isScanTab, scanTabHref as tabHref, type ScanTab } from '../app/scanLinks';
 import { ActionsSection, DecisionsSection, FrontierSection } from './ScanFiltered';
 import { DocsSection, FormsSection, NetworkSection, RobotsSection, StatesSection } from './ScanLists';
+import { ProcessSection } from './ScanProcess';
+import { TraceSection } from './ScanTrace';
 import { Callout, Facts, PageHead, Plate, Stack, Text, ViewNav } from '../design-system';
 import { useScanHead, type ScanHead } from '../app/api-scan';
 import { QueryState } from '../app/QueryState';
@@ -11,7 +12,7 @@ import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { ScanGraph } from './ScanGraph';
 
-const SECTION_VIEWS: Record<SectionId, (p: { scan: string }) => ReactNode> = {
+const SECTION_VIEWS: Record<ScanTab, (p: { scan: string }) => ReactNode> = {
   states: StatesSection,
   actions: ActionsSection,
   frontier: FrontierSection,
@@ -20,10 +21,12 @@ const SECTION_VIEWS: Record<SectionId, (p: { scan: string }) => ReactNode> = {
   robots: RobotsSection,
   decisions: DecisionsSection,
   docs: DocsSection,
+  trace: TraceSection,
+  process: ProcessSection,
 };
 
 function Section({ scan, tab }: { scan: string; tab: string }) {
-  if (!isSection(tab)) return <ScanGraph scan={scan} />;
+  if (!isScanTab(tab)) return <ScanGraph scan={scan} />;
   const View = SECTION_VIEWS[tab];
   return <View scan={scan} />;
 }
@@ -59,7 +62,7 @@ function Head({ h, tab }: { h: ScanHead; tab: string }) {
 /** One scan (the htmx `/runs/{id}`): its summary, its sections, and the Graph tab with its restarts. */
 export function Scan() {
   const { scan = '', tab: given = 'graph' } = useParams();
-  const tab = isSection(given) ? given : 'graph';
+  const tab = isScanTab(given) ? given : 'graph';
   const q = useScanHead(scan);
   const portal = q.data?.portal;
   return (

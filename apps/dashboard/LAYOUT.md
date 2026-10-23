@@ -131,3 +131,9 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `actions`, `frontier`, `forms`, `network`, `robots`, `decisions`, `docs`; paged ones by cursor
   at `settings.page_size`) over `queries_app_scan_tabs.py` (`queries`, `queries_docs` as JSON);
   `formats.py` also holds `jget`, `top_locator`, `pretty_json`, `short_id`.
+- Spec 056 (R-96, Trace and Process): `web/api_scan_trace.py` (`/api/scans/{id}/trace/summary`,
+  `…/trace`, `…/process`, `/api/spans/{id}/children`) over `queries_app_trace.py` and
+  `queries_app_trace_events.py` (each event's detail as label–value facts, the htmx macro
+  `trace_event_detail` in Python); `queries_trace.py` holds `agent_context_for_run` and
+  `process_run_diagram` for `web/runs.py` and the API; `web/api_common.py` holds `scan_store` and
+  `page_at` for the scan routers.

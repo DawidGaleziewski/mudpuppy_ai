@@ -7,10 +7,11 @@ import sqlite3
 from collections.abc import Iterator
 from contextlib import contextmanager
 
-from fastapi import HTTPException
+from fastapi import HTTPException, Request
 
-from .. import db, queries_app_home
-from .deps import Ctx, Web
+from .. import db, queries, queries_app_home
+from ..queries_app_scan_tabs import PageAt
+from .deps import Ctx, Web, web_of
 
 NO_STORE = "This store does not exist yet. Start a scan first."
 
@@ -23,6 +24,21 @@ def store(c: Ctx) -> Iterator[sqlite3.Connection]:
             yield conn
     except db.StoreMissing as e:
         raise HTTPException(404, NO_STORE) from e
+
+
+@contextmanager
+def scan_store(request: Request, scan: str, env: str | None) -> Iterator[sqlite3.Connection]:
+    """The store, after a 404 for a scan it does not have."""
+    c = web_of(request).ctx(request, env)
+    with store(c) as conn:
+        if queries.get_run(conn, scan) is None:
+            raise HTTPException(404, f"There is no scan {scan} in this store.")
+        yield conn
+
+
+def page_at(request: Request, cursor: str | None) -> PageAt:
+    """A paged section's start (the API's cursor) at the dashboard's page size."""
+    return PageAt(cursor or None, web_of(request).settings.page_size)
 
 
 def known_portal(web: Web, c: Ctx, portal: str) -> None:

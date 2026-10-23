@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 7: a scan's Trace and Process in React** (spec 056, v2.6.6, 2026-10-23).
+  `/app/scans/{id}/trace`: the trace summary (calls by tool and status, tokens, health, time per
+  phase, slowest calls) and every tool call with the agent's stated rationale, its tokens and
+  preceding text; opening a call loads its phases and events, each event's detail in words (gate
+  decision, robots check, request, decision with a link to its rule in the decision log, and more).
+  Filters by tool, status and Problems only stay in the address. `/app/scans/{id}/process`: a
+  trace run's goal, outcome, process map and steps. Every section of a scan is now in React. New
+  component in Storybook: Diagram (Mermaid in the Salvage Yard tokens, the source as its text
+  alternative). API: `/api/scans/{id}/trace/summary`, `…/trace`, `…/process`,
+  `/api/spans/{id}/children`.
 - **R-96 step 6: a scan's sections in React** (spec 055, v2.6.5, 2026-10-23).
   `/app/scans/{id}/states`, `actions`, `frontier`, `forms`, `network`, `robots`, `decisions` and
   `docs`: the screens observed with their pictures, the actions with their safety class, decision

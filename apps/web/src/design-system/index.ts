@@ -8,7 +8,8 @@ export { Compare, CompareSide, type CompareSideProps } from './components/Compar
 export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
 export { Code } from './components/Code.js';
-export { Disclosure } from './components/Disclosure.js';
+export { Diagram, type DiagramProps } from './components/Diagram.js';
+export { Disclosure, type DisclosureProps } from './components/Disclosure.js';
 export { Facts } from './components/Facts.js';
 export {
   Bundle,

@@ -1,11 +1,13 @@
-import { isSection } from './api-scan-tabs';
+import { SECTIONS } from './api-scan-tabs';
 
-/**
- * Where a scan's section lives: Graph is the scan's own address, a moved section its React page,
- * any other (Trace, Process) the htmx page until it moves.
- */
+/** A scan's sections besides Graph, each a React page since spec 056. */
+export const SCAN_TABS = [...SECTIONS, 'trace', 'process'] as const;
+export type ScanTab = (typeof SCAN_TABS)[number];
+
+export const isScanTab = (tab: string): tab is ScanTab => (SCAN_TABS as readonly string[]).includes(tab);
+
+/** Where a scan's section lives: Graph is the scan's own address, every other section its page under it. */
 export function scanTabHref(scan: string, tab: string) {
   const base = `/app/scans/${encodeURIComponent(scan)}`;
-  if (tab === 'graph') return base;
-  return isSection(tab) ? `${base}/${tab}` : `/runs/${encodeURIComponent(scan)}?tab=${tab}`;
+  return isScanTab(tab) ? `${base}/${tab}` : base;
 }

@@ -25,7 +25,11 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it), `ShownStatus.tsx` (a status as the
   API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
-  address; `api-scan-tabs.ts` is its data), `Shell.tsx`, `QueryState.tsx`.
+  address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
+  section's address), `Shell.tsx`, `QueryState.tsx`.
+- The design system's `Diagram` draws Mermaid from the dashboard's vendored copy at
+  `/static/vendor/mermaid.min.js` (Vite proxies `/static` in development); without it, the source
+  shows as text.
 - `src/pages/`: one file per page.
 - `tests/`: Vitest + Testing Library (components, pages with a stubbed API, the design-system drift).
 

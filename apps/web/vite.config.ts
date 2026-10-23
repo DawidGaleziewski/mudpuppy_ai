@@ -9,8 +9,13 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    // `/evidence`: recorded screenshots and wireframes the pages show.
-    proxy: { '/api': 'http://127.0.0.1:8765', '/evidence': 'http://127.0.0.1:8765' },
+    // `/evidence`: recorded screenshots and wireframes the pages show; `/static`: the dashboard's
+    // vendored Mermaid, which `Diagram` loads.
+    proxy: {
+      '/api': 'http://127.0.0.1:8765',
+      '/evidence': 'http://127.0.0.1:8765',
+      '/static': 'http://127.0.0.1:8765',
+    },
   },
   build: { outDir: 'dist', sourcemap: true },
 });

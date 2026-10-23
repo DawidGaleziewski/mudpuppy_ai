@@ -48,7 +48,7 @@ const actions = {
 };
 
 describe('Scan sections', () => {
-  it('links each section: React for the moved ones, the htmx page for Trace', async () => {
+  it('links each section to its React page', async () => {
     at(`/app/scans/${SCAN}/states`, {
       [API]: head,
       [`${API}/states`]: [
@@ -71,7 +71,7 @@ describe('Scan sections', () => {
     const nav = screen.getByRole('navigation', { name: 'Scan sections' });
     expect(within(nav).getByRole('link', { name: /States/ }).getAttribute('aria-current')).toBe('page');
     expect(within(nav).getByRole('link', { name: /Actions/ }).getAttribute('href')).toBe(`/app/scans/${SCAN}/actions`);
-    expect(within(nav).getByRole('link', { name: /Trace/ }).getAttribute('href')).toBe(`/runs/${SCAN}?tab=trace`);
+    expect(within(nav).getByRole('link', { name: /Trace/ }).getAttribute('href')).toBe(`/app/scans/${SCAN}/trace`);
   });
 
   it('filters the actions and pages on by cursor', async () => {
@@ -125,7 +125,10 @@ describe('Scan sections', () => {
     expect(await screen.findByText(/No documentation cites this scan/)).toBeTruthy();
   });
 
-  it("links a record's cites to the section that lists them, htmx for Process", async () => {
+});
+
+describe('Scan docs and an unknown section', () => {
+  it("links a record's cites to the section that lists them", async () => {
     const doc = {
       key: 'PROC-001',
       portal: 'shop',
@@ -141,7 +144,7 @@ describe('Scan sections', () => {
     };
     at(`/app/scans/${SCAN}/docs`, { [API]: head, [`${API}/docs`]: { items: [doc], total: 1, next_cursor: null } });
     expect((await screen.findByRole('link', { name: 'form form-1' })).getAttribute('href')).toBe(`/app/scans/${SCAN}/forms`);
-    expect(screen.getByRole('link', { name: 'process pr-1' }).getAttribute('href')).toBe(`/runs/${SCAN}?tab=process`);
+    expect(screen.getByRole('link', { name: 'process pr-1' }).getAttribute('href')).toBe(`/app/scans/${SCAN}/process`);
   });
 
   it('opens on the graph for an unknown section', async () => {

@@ -41,6 +41,7 @@ from .web import (
     api_recorded,
     api_scan,
     api_scan_tabs,
+    api_scan_trace,
     api_screens,
     api_writes,
     spa,
@@ -197,6 +198,7 @@ def create_app(
     app.include_router(api_map.router)
     app.include_router(api_scan.router)
     app.include_router(api_scan_tabs.router)
+    app.include_router(api_scan_trace.router)
     app.include_router(api_writes.router)
     app.include_router(spa.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.

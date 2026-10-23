@@ -17,6 +17,16 @@ export function useSectionParams() {
     next.delete('page');
     setParams(next, { replace: true });
   };
+  /** A repeated filter (several tools): add or remove one value. */
+  const toggle = (key: string, value: string, on: boolean) => {
+    const next = new URLSearchParams(params);
+    const kept = next.getAll(key).filter((v) => v !== value);
+    next.delete(key);
+    for (const v of on ? [...kept, value] : kept) next.append(key, v);
+    next.delete('cursor');
+    next.delete('page');
+    setParams(next, { replace: true });
+  };
   const goTo = (cursor: string | null) => {
     const next = new URLSearchParams(params);
     if (cursor) {
@@ -28,7 +38,7 @@ export function useSectionParams() {
     }
     setParams(next);
   };
-  return { params, page, setFilter, goTo };
+  return { params, page, setFilter, toggle, goTo };
 }
 
 /** First and Next under a paged section (the API pages by cursor, so there is no Previous). */
