@@ -3274,6 +3274,23 @@ entries:
     changed_in: R-88
     changed_on: 2026-10-23
 
+  - id: react-console
+    term: React console
+    category: mudpuppy
+    group: Dashboard
+    short: The console rebuilt as a React single-page app at /app/, replacing the htmx pages one by one.
+    explanation: |
+      `apps/web` draws the same Salvage Yard look with React components (each one documented in
+      Storybook) and reads the dashboard's JSON API under `/api`. The dashboard serves its build at
+      `/app/`; the htmx pages stay until their React page replaces them. Every UI change follows
+      the skill `mudpuppy-react-ui`.
+    example: "http://127.0.0.1:8765/app/portals/reference-insurer-local/scans"
+    appears_in: [/app/]
+    labels: [React preview, /app/, Storybook]
+    related: [persona-sample]
+    changed_in: R-96
+    changed_on: 2026-10-23
+
   - id: persona-sample
     term: Persona sample
     category: mudpuppy

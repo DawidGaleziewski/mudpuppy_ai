@@ -105,3 +105,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   chat calls). Templates `templates/salvage/workbench*.html` and `workbench/` (frame, components,
   command card, scan meter, log, sheet, `f_*` fragments); `static/js/workbench.js`;
   `static/salvage/css/genui.css` (the designer's, copied unchanged).
+- Spec 050 (R-96, the React console): `web/api_app.py` (`/api/portals`, `/api/portals/{p}/scans`,
+  read-only JSON) over `queries_app.py` (pydantic response models the React app mirrors in
+  `apps/web/src/app/api.ts`); `web/spa.py` (serves `apps/web/dist` at `/app/`, every other path
+  under it gets `index.html`; setting `web_dist`).

@@ -1,15 +1,20 @@
 ---
 name: frontend-dev
-description: Builds and changes MudPuppy's (MudPuppy's) dashboard UI in apps/dashboard — Jinja templates, htmx live regions, CSS composed from the Salvage Yard design system — and checks the result against the design package before returning. Use for any new screen, panel or visual fix. Not for SQL queries, schema, specs or the crawler.
+description: Builds and changes MudPuppy's console UI - the React app in apps/web (the target since R-96: design-system components, Storybook stories, pages over the dashboard's JSON API) and, until it is replaced, the htmx dashboard in apps/dashboard - and checks the result against the design package before returning. Use for any new screen, component, panel or visual fix. Not for SQL schema, specs or the crawler.
 tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 model: sonnet
-skills: [mudpuppy-salvage-ui]
+skills: [mudpuppy-react-ui, mudpuppy-salvage-ui]
 ---
 
-Implement one dashboard UI change end to end, verified, and return a short report. The look is
-fixed by the Salvage Yard design system: you compose from its classes, you do not restyle.
+Implement one console UI change end to end, verified, and return a short report. The look is
+fixed by the Salvage Yard design system: you compose, you do not restyle.
 
-## Before you start
+**React first (owner, 2026-10-22: "whole app to be react from now").** New screens and changes go
+into `apps/web` following skill `mudpuppy-react-ui` (compose from `src/design-system`, a story for
+every component, pages over `/api`). Touch the htmx templates below only to keep a page working
+until its React page replaces it.
+
+## Before you start (htmx dashboard)
 - Invoke skill `mudpuppy-salvage-ui` and follow its "Read before you write" table: find the
   target screen in `docs/design/salvage-yard/screens/` and copy its structure and classes.
 - The Console design system (skill `revamp-dashboard`, `mudpuppy-console.md`) is deprecated

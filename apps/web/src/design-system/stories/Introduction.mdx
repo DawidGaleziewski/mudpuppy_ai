@@ -1,0 +1,20 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design system/Introduction" />
+
+# MudPuppy · Salvage Yard for React
+
+This catalogue holds the console's components (R-96, owner 2026-10-22: "Start from creating a
+design system. CSS tokens. I want components in Storybook also so I can see them. Document each
+component and reuse as much as possible").
+
+- **One look.** The components draw the designer's class library (`salvage.css`, Salvage Yard).
+  They never restyle it: a component owns its `sy-` classes, and pages compose components.
+- **One import.** `import { Plate, Button, Status } from '../design-system'`. Every page uses
+  these; a page that needs something new adds a component here first, with its story.
+- **Documented.** Every component has a page here: what it is for, its props (from the types),
+  its rules, and live examples.
+- **Tested.** Behaviour (keyboard, labels, ARIA) is unit-tested in `apps/web/tests/`.
+
+The working rules for anyone (or any agent) building the React console are in the skill
+`mudpuppy-react-ui`. Start with **Rules**, then **Tokens**, then the components.

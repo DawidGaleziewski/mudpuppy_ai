@@ -5,6 +5,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **R-96 step 1: the React console's foundation** (spec 050, v2.6.0, 2026-10-23). A new app,
+  `apps/web` (Vite, React 19, TypeScript, React Router, TanStack Query): the Salvage Yard design
+  system as typed React components (the designer's tokens, fonts and CSS copied unchanged, a
+  drift test), each documented in Storybook with its rules (`pnpm --dir apps/web storybook`,
+  pages for the rules and the tokens); the skill `mudpuppy-react-ui` for every UI change from now
+  on, lint that keeps pages from styling; the dashboard's first JSON routes (`/api/portals`,
+  `/api/portals/{p}/scans`) and the first React pages, Portals and Scans, served at `/app/`.
+
 ### Changed
 - **R-87: an overturn stands** (spec 049, v2.5.3, 2026-10-23). When a person overturned an
   automatic explanation, the same rule no longer explains the same kind of change on that screen

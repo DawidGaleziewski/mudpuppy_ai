@@ -52,6 +52,8 @@ class Settings(BaseSettings):
     # Spec 043 D-6 (owner 2026-10-22, R-94 (8)): the environments where commands may run, a comma
     # list; the chat service checks the same setting (`MUDPUPPY_WORKBENCH_COMMAND_ENVS`).
     workbench_command_envs: str = "local-dev,sandbox"
+    # The React console's build (R-96, spec 050), served at /app/.
+    web_dist: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "web" / "dist")
     # Persona YAML files, read to list the `ref:NAME` credentials a persona needs (spec 010 T020).
     personas_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "personas")
     # Portal configs (`<id>/portal.yaml`), listed in the header's portal dropdown (spec 011).

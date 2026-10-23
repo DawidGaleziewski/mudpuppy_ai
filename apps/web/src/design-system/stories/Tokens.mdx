@@ -1,0 +1,30 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+import { ColourRoles, SpaceScale, TypeScale } from './TokenTable';
+
+<Meta title="Design system/Tokens" />
+
+# Tokens
+
+The tokens are CSS custom properties from the designer's `tokens.css` (the design package is the
+source of truth; `pnpm ds:sync` copies it, a test fails while the copy drifts). Two layers: the
+raw palette says what the paint is called, the **roles** say what it is for. Components and pages
+use roles only, never a hex value. Dark theme only, by decision (D-01).
+
+Each paint has exactly one job: orange marks intent, blue is the to-be, red is failure and
+nothing else, cyan is active now, green is passed. Ask the owner before adding a colour, font,
+radius, shadow or animation.
+
+## Colour roles
+
+<ColourRoles />
+
+## Type scale
+
+Archivo for prose and labels, IBM Plex Mono for identifiers, Special Elite only for a person's
+notes. Text is never under 11px.
+
+<TypeScale />
+
+## Spacing
+
+<SpaceScale />

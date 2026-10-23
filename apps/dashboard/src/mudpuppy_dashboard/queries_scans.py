@@ -74,7 +74,7 @@ def _rows(conn: sqlite3.Connection, sql: str, args: tuple[Any, ...]) -> list[sql
         return []
 
 
-def _max_steps(run: Run) -> int | None:
+def max_steps(run: Run) -> int | None:
     snapshot = run.config_snapshot
     try:
         value = (json.loads(snapshot) if isinstance(snapshot, str) else snapshot)["portal"][
@@ -136,7 +136,7 @@ def _monitor_of(conn: sqlite3.Connection, run: Run) -> Monitor:
         run=run,
         pages=len(routes),
         queued=int(queued[0][0]) if queued else 0,
-        max_steps=_max_steps(run),
+        max_steps=max_steps(run),
         routes=routes[:ROUTES_SHOWN],
         routes_total=len(routes),
         last_route=routes[-1] if routes else None,

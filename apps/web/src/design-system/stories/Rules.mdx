@@ -1,0 +1,35 @@
+import { Meta } from '@storybook/addon-docs/blocks';
+
+<Meta title="Design system/Rules" />
+
+# The eight rules
+
+The Salvage Yard rules, as the components carry them.
+
+1. **Every record is a tagged part.** A record id shown as data is a `Tag`, in its real case.
+2. **Orange paint marks intent.** At most one `Button variant="primary"` and one
+   `Plate variant="intent"` per view. Never orange for success.
+3. **Blueprint is the to-be.** Drafted, inferred or proposed content is drawn (`variant="drawn"`,
+   `Status` `draft` / `inferred`); applied content turns solid.
+4. **Humans type, machines print.** Text a person wrote is a `Note`, with its author. Machine
+   output never is.
+5. **Grid ground, solid plates.** Content sits in a `Plate` on the ground (`AppShell` gives the
+   ground). No texture under data.
+6. **Square, no shadows.** No radius, no shadow; 1px lines, 2px for selected or focused.
+7. **Expanded caps only for short labels.** Write sentence case; the CSS sets the caps of titles,
+   labels, nav items and primary buttons (≤ 4–5 words).
+8. **Shape and word on every status.** A `Status` with a word, from the one vocabulary.
+
+## Never
+
+- A hex value, `rgb()`, a font family, a font size, a radius or a shadow in a page or a component
+  (lint refuses inline ones); a new `sy-` class outside the design package.
+- Two primary buttons or two intent plates in one view; red for anything but failure.
+- A `<select>` that navigates on change; text under 11px; animation other than the running pulse.
+- Invented data in UI copy: show stored values exactly (Polish strings, ids, UTC timestamps).
+
+## Voice
+
+Counts first, then the next move: "171 / 400 steps · 113 queued. Resume the scan." Product nouns
+stay plain (portal, scan, screen, process, record). Errors give the reference, the next move and
+what still works. No emoji, no exclamation marks.

@@ -1,0 +1,23 @@
+// The Salvage Yard design system for React (R-96): every component, one import.
+// Rules, the class each component owns and how to add one: skill `mudpuppy-react-ui`.
+export { AppShell, type AppShellProps, type NavGroup, type NavItem } from './components/AppShell.js';
+export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButtonProps } from './components/Button.js';
+export { Callout, type CalloutProps } from './components/Callout.js';
+export { Chip, type ChipProps } from './components/Chip.js';
+export { Count } from './components/Count.js';
+export { Facts } from './components/Facts.js';
+export { Check, Field, Input, Select, Textarea, type CheckProps, type FieldProps } from './components/Field.js';
+export { Cluster, Columns, Grid, Split, Stack } from './components/Layout.js';
+export { Meter, type MeterProps } from './components/Meter.js';
+export { Note, type NoteProps } from './components/Note.js';
+export { PageHead, type Crumb, type PageHeadProps } from './components/PageHead.js';
+export { Plate, type PlateProps } from './components/Plate.js';
+export { Row, Rows, type RowProps } from './components/Rows.js';
+export { Status, type StatusProps } from './components/Status.js';
+export { Steps, type Step } from './components/Steps.js';
+export { Table, type Column, type TableProps } from './components/Table.js';
+export { Tabs, type TabItem, type TabsProps } from './components/Tabs.js';
+export { Tag, Tags, type TagProps } from './components/Tag.js';
+export { Text, type TextProps } from './components/Text.js';
+export { STATUS_WORD, STATUSES, type StatusKind } from './status.js';
+export { cx } from './cx.js';

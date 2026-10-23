@@ -3932,6 +3932,29 @@ category `[battle-tested-scar]`.
 
 <sub>Last changed in R-56, 2026-10-16.</sub>
 
+### Dashboard
+
+<a id="react-console"></a>
+
+#### React console
+
+**The console rebuilt as a React single-page app at /app/, replacing the htmx pages one by one.**
+
+`apps/web` draws the same Salvage Yard look with React components (each one documented in
+Storybook) and reads the dashboard's JSON API under `/api`. The dashboard serves its build at
+`/app/`; the htmx pages stay until their React page replaces them. Every UI change follows
+the skill `mudpuppy-react-ui`.
+
+*Example:* http://127.0.0.1:8765/app/portals/reference-insurer-local/scans
+
+*Seen in:* /app/
+
+*Labels:* `React preview`, `/app/`, `Storybook`
+
+*Related:* [Persona sample](#persona-sample)
+
+<sub>Last changed in R-96, 2026-10-23.</sub>
+
 ### Personas
 
 <a id="persona-sample"></a>
