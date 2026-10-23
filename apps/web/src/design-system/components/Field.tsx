@@ -67,6 +67,16 @@ export function Textarea({ className, ...rest }: TextareaHTMLAttributes<HTMLText
   return <textarea {...rest} className={cx('sy-textarea', className)} />;
 }
 
+/** A group of checks or radios under one label (the legend looks like a field label). */
+export function Fieldset({ legend, children }: { legend: ReactNode; children: ReactNode }) {
+  return (
+    <fieldset>
+      <legend className="sy-legend-label">{legend}</legend>
+      <div className="sy-cluster">{children}</div>
+    </fieldset>
+  );
+}
+
 export interface CheckProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: ReactNode;
 }

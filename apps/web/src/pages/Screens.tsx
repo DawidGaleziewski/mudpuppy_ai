@@ -19,6 +19,7 @@ import {
 } from '../design-system';
 import { useScreens, type ScreenFilter, type ScreenOut, type ScreensData } from '../app/api-screens';
 import { QueryState } from '../app/QueryState';
+import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
@@ -219,6 +220,7 @@ export function Screens() {
             : undefined
         }
       />
+      <ScreensViews portal={portal} current="list" {...(q.data ? { total: q.data.screens.length } : {})} />
       <QueryState query={q} what="the screens">
         {(data) => <List portal={portal} data={data} f={f} set={set} />}
       </QueryState>

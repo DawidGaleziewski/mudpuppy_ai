@@ -71,6 +71,35 @@ export function Tabs({ items, selected, onSelect, label, panelPrefix }: TabsProp
   );
 }
 
+export interface ViewNavProps {
+  /** What the views are views of ("Screens views"). */
+  label: string;
+  /** Each view's page; `current`: the page shown. */
+  items: readonly { href: string; label: ReactNode; count?: number | undefined; current?: boolean }[];
+}
+
+/**
+ * Views of one thing that are pages of their own (Screens: List, Map): links that look like tabs,
+ * the current one marked for assistive technology. To switch panels inside a page use `Tabs`.
+ */
+export function ViewNav({ label, items }: ViewNavProps) {
+  return (
+    <nav className="sy-tabs" aria-label={label}>
+      {items.map((v) => (
+        <a key={v.href} className="sy-tab" href={v.href} aria-current={v.current ? 'page' : undefined}>
+          {v.label}
+          {v.count !== undefined && (
+            <>
+              {' '}
+              <Count muted>{v.count}</Count>
+            </>
+          )}
+        </a>
+      ))}
+    </nav>
+  );
+}
+
 /** The panel of the selected tab: named by its tab, reachable by keyboard (`Tabs`' `panelPrefix`). */
 export function TabPanel({ prefix, id, children }: { prefix: string; id: string; children: ReactNode }) {
   return (

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Stack, Text } from '../index.js';
+import { Stack, SubHead, Text } from '../index.js';
 
 const meta = {
   title: 'Components/Text',
@@ -34,6 +34,20 @@ export const Variants: Story = {
       <Text asIs>Kalkulator OC/AC (a stored title, not in caps)</Text>
       <Text>
         <Text strong>anna.ba</Text>: same screen
+      </Text>
+      <Text route href="#">
+        /kalkulator/… (a link)
+      </Text>
+    </Stack>
+  ),
+};
+/** `SubHead`: the heading of a part inside a plate. */
+export const Heading: Story = {
+  render: () => (
+    <Stack>
+      <SubHead>Variants · 3</SubHead>
+      <Text small muted>
+        r1 Baseline · r2 Release 5696 · r3 Persona premium
       </Text>
     </Stack>
   ),

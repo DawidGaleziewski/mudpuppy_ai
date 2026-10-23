@@ -116,3 +116,6 @@ card's "As" persona choice), `wb_frames.py` (frame,
   over `queries_app_screens.py` (`queries_model_screens` and `queries_same_screen` as JSON);
   `web/api_common.py` holds what the `api_*` routers share (`store`, `known_portal`); a thing
   that needs a person is `queries_app.NeedsItem` everywhere.
+- Spec 053 (R-96, the React model map): `web/api_map.py` (`/api/portals/{p}/map`) over
+  `queries_app_map.py` (`queries_model_map.model_map` as JSON: nodes placed, edges drawn, the
+  legend's words); a screen's actions carry their `place` (inside, out, menu) for the inspector.

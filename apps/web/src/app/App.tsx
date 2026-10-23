@@ -6,6 +6,7 @@ import { Portals } from '../pages/Portals';
 import { Scans } from '../pages/Scans';
 import { Screen } from '../pages/Screen';
 import { Screens } from '../pages/Screens';
+import { ScreensMap } from '../pages/ScreensMap';
 
 /** The console's routes, under `/app/` (served by the dashboard; Vite in development). */
 export const routes = [
@@ -13,6 +14,7 @@ export const routes = [
   { path: '/app/portals/:portal', element: <PortalHome /> },
   { path: '/app/portals/:portal/scans', element: <Scans /> },
   { path: '/app/portals/:portal/screens', element: <Screens /> },
+  { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },
   { path: '/app/portals/:portal/screens/:screenKey', element: <Screen /> },
   { path: '*', element: <NotFound /> },
 ];

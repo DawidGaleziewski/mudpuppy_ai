@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 4: the model map in React** (spec 053, v2.6.3, 2026-10-23).
+  `/app/portals/{p}/screens/map`: the portal model's screens and links drawn in their state
+  (Now or Since previous release), a process overlaid, the layers of retired, not-seen and
+  not-checked links, the menu bundled; zoom, arrow keys along the links, Graph or List (the list
+  first on a phone); a selected screen opens in the inspector beside it. Screens and Map share a
+  views nav. New components in Storybook: Graph, GraphNode, Legend, Bundle, ViewNav, Fieldset,
+  SubHead, and Text as a link. API: `/api/portals/{p}/map`; a screen's actions say where they go.
 - **R-96 step 3: the Screens pages in React** (spec 052, v2.6.2, 2026-10-23).
   `/app/portals/{p}/screens`: the model's screens, needs you first, filtered by status, text,
   part, why and sort (kept in the address); one screen with what needs you on it, its variants

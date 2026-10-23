@@ -7,7 +7,17 @@ export { Chip, type ChipProps } from './components/Chip.js';
 export { Compare, CompareSide, type CompareSideProps } from './components/Compare.js';
 export { Count } from './components/Count.js';
 export { Facts } from './components/Facts.js';
-export { Check, Field, Input, Select, Textarea, type CheckProps, type FieldProps } from './components/Field.js';
+export {
+  Bundle,
+  Graph,
+  GraphNode,
+  Legend,
+  type GraphEdge,
+  type GraphNodeProps,
+  type GraphProps,
+  type LegendProps,
+} from './components/Graph.js';
+export { Check, Field, Fieldset, Input, Select, Textarea, type CheckProps, type FieldProps } from './components/Field.js';
 export { Cluster, Columns, Grid, Split, Stack } from './components/Layout.js';
 export { Meter, type MeterProps } from './components/Meter.js';
 export { Note, type NoteProps } from './components/Note.js';
@@ -19,9 +29,9 @@ export { Segmented, type SegmentedProps, type SegmentItem } from './components/S
 export { Status, type StatusProps } from './components/Status.js';
 export { Steps, type Step } from './components/Steps.js';
 export { Table, type Column, type TableProps } from './components/Table.js';
-export { TabPanel, Tabs, type TabItem, type TabsProps } from './components/Tabs.js';
+export { TabPanel, Tabs, ViewNav, type TabItem, type TabsProps, type ViewNavProps } from './components/Tabs.js';
 export { Tag, Tags, type TagProps } from './components/Tag.js';
-export { Text, type TextProps } from './components/Text.js';
+export { SubHead, Text, type TextProps } from './components/Text.js';
 export { Timeline, TimelineItem, type TimelineItemProps } from './components/Timeline.js';
 export { STATUS_WORD, STATUSES, type StatusKind } from './status.js';
 export { cx } from './cx.js';

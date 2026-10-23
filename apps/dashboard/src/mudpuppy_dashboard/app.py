@@ -35,7 +35,7 @@ from .settings import Settings
 from .web import access as access_page
 from .web import activity as activity_page
 from .web import amendments as amendments_page
-from .web import api_app, api_screens, spa
+from .web import api_app, api_map, api_screens, spa
 from .web import changes as changes_page
 from .web import chat as chat_page
 from .web import check_runs as check_runs_page
@@ -183,6 +183,7 @@ def create_app(
     # R-96 (spec 050): the React console's JSON API and the app itself.
     app.include_router(api_app.router)
     app.include_router(api_screens.router)
+    app.include_router(api_map.router)
     app.include_router(spa.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)

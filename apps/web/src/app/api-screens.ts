@@ -67,6 +67,8 @@ export interface ActionOut {
   status: StatusOut;
   /** On every page: a menu, a footer. */
   is_global: boolean;
+  /** Where it goes: stays inside the screen (or no page), out to another screen, or the menu on every page. */
+  place: 'inside' | 'out' | 'menu';
   /** `key` null: no page; equal to the screen's own key: it stays inside. */
   /** `note`: what happened instead of an ordinary move ("no change"); null when it worked. */
   leads_to: { key: string | null; title: string | null; note: string | null }[];

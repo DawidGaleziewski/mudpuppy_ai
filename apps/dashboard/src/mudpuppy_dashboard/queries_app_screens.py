@@ -153,6 +153,9 @@ class ActionOut(BaseModel):
     status: StatusOut
     #: On every page (a menu, a footer).
     is_global: bool
+    #: inside (stays on the screen or leads to no page), out (to another screen), menu (on every
+    #: page): the map inspector's "Actions inside" and "Links out" (v2-08).
+    place: str
     leads_to: list[Lead]
 
 
@@ -215,6 +218,26 @@ def _variant(v: qms.Variant) -> VariantOut:
     )
 
 
+def _place(a: qms.Action, own: str) -> str:
+    if a.is_global:
+        return "menu"
+    return "out" if any(k and k != own for k, _, _ in a.leads_to) else "inside"
+
+
+def _action(a: qms.Action, own: str) -> ActionOut:
+    return ActionOut(
+        element_key=a.element_key,
+        kind=a.kind,
+        status=status_out("action", a.status),
+        is_global=a.is_global,
+        place=_place(a, own),
+        leads_to=[
+            Lead(key=k, title=t, note=None if res == "ok" else res.replace("_", " "))
+            for k, t, res in a.leads_to
+        ],
+    )
+
+
 def screen_detail_data(conn: sqlite3.Connection, portal: str, key: str) -> ScreenDetailData | None:
     d = qms.screen_detail(conn, portal, key)
     if d is None:
@@ -224,19 +247,7 @@ def screen_detail_data(conn: sqlite3.Connection, portal: str, key: str) -> Scree
         screen=_screen(d.row),
         needs=[needs_item(kind, it) for kind, it in d.needs],
         variants=[_variant(v) for v in d.variants],
-        actions=[
-            ActionOut(
-                element_key=a.element_key,
-                kind=a.kind,
-                status=status_out("action", a.status),
-                is_global=a.is_global,
-                leads_to=[
-                    Lead(key=k, title=t, note=None if res == "ok" else res.replace("_", " "))
-                    for k, t, res in a.leads_to
-                ],
-            )
-            for a in d.actions
-        ],
+        actions=[_action(a, d.row.key) for a in d.actions],
         history=[
             ChangeOut(
                 id=ch.id,

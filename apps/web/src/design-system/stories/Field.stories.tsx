@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
-import { Check, Field, Input, Select, Stack, Textarea } from '../index.js';
+import { Check, Field, Fieldset, Input, Select, Stack, Textarea } from '../index.js';
 
 const meta = {
   title: 'Components/Field',
@@ -36,5 +36,15 @@ export const Form: Story = {
       </Field>
       <Check label="Load images" defaultChecked />
     </Stack>
+  ),
+};
+/** `Fieldset`: checks under one label (the map's layers). */
+export const Group: Story = {
+  render: () => (
+    <Fieldset legend="Layers">
+      <Check label="Retired links" />
+      <Check label="Not seen since" defaultChecked />
+      <Check label="Not checked" defaultChecked />
+    </Fieldset>
   ),
 };
