@@ -6,6 +6,14 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 17: Docs in React, part 1** (spec 066, v2.6.16, 2026-10-23).
+  `/app/portals/{p}/docs`: the portal's documentation as an SRS, its sections with their record
+  counts beside the one shown. The overview gives the status mix, the records per section and the
+  latest analysis sessions; every other section lists its records with status, confidence,
+  revision and notes (not observed, follow-up status, an older confirmed revision), filtered by
+  kind, status, confidence and flag and paged; traceability shows evidence, scans and linked
+  records; capabilities and screens draw their diagram. Docs is in the console's menu; a record
+  and a session still open on the htmx Docs.
 - **R-96 step 16: Business rules in React** (spec 065, v2.6.15, 2026-10-23).
   `/app/portals/{p}/rules`: every decision rule grouped by status, what needs a person first,
   with where it is decided, its boundary tests and when it was last tested; a status filter; Run

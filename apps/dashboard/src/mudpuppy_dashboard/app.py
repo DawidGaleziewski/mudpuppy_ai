@@ -38,6 +38,7 @@ from .web import amendments as amendments_page
 from .web import (
     api_app,
     api_changes,
+    api_docs,
     api_map,
     api_process,
     api_processes,
@@ -208,6 +209,7 @@ def create_app(
     app.include_router(api_review_items.router)
     app.include_router(api_changes.router)
     app.include_router(api_rules.router)
+    app.include_router(api_docs.router)
     app.include_router(api_scan.router)
     app.include_router(api_scan_tabs.router)
     app.include_router(api_scan_trace.router)

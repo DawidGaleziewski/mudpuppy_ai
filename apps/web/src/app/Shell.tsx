@@ -8,7 +8,7 @@ export function Shell({
   portal: given,
   children,
 }: {
-  current: 'portals' | 'home' | 'changes' | 'review' | 'processes' | 'screens' | 'rules' | 'scans';
+  current: 'portals' | 'home' | 'changes' | 'review' | 'processes' | 'screens' | 'rules' | 'docs' | 'scans';
   /** The portal when the address does not name it (a scan's page). */
   portal?: string | undefined;
   children: ReactNode;
@@ -33,6 +33,7 @@ export function Shell({
               { href: `${base}/processes`, label: 'Processes', current: current === 'processes' },
               { href: `${base}/screens`, label: 'Screens', current: current === 'screens' },
               { href: `${base}/rules`, label: 'Rules', current: current === 'rules' },
+              { href: `${base}/docs`, label: 'Docs', current: current === 'docs' },
             ],
           },
           {

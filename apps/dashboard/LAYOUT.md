@@ -178,3 +178,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
   `…/rules/{key}/reword`; Run the rule tests is `…/check-runs` with `kind: replay`) over
   `queries_app_rules.py`, built on the htmx pages' `queries_rules`; the Review API's links to a
   rule and to Before / after now open the React pages.
+- Spec 066 (R-96, Docs part 1): `web/api_docs.py` (`GET /api/portals/{p}/docs`, the section,
+  its filters and the cursor) over `queries_app_docs.py` (the SRS sections with counts, the
+  overview's statuses and sessions, a section's records, traceability, the capability and screen
+  diagrams), built on the htmx Docs' `queries_docs` and `diagrams`.
