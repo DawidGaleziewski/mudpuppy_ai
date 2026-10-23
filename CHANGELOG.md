@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-32: the 2.0 acceptance run with the real agent** (spec 047, v2.5.1, 2026-10-23). Through
+  the chat on the reference portal: a guest scan, the car calculator as the process scope, its
+  documentation (66 records in 11 minutes), an export, a new release of the portal, a re-scan, a
+  documentation update and a second export that shows the change; $9.20 of the owner's $10.
+  Fixed: after a release, a changed link target was read as a decision point because the rules
+  compared a page with its own earlier visit in the same scan; the reference is now an earlier
+  scan's visit. Findings in `specs/047-r32-acceptance-run/findings.md`; leftovers R-99.
 - **R-88: a page that differs between visits is replayed until it is explained** (spec 046,
   v2.5.0, 2026-10-23). Rules R4 and R5 now run on the headless driver (`pnpm model:replay`): a
   page that differs between two personas is walked again as each (each getting its own version:

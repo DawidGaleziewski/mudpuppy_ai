@@ -78,6 +78,23 @@ export function visitPair(
   // may all be after the release that removed it (F-23@039).
   const had =
     d.kind === 'missing_action' && d.elementKey ? withElement(raw, members, d.elementKey) : members;
-  const ref = current ? latestVisit(raw, had, current.at) : null;
+  if (!current) return [null, null];
+  // An earlier run's visit first: a map scan visits a page many times, and its own earlier visit
+  // shares its release, so a release change was read as a decision point (spec 047 F-02, R-32).
+  // Within one run (no earlier run saw the page) the run's own earlier visit stays the reference.
+  const ref =
+    latestVisit(raw, had, runStartOf(raw, current.id)) ?? latestVisit(raw, had, current.at);
   return [current, ref ? visitContext(raw, ref) : null];
+}
+
+/** When the run of a visit first observed anything. */
+function runStartOf(raw: Raw, visitId: string): string {
+  return (
+    raw
+      .prepare(
+        `SELECT MIN(o.created_at) AS at FROM observations o
+         WHERE o.run_id = (SELECT run_id FROM observations WHERE id = ?)`,
+      )
+      .get(visitId) as { at: string }
+  ).at;
 }

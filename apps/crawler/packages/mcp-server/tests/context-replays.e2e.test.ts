@@ -116,12 +116,24 @@ describe.skipIf(!available)('scenario persona-variant: rule R4 (spec 046)', () =
     expect(waiting.map((w) => w.kind)).toContain('new_member');
 
     const report = await replayPortal(h.call, raw, 'reference-insurer');
+    // The page's other version and its extra button: both explained as the persona's variant
+    // (the button's reference is the standard customer's earlier visit, spec 047 F-02).
     const decided = report.contexts.filter((c) => c.hypothesis !== null);
-    expect(decided).toHaveLength(1);
-    const hyp = raw
-      .prepare('SELECT kind, rule, derived FROM hypotheses WHERE key = ?')
-      .get(decided[0]!.hypothesis);
-    expect(hyp).toEqual({ kind: 'context_variant', rule: 'R4', derived: 1 });
+    const hyps = decided.map((d) =>
+      raw
+        .prepare(
+          `SELECT d.kind AS deviation, h.kind, h.rule, h.derived FROM hypotheses h
+           JOIN deviations d ON d.id = h.deviation_id WHERE h.key = ?`,
+        )
+        .get(d.hypothesis),
+    );
+    expect(hyps).toEqual(
+      expect.arrayContaining([
+        { deviation: 'new_member', kind: 'context_variant', rule: 'R4', derived: 1 },
+        { deviation: 'new_action', kind: 'context_variant', rule: 'R4', derived: 1 },
+      ]),
+    );
+    expect(hyps).toHaveLength(2);
   }, 240_000);
 });
 
