@@ -148,7 +148,7 @@ export interface Sections {
 
 export type SectionId = keyof Sections;
 
-/** The sections this app draws (the others link to the htmx page). */
+/** A scan's sections with a list of their own (Graph, Trace and Process have their own views). */
 export const SECTIONS: readonly SectionId[] = ['states', 'actions', 'frontier', 'forms', 'network', 'robots', 'decisions', 'docs'];
 
 export const isSection = (tab: string): tab is SectionId => (SECTIONS as readonly string[]).includes(tab);

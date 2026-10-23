@@ -1,7 +1,6 @@
-"""The React console's scan page (R-96, spec 054): one scan's summary and tabs (the htmx
-`/runs/{id}` header) and its Graph tab (`queries_run_graph`, spec 035) as typed JSON. The API
-places every node and sends every word; only Graph is in React yet, the other tabs link to the
-htmx page. Scan ids are whole (D-9)."""
+"""The React console's scan page (R-96, spec 054): one scan's summary and tabs, its hooks, and its
+Graph tab (`queries_run_graph`, spec 035) as typed JSON. The API places every node and sends every
+word. Scan ids are whole (D-9)."""
 
 from __future__ import annotations
 
@@ -9,7 +8,7 @@ import sqlite3
 
 from pydantic import BaseModel
 
-from . import queries, queries_docs, queries_run_graph
+from . import queries, queries_docs, queries_hooks, queries_run_graph
 from .formats import fmt_duration
 from .map_layout import NODE_H
 from .queries_app import Chip, StatusOut, status_out
@@ -44,17 +43,30 @@ class Fact(BaseModel):
     value: str
 
 
+class HookRun(BaseModel):
+    """A portal hook (spec 023 US2.3): where it ran, how often, with which outcomes."""
+
+    point: str
+    fn: str
+    runs: int
+    #: ok, skip, rewrite, wait, failed, timeout → count.
+    outcomes: dict[str, int]
+    pages_patched: int
+
+
 class ScanHead(BaseModel):
     id: str
     portal: str
     persona: str
     status: StatusOut
     warning: str | None
-    #: The summary's facts, as the htmx header lists them (UTC timestamps as stored).
+    #: The summary's facts (UTC timestamps as stored).
     facts: list[Fact]
     tabs: list[ScanTab]
     #: Stopped or something failed: the page opens on the graph.
     needs_attention: bool
+    #: The portal hooks that ran in it (spec 023 US2.3).
+    hooks: list[HookRun] = []
 
 
 def scan_head(conn: sqlite3.Connection, scan: str) -> ScanHead | None:
@@ -102,6 +114,16 @@ def scan_head(conn: sqlite3.Connection, scan: str) -> ScanHead | None:
             if t != "process" or show_process
         ],
         needs_attention=queries_run_graph.needs_attention(conn, r.id),
+        hooks=[
+            HookRun(
+                point=h.point,
+                fn=h.fn,
+                runs=h.runs,
+                outcomes=h.outcomes,
+                pages_patched=h.pages_patched,
+            )
+            for h in queries_hooks.hook_runs(conn, r.id)
+        ],
     )
 
 
@@ -119,7 +141,7 @@ class ScanNode(BaseModel):
     status: StatusOut
     #: `data-state`: failed; None when observed.
     state: str | None
-    #: The state this scan saw last on the screen: where Start here goes, the htmx screen page.
+    #: The state this scan saw last on the screen: where Start here goes.
     state_id: str
     order: int
     failures: list[FailureOut]

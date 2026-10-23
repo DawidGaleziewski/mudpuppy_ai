@@ -1,5 +1,5 @@
-"""The writes the console asks the chat service for (spec 034 R-66, spec 054), shared by the htmx
-routers (`states`, `plan`) and the React console's `api_writes` so both send the same calls: a
+"""The writes the console asks the chat service for (spec 034 R-66, spec 054), shared by the API
+routers (`api_writes`, `api_plan` and the others that write): every write's answer and checks, a
 mark set or removed on the portal's marks, and a scan request posted to the portal's
 conversation. The dashboard never writes the store itself. Not a router (G-13)."""
 
@@ -29,6 +29,12 @@ class WriteResult(BaseModel):
 def write_answer(status: int, message: str, href: str | None = None) -> JSONResponse:
     body = WriteResult(ok=status in (200, 201), message=message, href=href).model_dump()
     return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
+
+
+def assistant_href(portal: str) -> str:
+    """Where a request sent to the portal's conversation is followed: its Home with the assistant
+    drawer open (designer Q11: no full chat page)."""
+    return f"/app/portals/{quote(portal, safe='')}?assistant=open"
 
 
 def write_refused(request: Request, what: str) -> JSONResponse | None:

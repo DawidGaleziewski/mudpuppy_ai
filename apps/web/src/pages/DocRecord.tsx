@@ -10,7 +10,7 @@ import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { Content, Evidence, Figures, History, Relations, ReviewNotes, VariantMaps } from './DocContent';
 
-/** The record's status line and facts (the htmx header region). */
+/** The record's status line and facts. */
 function Header({ d }: { d: DocRecordPage }) {
   return (
     <Plate

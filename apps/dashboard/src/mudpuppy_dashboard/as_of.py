@@ -10,6 +10,7 @@ store file is never written: TEMP objects live in the connection's own temp sche
 
 from __future__ import annotations
 
+import re
 import sqlite3
 from dataclasses import dataclass
 from typing import Any
@@ -94,22 +95,14 @@ VIEWS: dict[str, tuple[str, dict[str, str]]] = {
     ),
 }
 
-# The pages that follow As of (FR-001); links to them keep `as_of`.
-MODEL_PATHS = (
-    "/processes",
-    "/screens",
-    "/map",
-    "/rules",
-    "/fragments/processes",
-    "/fragments/screens",
-    "/fragments/map",
-    "/fragments/rules",
-)
-SECTIONS = ("processes", "screens", "rules")
+# The model pages' API that follows As of (FR-001): a portal's processes, screens, map and rules.
+MODEL_API = re.compile(r"^/api/portals/(?P<portal>[^/]+)/(processes|screens|map|rules)(/|$)")
 
 
-def follows(path: str) -> bool:
-    return path.startswith(MODEL_PATHS)
+def follows(path: str) -> str | None:
+    """The portal of a model page's API address, or None for any other address."""
+    m = MODEL_API.match(path)
+    return m["portal"] if m else None
 
 
 @dataclass(frozen=True)

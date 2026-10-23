@@ -4,3 +4,5 @@
 import './assets/css/tokens.css';
 import './assets/css/fonts.css';
 import './assets/css/salvage.css';
+// The generative UI's parts (the Workbench, the assistant's cards): on top of the library.
+import './assets/css/genui.css';

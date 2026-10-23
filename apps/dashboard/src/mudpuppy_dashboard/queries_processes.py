@@ -144,7 +144,7 @@ AS_IS_STAGES = ("scoped", "as_is_documented")
 
 def default_model(view: ProcessView) -> str:
     """US2.3: a process page leads with A until a to-be design starts, then with the first
-    to-be (the htmx page and the React console's API alike)."""
+    to-be."""
     if view.process.stage in AS_IS_STAGES:
         return "A"
     return next((v.model.label for v in view.models if v.model.kind == "to_be"), "A")

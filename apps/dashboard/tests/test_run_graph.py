@@ -3,14 +3,12 @@ screen 15 on the screen they belong to. Writes go through the chat service (mock
 
 from __future__ import annotations
 
-import json
 import sqlite3
 
 from mudpuppy_dashboard import queries_run_graph
 
 from .conftest import Store, insert
-from .test_chat import ORIGIN
-from .test_scan_plan import Chat, client, seed
+from .test_scan_plan import seed
 
 T2 = "2026-10-17T02:00:00.000Z"
 
@@ -72,57 +70,3 @@ def test_graph_model_marks_failures_and_where_it_stopped(empty_store: Store) -> 
     assert not queries_run_graph.needs_attention(conn, "run-2")
     assert queries_run_graph.run_graph(conn, "nope") is None
     conn.close()
-
-
-def test_scan_page_opens_on_the_graph_when_something_failed(empty_store: Store) -> None:
-    seed_graph(empty_store)
-    with client(empty_store, Chat()) as c:
-        failed = c.get("/runs/run-1").text
-        fine = c.get("/runs/run-2").text
-        picked = c.get("/runs/run-1", params={"tab": "graph", "node": "sc-home"}).text
-    assert 'id="region-graph"' in failed and "Where it stopped" in failed
-    assert "Stopped here" in failed and 'value="continue"' in failed  # Resume
-    assert 'value="e-bad"' in failed and "Retry this path" in failed  # on the stop screen
-    assert failed.count('class="sy-btn sy-btn--primary"') == 1
-    assert 'id="region-graph"' not in fine  # a clean scan opens on its states
-    assert "1 control the crawler could not find again" in picked
-    assert 'value="e-bad"' not in picked.split('id="graph-inspector"')[1]
-
-
-def test_restarts_from_the_graph_come_back_to_it(empty_store: Store) -> None:
-    seed_graph(empty_store)
-    chat = Chat()
-    with client(empty_store, chat) as c:
-        skip = c.post(
-            "/scans/recover/run-1/skip",
-            data={"transition_id": "e-bad", "from": "graph", "node": "sc-list"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-        mark = c.post(
-            "/states/st-list/mark",
-            data={"kind": "start", "action": "mark", "back": "/runs/run-1?tab=graph&node=sc-list"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-        refused = c.post(
-            "/scans/plan/start",
-            data={"run_type": "continue", "persona": "guest", "from": "graph", "node": "sc-list"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-    assert skip.status_code == 303
-    assert skip.headers["location"].startswith("/runs/run-1?tab=graph&node=sc-list&note=Skipped")
-    assert mark.headers["location"].startswith("/runs/run-1?tab=graph&node=sc-list&note=Marked")
-    assert chat.calls[-1][:2] == ("POST", "/portals/liveinsurer/marks")
-    assert chat.calls[-1][2]["kind"] == "start"
-    # no parent scan in the form: back to the plan page, as before
-    assert refused.headers["location"].startswith("/scans/plan")
-
-
-def test_scan_history_counts_failures_and_links_the_graph(empty_store: Store) -> None:
-    seed_graph(empty_store)
-    with client(empty_store, Chat()) as c:
-        html = c.get("/scans").text
-    assert "Where it stopped" in html and "tab=graph" in html
-    assert json.dumps("run-1")[1:-1] in html

@@ -1,5 +1,10 @@
 # What carries over to A2UI (R-96)
 
+> **Update, 23 Oct (round 3):** A2UI's current version is **v0.9.1** (v1.0 candidate, v0.8 legacy). The v0.9.1 names are
+> `createSurface`, `updateComponents`, `updateDataModel`, `deleteSurface` and the client's `action`. The generated catalog,
+> example streams and binding rules are in `../19-console-answers/13-a2ui-catalogue.md` and `workbench/a2ui/`. The table
+> below still holds; read the v0.8 names as their v0.9.1 equivalents.
+
 R-96 moves the Workbench from our view-spec contract to **A2UI**, an open protocol in which an agent describes UI as JSON
 messages and the client renders it from a catalog of components it knows. As documented for spec v0.8, a server sends
 `beginRendering` (a surface, its root, an optional `catalogId`), `surfaceUpdate` (components with an `id`, containers listing

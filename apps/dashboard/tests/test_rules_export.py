@@ -41,8 +41,8 @@ def test_the_zip_holds_every_file_and_is_built_once(
     empty_store: Store, fake_export: list[str]
 ) -> None:
     with client(empty_store) as c:
-        r = c.get(f"/rules/export.zip?portal={P}")
-        again = c.get(f"/rules/export.zip?portal={P}")
+        r = c.get(f"/api/portals/{P}/rules/export.zip")
+        again = c.get(f"/api/portals/{P}/rules/export.zip")
     names = zipfile.ZipFile(io.BytesIO(r.content)).namelist()
     assert r.status_code == 200 and r.headers["content-type"] == "application/zip"
     assert sorted(names) == [f"{P}-rules/{n}" for n in sorted(
@@ -54,23 +54,11 @@ def test_single_files_and_names_outside_the_export(
     empty_store: Store, fake_export: list[str]
 ) -> None:
     with client(empty_store) as c:
-        csv = c.get(f"/rules/export/rules.csv?portal={P}")
-        dmn = c.get(f"/rules/export/BR-001.dmn?portal={P}")
-        other = c.get(f"/rules/export/..%2Fsecret?portal={P}")
-        missing = c.get(f"/rules/export/BR-404.md?portal={P}")
+        csv = c.get(f"/api/portals/{P}/rules/export/rules.csv")
+        dmn = c.get(f"/api/portals/{P}/rules/export/BR-001.dmn")
+        other = c.get(f"/api/portals/{P}/rules/export/..%2Fsecret")
+        missing = c.get(f"/api/portals/{P}/rules/export/BR-404.md")
     assert csv.status_code == 200 and csv.text.startswith("rule,finding")
     assert csv.headers["content-type"].startswith("text/csv")
     assert dmn.status_code == 200 and "attachment" in dmn.headers["content-disposition"]
     assert other.status_code == 404 and missing.status_code == 404
-
-
-def test_a_rules_markdown_shows_in_the_export_section(
-    empty_store: Store, fake_export: list[str]
-) -> None:
-    with client(empty_store) as c:
-        shown = c.get(f"/fragments/rules/BR-001/export?portal={P}").text
-        none = c.get(f"/fragments/rules/H-0009/export?portal={P}").text
-        failed = c.get("/fragments/rules/BR-001/export?portal=broken").text
-    assert "If age &lt; 18" in shown and 'href="/rules/export/BR-001.dmn' in shown
-    assert "has no decision table yet" in none
-    assert "could not be built" in failed and "no such table" in failed

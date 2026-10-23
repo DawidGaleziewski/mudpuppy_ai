@@ -1,0 +1,2 @@
+{# ScanMeter — for views without a map (a LiveMap already includes the meter). #}
+<div id="{{ cid }}-meter">{% block live_meter %}{% with s = vm.scan, m = vm %}{% include "components/_meter.html.j2" %}{% endwith %}{% endblock %}</div>

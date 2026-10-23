@@ -1,7 +1,6 @@
 """The React console's Settings (R-96, spec 068; screen 11) and its writes, each through the chat
-service as the htmx Settings sends them (`web/portals.py`, `web/hints.py`, `web/check_runs.py`):
-save or revoke an environment, save the hints or the budgets, accept the calibrated τ or the
-classifier. Every write answers `{ok, message, href}`. No SQL here (G-15)."""
+service: save or revoke an environment, save the hints or the budgets, accept the calibrated τ or
+the classifier. Every write answers `{ok, message, href}`. No SQL here (G-15)."""
 
 from __future__ import annotations
 
@@ -118,7 +117,7 @@ async def revoke_environment(request: Request, portal: str, environment: str) ->
 @router.post("/hints/{part}", response_model=WriteResult)
 async def save_hints(request: Request, portal: str, part: str) -> JSONResponse:
     """The hints (release marker, A/B cookies, business refusals; lists one per line) or the
-    budgets, written to the portal file by the chat service as the htmx form does."""
+    budgets, written to the portal file by the chat service."""
     if (no := write_refused(request, "change settings")) is not None:
         return no
     form = await read_json(request)

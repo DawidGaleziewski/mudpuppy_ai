@@ -27,8 +27,8 @@ def test_binds_localhost_without_reload(captured: dict) -> None:
     assert captured["timeout_graceful_shutdown"] == 1
 
 
-def test_dev_reloads_on_templates_and_assets(captured: dict) -> None:
+def test_dev_reloads_on_python_changes(captured: dict) -> None:
     __main__.main(["--dev", "--port", "9001", "--env", "scratch"])
     assert captured["reload"] is True
     assert captured["port"] == 9001
-    assert {"*.py", "*.html", "*.css", "*.js"} <= set(captured["reload_includes"])
+    assert set(captured["reload_includes"]) == {"*.py"}

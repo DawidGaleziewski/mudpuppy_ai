@@ -1,6 +1,7 @@
-# 18 · Design answers, 23 Oct (specs 052, 053 · R-94 (3) · D-9)
+# 18 · Design answers, 23 Oct (specs 052, 053, 054 · R-94 (3) · D-9)
 
-Answers to the seven open questions from the React console and the Workbench, plus the filmstrip fix (F-15 a). Every answer
+Answers to the seven open questions from the React console and the Workbench, the filmstrip fix (F-15 a) and, in a second
+round, the two edge styles for the recorded map (spec 054). Every answer
 is a class or a rule in the design system now, so nothing needs to stay inline or be invented. One file per question:
 what was decided, why, the markup, a React sketch, what to change, and how to check it.
 
@@ -14,13 +15,16 @@ what was decided, why, the markup, a React sketch, what to change, and how to ch
 | 6 | [Full scan ids](06-scan-ids.md) | Full UUID in data; 13-character short form on screen (first two groups = start time); full id on hover, Copy, the scan page; time labels on timelines | contract: `scanId`, `eventRef`; `.sy-id` (`--full`, `__copy`) | No |
 | 7 | [Beta chip contrast](07-beta-chip-contrast.md) | Chips on the selected nav item take its ink: 14.7:1 | one rule | No |
 | F-15 a | [Names from visible text](08-filmstrip-and-node-names.md) | No `aria-label` on filmstrip items and map nodes; extras in sr-only spans | markup rule | No |
+| 054 | [Recorded map: two edge styles](10-recorded-map-edges.md) | Solid = this scan made the move. **Off the tree:** control edge, 1 px, solid, arrowhead, one line per page pair (`↩ 3×`), a chip past six lines into one page; layer on. **Other scans' move:** control edge, 1.5 px, long dash; layer off; their pages dimmed | `.sy-edge--tree`, `--offtree`, `--others`, `.sy-edge-arrow`, `.sy-legend__item` | No (replaces the retired / unseen stand-ins) |
 | — | [A2UI carry-over](09-a2ui-carry-over.md) | What moves into the A2UI catalog, what the server keeps | — | — |
 
-Decisions D-44…D-51 in `../02-design-decisions.md`; requirements FE-V11…FE-V17 in `../07-requirements.md` §A.
+Decisions D-44…D-52 in `../02-design-decisions.md`; requirements FE-V11…FE-V18 in `../07-requirements.md` §A.
+
+**Later answers:** the phase bar (spec 056), Fit on open, the persona card (R-95) and the console questions of the same evening are in `../19-console-answers/`.
 
 ## Where to see it
 
-- **Live, with markup:** `design-system/components.html` → section "2.1" (`#c-21`).
+- **Live, with markup:** `design-system/components.html` → section "2.1" (`#c-21`); the recorded map is `#c-21-edges`.
 - **In screens:** `screens/v2-07-screen-detail.html` (variants with picture buttons), `screens/v2-08-map.html` (graph view and
   zoom bar, Map page and embedded excerpt), `screens/wb-01-inline-live.html` (scan id with Copy in the side sheet). Every
   screen now shows scan ids in the 13-character form.
@@ -30,7 +34,7 @@ Decisions D-44…D-51 in `../02-design-decisions.md`; requirements FE-V11…FE-V
 
 | File | Change |
 |---|---|
-| `design-system/css/salvage.css` | Sections "2.1 · …" for Q1, Q2, Q3, Q4, Q6, Q7; responsive rules at 1199 px, 639 px and on touch |
+| `design-system/css/salvage.css` | Sections "2.1 · …" for Q1, Q2, Q3, Q4, Q6, Q7 and the recorded map (spec 054); responsive rules at 1199 px, 639 px and on touch; forced colours |
 | `workbench/tools/gen_wb_schema.py` → `workbench/schema/*`, `workbench/examples/*` | Q5 and Q6 patterns; full scan ids in every example; new examples `valid/chat-records-long-ids.json`, `invalid/short-scan-id.json`, `invalid/unknown-record.json` |
 | `workbench/reference/` | Full scan ids (`short_id()` for display); tests and evals pass |
 | `screens/*`, `docs/*`, `design-system/*.html` | Scan ids in the short form; full ids in JSON, URLs and API paths; filmstrip and node names (F-15 a) |

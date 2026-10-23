@@ -1,0 +1,15 @@
+{# Path switch. The assistant proposes (dashed mark); your switch wins (solid) until you ask something new. #}
+{% set cur = view.path if view else "chat" %}
+<div class="sy-pathswitch" id="wb-pathswitch"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+  <span class="sy-label" id="wb-path-l">Path</span>
+  <div class="sy-seg" role="group" aria-labelledby="wb-path-l">
+    {% for p in paths %}
+    <button type="button" aria-pressed="{{ 'true' if p == cur else 'false' }}"
+            {% if p != cur %}hx-get="{{ r.url(view, path=p, sel=None) }}" hx-swap="none" hx-push-url="true"{% endif %}>{{ PATH_LABEL[p] }}</button>
+    {% endfor %}
+  </div>
+  {% if view %}
+  <span class="sy-pathswitch__why" data-source="{{ view.path_source }}">
+    {%- if view.path_source == "you" %}Your choice{% else %}Picked by the assistant{% endif %}: {{ view.why }}</span>
+  {% endif %}
+</div>

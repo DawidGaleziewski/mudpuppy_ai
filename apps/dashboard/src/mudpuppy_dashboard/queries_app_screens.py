@@ -1,5 +1,5 @@
-"""The React console's Screens (R-96, spec 052; designer screens v2-06 / v2-07): the htmx pages'
-read models (`queries_model_screens`, `queries_same_screen`) as typed JSON. Statuses come mapped
+"""The React console's Screens (R-96, spec 052; designer screens v2-06 / v2-07): the read models
+`queries_model_screens` and `queries_same_screen` as typed JSON. Statuses come mapped
 by the one status map; pictures come as URLs the dashboard serves."""
 
 from __future__ import annotations
@@ -189,7 +189,7 @@ class ScreenDetailData(BaseModel):
     labels: list[LabelOut]
 
 
-#: The baseline variant's status: no change brought it (the htmx page's "Observed").
+#: The baseline variant's status: no change brought it.
 OBSERVED = StatusOut(shape="ok", word="Observed")
 
 
@@ -263,7 +263,7 @@ def screen_detail_data(conn: sqlite3.Connection, portal: str, key: str) -> Scree
             LabelOut(
                 a=e.a,
                 b=e.b,
-                # in a sentence after the name, as the htmx page says it ("Ola: same screen")
+                # in a sentence after the name ("Ola: same screen")
                 answer=WORDS.get(e.label.answer, e.label.answer).lower(),
                 by=e.label.by,
                 at=e.label.at,

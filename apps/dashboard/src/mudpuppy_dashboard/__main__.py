@@ -49,9 +49,9 @@ def main(argv: list[str] | None = None) -> None:
         port=settings.port,
         reload=settings.dev,
         reload_dirs=[str(PACKAGE)] if settings.dev else None,
-        reload_includes=["*.py", "*.html", "*.css", "*.js"] if settings.dev else None,
+        reload_includes=["*.py"] if settings.dev else None,
         # Open event streams would otherwise hold a reload or Ctrl+C until the browser leaves;
-        # browsers reconnect on their own (hx-sse), so close them after a short grace period.
+        # browsers reconnect on their own (EventSource), so close them after a short grace period.
         timeout_graceful_shutdown=1,
         log_level="info",
     )

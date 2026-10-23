@@ -63,6 +63,18 @@
       ],
       "effects": "Marks the page for the next scan plan.",
       "stop": "Undo removes the mark."
+    },
+    {
+      "name": "persona.add",
+      "label": "Add a persona",
+      "write": true,
+      "undo": "DELETE /portals/{portal}/personas/{name}",
+      "api": "POST /portals/{portal}/personas",
+      "required": [
+        "name"
+      ],
+      "effects": "Adds persona {name} to this portal. Scans you start can use it.",
+      "stop": "Undo removes the persona until a scan uses it."
     }
   ]
 }

@@ -217,6 +217,94 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **Decision.** The text answer never waits for a view (4 s); a view that can't be built falls back to plain chat with no red; a dropped stream shows "Live updates paused" and catches up.
 - **Why.** The assistant is useful without the view; red stays for real failures in the scan or the portal (D-05).
 
+## 2.1 · Design answers, 23 Oct (`18-design-answers/`)
+
+### D-44 · A picture that opens larger is a naked button with a corner icon — Accepted
+- **Decision.** `.sy-thumb-btn`: no border or paint, `cursor: zoom-in`, an always-visible expand icon in the corner, "Enlarge" on hover, focus and touch. Focus is the marker ring with a 2px steel gap.
+- **Why.** The picture is the target. The icon makes the feature findable without hover; the steel gap keeps the ring visible on light screenshots (marker on paper is only 2.0:1).
+
+### D-45 · Pictures open in a wide dialog that fits width and scrolls — Accepted
+- **Decision.** `.sy-dialog--wide` at `min(1280px, 100vw − 32px)`; the picture fits the width and scrolls inside; "Whole page" shrinks it to the visible height; full screen under 640px.
+- **Why.** Captures are 1280px wide, so this is about 1:1. Shrinking a tall page to fit by default makes it unreadable.
+
+### D-46 · A screen's variants are a list, not a comparison — Accepted
+- **Decision.** `.sy-variants` (auto-fill columns) and `.sy-variant`; a lone variant gets a picture-left layout. `.sy-compare` is kept for before / after pairs.
+- **Why.** Most screens have one variant; stretching it across the page compares nothing and distorts the picture.
+
+### D-47 · The graph sits in a frame with a sticky, floating zoom bar — Accepted
+- **Decision.** `.sy-graphview` + `.sy-graph__zoom`: the bar floats top-right and sticks under the header while the graph is on screen; the graph's height is natural, capped at the viewport below the header (520px when embedded). Phones open the map as a list; the graph opens full screen.
+- **Why.** One scroll surface at a time, and the zoom controls stay where the eyes are. 75vh was inherited, not designed.
+
+### D-48 · Record ids: thirteen named prefixes, three or more digits — Accepted
+- **Decision.** `recordId` accepts SCR, PROC, BR, CAP, NFR, REQ, UC, DI, GL, ASM, OQ, FUP and API with `[0-9]{3,}`; rule, change and finding ids also take three or more digits.
+- **Why.** The documentation uses them. A named list keeps the card's type word right and catches typos; the server still resolves every id.
+
+### D-49 · Full scan ids in data, a 13-character short form on screen — Accepted
+- **Decision.** JSON, URLs, the contract and exports carry the full UUID (D-9). People see the first two groups (`01a110d5-2028`), with the full id in the title, behind Copy and on the scan's own page; a third group only when two scans share the short form. On a time axis, scans are labelled by start time.
+- **Why.** The first two groups are the start time in milliseconds: unique in practice, sortable, and close to the ids people know.
+
+### D-50 · Chips on a selected nav item take the item's ink — Accepted
+- **Decision.** `.sy-nav__item[aria-current="page"] .sy-chip` uses `--sy-text-on-paint` (14.7:1 on chalk).
+- **Why.** Ash on chalk is 1.9:1. The chip keeps its dashed edge and meaning.
+
+### D-51 · Buttons that show their content are named by it — Accepted
+- **Decision.** Filmstrip items, map nodes and picture buttons carry no `aria-label`; words that aren't visible go in sr-only spans after the visible text.
+- **Why.** WCAG 2.5.3 (label in name): people using speech input say what they see.
+
+### D-52 · The recorded map: solid for this scan's moves, dashed for the rest — Accepted
+- **Decision.** First visits (the tree) are ash 2 px; moves off the tree are control-edge 1 px solid with an arrowhead, one line per page pair labelled `↩ 3×` (a chip past six lines into one page), layer on; other scans' moves are control-edge 1.5 px long dash, layer off, their pages dimmed. Retired and unseen are not used on this map.
+- **Why.** Retired and unseen mean the portal changed; reusing them would say that about a scan going back home. Off-tree moves run against the tree, so their direction is drawn; the layout uses tree edges only, so nothing moves when they arrive.
+
+
+## 2.2 · Console answers, 23 Oct evening (`19-console-answers/`)
+
+### D-53 · A scan's phases are one bar of its time; each phase filters the trace — Accepted
+- **Decision.** `.sy-phasebar`: phases from the backend share the track by length (24 px floor); kinds work · wait (the only orange) · quiet (dashed, 60 s or more without a step); running and failed ends; pressing a phase filters the trace.
+- **Why.** Time on one axis shows where a scan spent itself; the waiting is the part that needs a person, so it is the part that is painted.
+
+### D-54 · The map opens readable; Fit is for the shape — Accepted
+- **Decision.** Opening never goes below 80 % and scrolls to the start page or `sel`; the Fit button fits everything and draws an overview (`.sy-graph--overview`) under 50 %; clicking a node there zooms to 100 % on it.
+- **Why.** At 50 % a 12 px route is 6 px: no fit level is both whole and readable, so opening and Fit do different jobs.
+
+### D-55 · A persona is added through a command card you edit — Accepted
+- **Decision.** `persona.add` is a command; its card (`.sy-cmd__form`) holds the drafted values, marks the ones you change and sends what it shows. Credentials appear only as vault references; new ones go through the vault dialog.
+- **Why.** It is a write (D-41) of values the person owns; secrets must never pass the model or the conversation.
+
+### D-56 · "Not here" is a dashed marker box or line; overlay fades the after's picture only — Accepted
+- **Decision.** `.sy-mark--gone` (box for floating things, `data-shape="line"` for inserted regions); `.sy-compare--overlay` stacks the after's image at `--sy-overlay` over the before, marks at full strength.
+- **Why.** The absence is still the system pointing (marker), but unfilled; a box at the old coordinates of an inserted region would sit on unrelated content.
+
+### D-57 · Time axes keep their ends; the range label lives inside the timeline — Accepted
+- **Decision.** Ticks at least 64 px apart, first and last always kept, only the ends under 640 px. `.sy-releases--ranged` reserves room for the label in the timeline's own box; `data-label` aligns it to an end.
+- **Why.** The ends are what a reader needs on a small screen; a label outside the component's box covers whatever is above it.
+
+### D-58 · Facts that explain a table sit above it, outside the caption — Accepted
+- **Decision.** `dl.sy-facts--table` above the table, `aria-describedby` on the table; the caption only names it. No caption style.
+- **Why.** You need the hit policy before the rows; captions are re-announced on every entry and lay out poorly.
+
+### D-59 · The drawer is one window high — Accepted
+- **Decision.** Sticky under the header, `height: calc(100dvh − --sy-header-h)`, the log scrolls inside; stacked under 1024 px with the log capped at 60dvh.
+- **Why.** The context switch and the composer must stay on screen; a log that grows the page by 6,000 px hides both.
+
+### D-60 · A segment that can't be used here stays, disabled, with its reason — Accepted
+- **Decision.** `aria-disabled="true"` (focusable) plus a reason line via `aria-describedby`; ash text, no hover.
+- **Why.** A stable control is learned once; `disabled` would hide the reason from keyboard and screen-reader users.
+
+### D-61 · A recording is evidence of a screen: it opens over the Screen page — Accepted
+- **Decision.** `/states/{id}` redirects (301) to the Screen page with the recording dialog (`.sy-dialog__main` + `__aside`). Amendments, Inputs (probes), Reached at and persona Compare move onto the Screen page.
+- **Why.** In 2.0 people work with screens; a separate page per visit splits what belongs together. Old evidence links must keep working.
+
+### D-62 · No full chat page in 2.0 — Accepted
+- **Decision.** The drawer and the Workbench Chat path; the step tracker becomes a Get started list on a new portal's Home only; credentials live in the vault (Settings, persona card); scope lives in Processes.
+- **Why.** 2.0's work is continuous review, not a guided five-step flow; two full-page conversations would split threads.
+
+### D-63 · Every scan line has the same words — Accepted
+- **Decision.** Status · AI scan / Check run · 13-character id · progress · pages · queued · where or when; "no new step for N min" (muted) after 2 min.
+- **Why.** The kind matters now that check runs exist; one grammar reads the same in the composer, Home and Scans.
+
+### D-64 · A2UI v0.9.1, generated catalog, server-owned data model — Accepted
+- **Decision.** `workbench/a2ui/catalog.json` is generated from the catalogue; components carry ids and options, the server adds `data` paths and writes every observed value; View and CommandCard are server-owned; the spike compiles view specs to A2UI.
+- **Why.** Keeps D-38…D-41 true in the new protocol and gives one source for ids, patterns and limits.
 ---
 
 ## Open items (need a product decision)
@@ -227,4 +315,4 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **O-5 … O-8 · Processes.** Who may mark live, what "Migrated" means per portal, export formats, auto-documenting accepted suggestions. See `10-processes.md` §14.
 - **O-M1 … O-M5 · Map runs.** Technical probes outside sandbox, captchas and one-time codes, where test data per persona lives, the probe budget, approval for rechecks on production. See `11-map-runs.md` §12.
 - **OV-1 … OV-5 · MudPuppy 2.0.** Who may overturn, A/B cookies into Settings automatically, retention of retired screens, Decided per portal or global, decision-table export formats. See `12-v2-ux.md` §12.
-- **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).
+- **O-4 · Run-id casing in the UI.** Ids are shown as stored (lowercase hex, e.g. `01a110d5-2028`). Confirm that no uppercase display convention exists elsewhere (docs exports, CLI).

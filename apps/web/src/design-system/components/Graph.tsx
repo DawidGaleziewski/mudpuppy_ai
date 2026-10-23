@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from 'react';
 import { cx } from '../cx.js';
+import { Anchor } from './Anchor.js';
 
 /** One edge, drawn by the caller's data (the dashboard lays the graph out, never the app). */
 export interface GraphEdge {
@@ -276,11 +277,11 @@ export function GraphNode({
   const common = { 'data-node': id, 'data-near': near.join(' '), style: place };
   if (href !== undefined)
     return (
-      <a {...common} className={cx('sy-node sy-node--deck', dim && 'sy-node--dim')} href={href} data-state={state}>
+      <Anchor {...common} className={cx('sy-node sy-node--deck', dim && 'sy-node--dim')} href={href} data-state={state}>
         <span className="sy-node__route">{route}</span>
         <span className="sy-node__title">{title}</span>
         {meta !== undefined && <span className="sy-node__meta">{meta}</span>}
-      </a>
+      </Anchor>
     );
   return (
     <button

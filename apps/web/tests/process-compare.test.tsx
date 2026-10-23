@@ -109,7 +109,7 @@ describe('Compare', () => {
       right: { label: 'B', rev: 2 },
       sections: { scope: 'Kup polisę · persona guest', delta: ['Car and Driver merge', 'Offer is new'] },
     });
-    expect(screen.getByRole('link', { name: 'Export spec' }).getAttribute('href')).toBe('/processes/PRC-001/spec.md?left=A&right=B');
+    expect(screen.getByRole('link', { name: 'Export spec' }).getAttribute('href')).toBe('/api/portals/shop/processes/PRC-001/spec.md?left=A&right=B');
   });
 });
 

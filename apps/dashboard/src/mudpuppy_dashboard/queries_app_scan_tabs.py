@@ -1,7 +1,7 @@
-"""The React console's scan sections (R-96, spec 055): the htmx `/runs/{id}` tabs States, Actions,
-Frontier, Forms, Network, Robots, Decisions and Docs as typed JSON over the same read models
-(`queries`, `queries_docs`). Statuses come mapped by the one status map; JSON comes as
-pretty-printed text; timestamps as stored. Read-only, like every dashboard query."""
+"""The React console's scan sections (R-96, spec 055): States, Actions, Frontier, Forms, Network,
+Robots, Decisions and Docs as typed JSON over the read models `queries` and `queries_docs`.
+Statuses come mapped by the one status map; JSON comes as pretty-printed text; timestamps as
+stored. Read-only, like every dashboard query."""
 
 from __future__ import annotations
 

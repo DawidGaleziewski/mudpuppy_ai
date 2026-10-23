@@ -59,7 +59,7 @@ styles for layout plus the hooks listed in §7.
 | Askable item and Ask | Frame | — | 1 | `.sy-askable`, `.sy-ask` (`--show` for docs) |
 | Live bar | Frame | — | 1 | `.sy-livebar`, `__main` |
 | Side sheet | Frame | — | 1 | `.sy-sheet`, `__head`, `__body`, `__close` |
-| Command card | Frame | — | 1 | `.sy-cmd`, `__head`, `__title`, `__body`, `__foot`, `[data-cmd-state]` (proposed, running, done, failed, cancelled, expired, undone) |
+| Command card | Frame | — | 1 | `.sy-cmd`, `__head`, `__title`, `__body`, `__foot`, `[data-cmd-state]` (proposed, running, done, failed, cancelled, expired, undone); editable: `__form`, `__wide`, `__data`, `[data-edited]` |
 | Command bar | Frame | — | 3 | `.sy-cmdbar`, `__main`, `__reply` |
 | Page miniature | Building block | — | 1 | `.sy-mini` (`--mock`, `--locked`), `__img` |
 | Visit order badge | Building block | — | 1 | `.sy-order` |
@@ -133,7 +133,7 @@ LiveMap shows the scan meter in its own body; ScanMeter is for views without a m
 ## 4. Catalogue components
 
 All snippets show the component's inside. The server wraps it in the frame from §5.3, and the fixture is the replay of scan
-01a110d5 (`13-v2-fixtures.md` §Workbench). Times are UTC with Z; ids are shown as stored.
+01a110d5-2028 (`13-v2-fixtures.md` §Workbench). Times are UTC with Z; ids are shown as stored.
 
 ### 4.1 LiveMap
 
@@ -185,7 +185,7 @@ Filmstrip form (inline card): `.sy-film` with one `.sy-film__item` per page, see
 
 ```html
 <div class="sy-meter" data-status="running" style="--value: 25.5%">
-  <div class="sy-meter__label"><span>Scan 01a110d5 · now at /kalkulator/kierowca</span><span>102 / 400 steps · 11 pages · 66 queued</span></div>
+  <div class="sy-meter__label"><span>Scan 01a110d5-2028 · now at /kalkulator/kierowca</span><span>102 / 400 steps · 11 pages · 66 queued</span></div>
   <div class="sy-meter__track" role="progressbar" aria-label="Scan progress" aria-valuemin="0" aria-valuemax="400" aria-valuenow="102"><div class="sy-meter__fill"></div></div>
 </div>
 ```
@@ -255,8 +255,8 @@ Sizes: `sm` = `--sy-mini-h: 46px`, width 120px · `md` = 80px, width 180px.
 ```html
 <div class="sy-msg"><span class="sy-msg__who">Assistant · narrating</span>
   <ol class="sy-narration" aria-label="What the crawler did" aria-live="off">
-    <li><time datetime="2026-10-06T10:51:02Z">10:51:02Z</time><span>Followed 'Samochód' in the menu to /ubezpieczenia/samochod. <a class="sy-cite" href="#ev-01a110d5-38" title="Event 01a110d5#38">step 38</a></span></li>
-    <li data-kind="live"><time datetime="2026-10-06T10:55:12Z">10:55:12Z</time><span>Same URL, new screen: recorded /kalkulator/kierowca as step 2. <a class="sy-cite" href="#ev-01a110d5-102" title="Event 01a110d5#102">step 102</a></span></li>
+    <li><time datetime="2026-10-06T10:51:02Z">10:51:02Z</time><span>Followed 'Samochód' in the menu to /ubezpieczenia/samochod. <a class="sy-cite" href="#ev-01a110d5-38" title="Event 01a110d5-2028#38">step 38</a></span></li>
+    <li data-kind="live"><time datetime="2026-10-06T10:55:12Z">10:55:12Z</time><span>Same URL, new screen: recorded /kalkulator/kierowca as step 2. <a class="sy-cite" href="#ev-01a110d5-102" title="Event 01a110d5-2028#102">step 102</a></span></li>
   </ol>
 </div>
 ```
@@ -279,7 +279,7 @@ Sizes: `sm` = `--sy-mini-h: 46px`, width 120px · `md` = 80px, width 180px.
     <h3 id="t42-err-h" class="sy-plate__title sy-case-normal">Next action failed at /kontakt<span class="sy-sr-only">, generated</span></h3>
     <span class="sy-genmark" aria-hidden="true">generated</span><span class="sy-status" data-status="failed">Failed</span></div></header>
   <div class="sy-genview__body">
-    <span class="sy-cluster" style="--sy-gap: 6px 10px"><span>Scan 01a110d5</span><span class="sy-status" data-status="stopped">Stopped</span>
+    <span class="sy-cluster" style="--sy-gap: 6px 10px"><span>Scan 01a110d5-2028</span><span class="sy-status" data-status="stopped">Stopped</span>
       <span class="sy-mono sy-mono--sm">ERR-01M48DVAT5E1GS5K42CTCTTDTJ</span><span class="sy-small sy-muted">step 171 · 10:58:44Z</span></span>
     <p class="sy-small">The next action's element wasn't there after the page settled (waited 10 s). 17 pages and 113 queued links are kept.</p>
     <div class="sy-actions" style="--sy-gap: 6px">
@@ -304,7 +304,7 @@ Sizes: `sm` = `--sy-mini-h: 46px`, width 120px · `md` = 80px, width 180px.
 
 ```html
 <figure class="sy-shot sy-askable" aria-label="Kontakt at step 171, where the next action's element was expected">
-  <img src="…/01a110d5/171.webp" alt="">
+  <img src="…/01a110d5-2028/171.webp" alt="">
   <mark class="sy-mark sy-mark--overlay" style="left: 24px; top: 212px; width: 180px; height: 40px"><span class="sy-mark__label">Not found</span></mark>
   <button class="sy-ask" type="button" aria-label="Ask about the marked region">Ask</button>
 </figure>
@@ -486,7 +486,7 @@ Sizes: `sm` = `--sy-mini-h: 46px`, width 120px · `md` = 80px, width 180px.
     <thead><tr><th scope="col">Rule</th><th scope="col">Status</th><th scope="col">Last tested</th></tr></thead>
     <tbody>
       <tr><th scope="row"><a class="sy-tag sy-tag--sm" href="v2-12-rule-detail.html">BR-021</a> Driver must be 21 or older</th>
-        <td><span class="sy-status" data-status="needs">Changed · needs you</span></td><td>17 Oct · 01a1340c · pass</td></tr>
+        <td><span class="sy-status" data-status="needs">Changed · needs you</span></td><td>17 Oct · 01a1340c-3b97 · pass</td></tr>
       <tr><th scope="row"><a class="sy-tag sy-tag--sm" href="#">BR-026</a> Postal code must be NN-NNN</th>
         <td><span class="sy-status" data-status="failed">Broken</span></td><td>17 Oct · fail</td></tr>
     </tbody>
@@ -633,7 +633,7 @@ Folded live card:
     <h2 id="t41-live-h" class="sy-plate__title">Live map<span class="sy-sr-only">, generated</span></h2>
     <span class="sy-genmark" aria-hidden="true">generated</span><span class="sy-status" data-status="stopped">Stopped</span></div>
     <div class="sy-genview__tools"><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="false" aria-controls="t41-live-body">Expand</button></div></header>
-  <div class="sy-genview__body"><span class="sy-small">Scan 01a110d5 · 171 / 400 steps · 17 pages · 113 queued · ended at /kontakt</span>
+  <div class="sy-genview__body"><span class="sy-small">Scan 01a110d5-2028 · 171 / 400 steps · 17 pages · 113 queued · ended at /kontakt</span>
     <div id="t41-live-body" hidden>… the card as it was …</div></div>
 </section>
 ```
@@ -652,7 +652,7 @@ Esc closes it (after the `@` picker, before the side sheet) and returns focus to
 <div class="sy-genwhy" id="t43-why">
   <dl class="sy-facts"><dt>Path</dt><dd>Mapping · picked by the assistant</dd><dt>Because</dt><dd>You asked to map the OC/AC calculator.</dd>
     <dt>You asked</dt><dd>"Map the OC/AC calculator and what's around it."</dd>
-    <dt>Shows</dt><dd>Live map of scan 01a110d5 with its meter · /kalkulator/kierowca step 2 · narration</dd>
+    <dt>Shows</dt><dd>Live map of scan 01a110d5-2028 with its meter · /kalkulator/kierowca step 2 · narration</dd>
     <dt>Data</dt><dd>Events up to 10:55:12Z</dd></dl>
   <div class="sy-genwhy__switch"><span class="sy-small">Not what you need?</span>
     <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Switch to Chat</button>
@@ -743,7 +743,7 @@ their remove buttons are 44px.
 
 **Behaviour.** A click sends exactly the text as the person's message, with the current chips. A suggestion never runs a
 write directly; a write produces a command card. On the first visit the same component holds three starters for the paths the
-person has ("Map the OC/AC calculator", "Why did scan 01a110d5 stop?", "Which processes are accepted?").
+person has ("Map the OC/AC calculator", "Why did scan 01a110d5-2028 stop?", "Which processes are accepted?").
 
 ```html
 <div class="sy-suggest" role="group" aria-label="Suggested questions">
@@ -774,7 +774,7 @@ region.
 
 ```html
 <div class="sy-livebar"><div class="sy-livebar__main"><span class="sy-label">Pinned</span>
-  <span class="sy-status" data-status="running">Running</span><span>Scan 01a110d5 · 140 / 400 · now at /porownanie</span></div>
+  <span class="sy-status" data-status="running">Running</span><span>Scan 01a110d5-2028 · 140 / 400 · now at /porownanie</span></div>
   <a class="sy-small" href="#t41-live">Jump to the live card</a></div>
 ```
 
@@ -808,10 +808,10 @@ reason) + `__foot` (Confirm `.sy-btn--primary`, Cancel quiet, "Nothing runs unti
 |---|---|---|
 | `proposed` | Dashed blueprint, status `draft` | "Proposed" · Confirm (marker) · Cancel |
 | `running` | Solid cyan, Confirm `aria-busy="true"` | "Resuming…" |
-| `done` | Solid green, result with links | "Resumed as scan 01a110e7 · continues 01a110d5" · "Open in Scans" · Undo (marks only) |
+| `done` | Solid green, result with links | "Resumed as scan 01a110e7-2068 · continues 01a110d5-2028" · "Open in Scans" · Undo (marks only) |
 | `failed` | Solid red | The command's message, ERR reference, "Nothing changed" · "Try again" |
 | `cancelled` | Folded to the head line, muted | "Cancelled · nothing changed" |
-| `expired` | Folded to the head line, muted (10 min passed, or its preconditions changed) | "No longer applies: 01a110d5 was resumed from Scans" |
+| `expired` | Folded to the head line, muted (10 min passed, or its preconditions changed) | "No longer applies: 01a110d5-2028 was resumed from Scans" |
 | `undone` | Solid line, ash title (marks only) | "Undone · mark removed" |
 
 **Behaviour.**
@@ -821,7 +821,11 @@ reason) + `__foot` (Confirm `.sy-btn--primary`, Cancel quiet, "Nothing runs unti
 - **Undo** is a button on the done card, and only for `mark.add` (the API's `DELETE /portals/{portal}/marks/{mark}`), until a
   scan uses the mark. Scans and attempts are never undone; their card says how to stop them instead.
 - Commands run on **sandbox only** during the beta; elsewhere the card shows why and links to Scans.
-- The result is announced once by the page's live region ("Resumed as scan 01a110e7"); a failed command uses `role="alert"`.
+- **Editable cards** (`persona.add`, R-95): the body is a `form.sy-cmd__form` holding the drafted values; a field the person
+  changes gets `[data-edited]` (manila edge); Confirm submits what the card shows. Credentials are picked by vault reference;
+  "Store a new credential…" opens the server-owned vault dialog. Undo removes the persona until a scan uses it.
+  Demo: `genui-components.html#g-persona`; answer: `19-console-answers/04-add-persona.md`.
+- The result is announced once by the page's live region ("Resumed as scan 01a110e7-2068"); a failed command uses `role="alert"`.
 
 Resume, with its facts in this order:
 
@@ -829,7 +833,7 @@ Resume, with its facts in this order:
 <section class="sy-cmd" data-cmd-state="proposed" aria-labelledby="cmd1-t">
   <header class="sy-cmd__head"><span id="cmd1-t" class="sy-cmd__title" tabindex="-1">Resume from last checkpoint</span><span class="sy-status" data-status="draft">Proposed</span></header>
   <div class="sy-cmd__body">
-    <dl class="sy-facts"><dt>Starts</dt><dd>a new scan that continues 01a110d5</dd>
+    <dl class="sy-facts"><dt>Starts</dt><dd>a new scan that continues 01a110d5-2028</dd>
       <dt>From</dt><dd>/porownanie · step 140, last good checkpoint</dd>
       <dt>Kept</dt><dd>17 pages, 113 queued links</dd><dt>Where</dt><dd>sandbox</dd>
       <dt>/kontakt</dt><dd>one more try with the original action</dd>
@@ -893,7 +897,7 @@ is decoration: the route next to it is the name. `.sy-order` is the visit number
 ### 6.2 Narration list and citation
 
 See 4.5. `li[data-kind="live"]` adds the caret to the newest line while the scan runs; `li[data-kind="stop"]` is bold.
-`.sy-cite` links one event (`scan#step`); its text is "step 171" and its title "Event 01a110d5#171".
+`.sy-cite` links one event (`scan#step`); its text is "step 171" and its title "Event 01a110d5-2028#171".
 
 ### 6.3 Filmstrip
 
@@ -901,6 +905,9 @@ See 4.5. `li[data-kind="live"]` adds the caret to the newest line while the scan
 `.sy-mini` + `.sy-film__route` + status. The queue ends the strip as a non-interactive dashed tile,
 `.sy-film__item[data-state="frontier"]`. Side trips fold into a chip on the page they came from ("+2 side pages"). Scrolls
 sideways inside itself; new pages append on the right, before the queue tile. Width via `--sy-film-w`.
+**Naming (F-15 a).** Filmstrip items and map nodes carry **no `aria-label`**: their visible text names them (order, route,
+status, side-trip chip), so the accessible name contains what people see (WCAG 2.5.3). The miniature is `aria-hidden`. Text
+that helps but isn't shown (a node's screen name) goes in a `.sy-sr-only` span after the route.
 
 ```html
 <div class="sy-film" role="group" aria-label="Pages visited, in order">

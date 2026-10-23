@@ -81,6 +81,27 @@ Copy this into the PR template for any UI change.
 - [ ] Golden-prompt evals pass (path accuracy, required components, no forbidden components) before any prompt or catalogue change merges.
 - [ ] 1280 and 1024: no page-level horizontal scroll; the graph and filmstrip scroll inside their frames.
 
+## 2.1 · Pictures, variants, graph view, ids (`18-design-answers/`)
+- [ ] Picture buttons: icon visible at rest, "Enlarge" on hover / focus / touch, focus ring visible on light pictures, Enter opens, Esc returns focus.
+- [ ] Wide dialog: fit width scrolls inside with head and foot fixed; Whole page fits the height; full screen at 390px; ← / → between variants.
+- [ ] Variants: one variant shows picture-left; several keep one-column width; no card stretched across the row.
+- [ ] Graph view: zoom bar visible while any of the graph is on screen; box never taller than the viewport below the header (520px embedded); phones open the list.
+- [ ] Scan ids: 13-character form on screen, full id in title / Copy / URLs / JSON; no 8-character ids anywhere.
+- [ ] axe: `color-contrast` and `label-content-name-mismatch` 0 on the Workbench pages and the map.
+- [ ] Recorded map: no retired / unseen lines; off-tree lines have arrowheads and one label per page pair; more than six into a page → chip; layers don't move nodes; "Other scans' moves" off on load; forced colours keep all five legend lines apart.
+
+## 2.2 · Console answers (`19-console-answers/`)
+- [ ] Phase bar: every phase ≥ 24 px wide and named; Waiting for you is the only orange; pressing filters the trace with a status line; forced colours show the pressed phase in Highlight.
+- [ ] Map: opens at ≥ 80 % scrolled to the start page; Fit fits all; under 50 % the overview keeps state borders and accessible names.
+- [ ] Persona card: drafted values editable, edited ones marked, Confirm sends what is shown; no secret field anywhere; the vault dialog stores values directly.
+- [ ] Before / after: "Not here" line for inserted regions, box for floating ones; overlay slider works by keyboard; marks stay at full strength.
+- [ ] Time axes at 390 px: only the two ends; the range label inside the timeline's box.
+- [ ] Decision tables: facts above, `aria-describedby`; caption only names the table.
+- [ ] Drawer: one window high, the log scrolls; stacked under 1024 px with the log ≤ 60dvh.
+- [ ] "This page" disabled on pages without a subject: focusable, reason read, click ignored.
+- [ ] `/states/{id}` lands on the Screen page with the recording dialog open.
+- [ ] Scan lines: kind word, 13-character id, "no new step for N min" only after 2 min.
+
 ## Visual regression setup (Playwright)
 
 ```js

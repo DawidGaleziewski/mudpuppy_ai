@@ -11,7 +11,6 @@ from mudpuppy_dashboard import queries_model_map
 from mudpuppy_dashboard.queries_model_map import ModelFilters
 
 from .conftest import Store
-from .test_chat import text
 from .test_map import P, client, model, seed
 from .test_model_screens import seed_screens
 
@@ -127,9 +126,8 @@ def test_a_rule_labels_the_link_it_decides(empty_store: Store) -> None:
     m = mapped(empty_store)
     assert sorted(e.label for e in m.edges if e.label) == ["age < 18", "age ≥ 18"]
     with client(empty_store) as c:
-        page = c.get(f"/map?portal={P}").text
-    assert 'class="sy-edge-label"' in page and ">age ≥ 18</text>" in page
-    assert "if age ≥ 18" in page  # the list says it too
+        edges = c.get(f"/api/portals/{P}/map").json()["edges"]
+    assert "age ≥ 18" in {e["label"] for e in edges}
 
 
 def test_the_overlay_shows_the_trigger_and_how_journeys_ended(empty_store: Store) -> None:
@@ -147,31 +145,3 @@ def test_the_overlay_shows_the_trigger_and_how_journeys_ended(empty_store: Store
     key = mapped(empty_store).processes[0][0]
     (home,) = [n for n in mapped(empty_store, process=key).nodes if n.key == "SC-0001"]
     assert ("Trigger · deep link", "") in home.chips and ("Ends completed · 1", "") in home.chips
-
-
-def test_the_map_page_is_the_models_with_views_and_an_inspector(empty_store: Store) -> None:
-    seed(empty_store)
-    model(empty_store)
-    menu_link(empty_store, "active")
-    with client(empty_store) as c:
-        page = c.get(f"/map?portal={P}").text
-        listed = c.get(f"/map?portal={P}&show=list").text
-        since = c.get(f"/map?portal={P}&view=now&view=since").text  # the last view wins
-        path = c.get(f"/map?portal={P}&view=path&layers=&layers=unseen").text
-        frag = c.get(f"/fragments/map/screen/SC-0002?portal={P}")
-        missing = c.get(f"/fragments/map/screen/SC-0404?portal={P}")
-        selected = c.get(f"/map?portal={P}&node=SC-0001").text
-    flat = text(page)
-    assert page.count('<button class="sy-node') == 4 and "sy-edge--unseen" in page
-    assert "Menu on every page · 1 link · bundled" in flat
-    assert (
-        'aria-current="page">Map</a>' in page
-        and 'name="view" value="now" aria-pressed="true"' in page
-    )
-    assert '<button class="sy-node' not in listed and "Screens and links" in listed
-    assert 'value="since" aria-pressed="true"' in since
-    assert path.count('<button class="sy-node') == 5 and "Screens by depth" in path  # recorded
-    assert 'value="path" aria-pressed="true"' in path and 'value="states" checked' in path
-    assert frag.status_code == 200 and "Menu · 1 link" in text(frag.text)
-    assert missing.status_code == 404
-    assert "Actions checked" in selected and 'aria-pressed="true"' in selected

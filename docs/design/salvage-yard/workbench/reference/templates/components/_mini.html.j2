@@ -1,0 +1,6 @@
+{# Wireframe miniature: bars stand in for a screenshot. Production: <span class="sy-mini"><img class="sy-mini__img" …></span> #}
+{% macro mini(bars, h) -%}
+<span class="sy-mini sy-mini--mock" aria-hidden="true" style="--sy-mini-h: {{ h }}px">
+  {%- for t, w in bars %}{% if t == "b" %}<b style="width: {{ w }}%"></b>{% else %}<i{% if t in ("l", "f") %} class="{{ t }}"{% endif %} style="width: {{ w }}%"></i>{% endif %}{% endfor -%}
+</span>
+{%- endmacro %}

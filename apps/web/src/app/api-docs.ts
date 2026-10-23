@@ -25,7 +25,7 @@ export interface DocRecordRow {
   evidence: number;
   scans: number;
   related: string[];
-  /** The record's page (htmx until spec 067), with this list for its Prev / Next. */
+  /** The record's page, with this list for its Prev / Next. */
   href: string;
 }
 

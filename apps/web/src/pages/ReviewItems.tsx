@@ -160,7 +160,7 @@ export function Proposal({ portal, d, decides, ask }: { portal: string; d: Propo
           {`${d.key ?? 'The amendment'} is at r${String(d.head_rev)} now; this was proposed on r${String(d.base_rev)}. Nothing was overwritten. Ask again for a new proposal.`}
         </Text>
       )}
-      {d.screen && <Text href={`/states/${encodeURIComponent(d.screen)}`}>Show on the screen</Text>}
+      {d.screen && <Text href={`/app/states/${encodeURIComponent(d.screen)}`}>Show on the screen</Text>}
       {decides && (
         <Cluster>
           <Button

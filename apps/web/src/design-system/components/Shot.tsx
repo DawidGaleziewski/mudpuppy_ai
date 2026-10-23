@@ -21,8 +21,11 @@ export interface ShotProps {
   mark?: 'here' | 'gone';
   /** Overlay: a second page drawn over this one at 50 %, for small shifts (no region then). */
   over?: { src: string; alt: string } | null;
-  /** Several regions, each outlined and labelled (a record's cited elements, numbered). */
-  marks?: readonly { region: ShotRegion; label: string; title?: string }[];
+  /**
+   * Several regions, each outlined and labelled (a record's cited elements, numbered). `note`: a
+   * person's to-be on it (an amendment pin, `.sy-mark--note`, designer Q10).
+   */
+  marks?: readonly { region: ShotRegion; label: string; title?: string; note?: boolean }[];
 }
 
 // Layout only: the picture at full width, the mark and the overlay placed on it.
@@ -44,7 +47,7 @@ export function Shot({ src, alt, region, mark, over, marks = [] }: ShotProps) {
       <img src={src} alt={alt} style={IMAGE} />
       {over && <img src={over.src} alt={over.alt} style={OVER} />}
       {marks.map((m) => (
-        <mark key={m.label} className="sy-mark sy-mark--overlay" style={at(m.region)} title={m.title}>
+        <mark key={m.label} className={m.note ? 'sy-mark sy-mark--overlay sy-mark--note' : 'sy-mark sy-mark--overlay'} style={at(m.region)} title={m.title}>
           <span className="sy-mark__label">{m.label}</span>
         </mark>
       ))}

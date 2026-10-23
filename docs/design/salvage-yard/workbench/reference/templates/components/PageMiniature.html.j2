@@ -1,0 +1,10 @@
+{# PageMiniature — one page's thumbnail, route and status. #}
+{% from "components/_mini.html.j2" import mini %}
+{% if vm.page %}
+<div class="sy-askable sy-stack" style="--sy-gap: 6px; max-width: {{ 160 if vm.size == 'sm' else 240 }}px">
+  {{ mini(vm.page.mini, 60 if vm.size == "sm" else 96) }}
+  <span class="sy-mono sy-mono--sm">{{ vm.page.label }}</span>
+  <span class="sy-status" data-status="{{ vm.page.status }}">{{ vm.page.word }}</span>
+  <button class="sy-ask" type="button" data-ask="{{ vm.page.ask | tojson_attr }}" aria-label="Ask about {{ vm.page.label }}">Ask</button>
+</div>
+{% else %}<span class="sy-small sy-muted">That page hasn't been visited yet.</span>{% endif %}

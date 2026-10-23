@@ -4,6 +4,7 @@ import type { StatusOut } from '../app/api';
 import type { Suggestion } from '../app/api-processes';
 import { writes } from '../app/api-write';
 import type { Ask } from '../app/ConfirmedWrite';
+import { useGo } from '../app/RouterAnchor';
 import { ShownStatus } from '../app/ShownStatus';
 
 /** Split before a step, or merge with another suggestion (spec 039 T079, v2-09). */
@@ -70,6 +71,7 @@ function SplitOrMerge({ portal, s, others, ask }: { portal: string; s: Suggestio
 }
 
 function Card({ portal, s, others, ask }: { portal: string; s: Suggestion; others: readonly Suggestion[]; ask: (a: Ask) => void }) {
+  const go = useGo();
   const accept = (open: boolean): Ask => ({
     title: `Accept ${s.name}?`,
     text: `It becomes a process with ${String(s.routes.length)} screens as its as-is model A, as ${s.persona}.`,
@@ -79,7 +81,7 @@ function Card({ portal, s, others, ask }: { portal: string; s: Suggestion; other
     ...(open
       ? {
           onDone: (r) => {
-            if (r.href) window.location.assign(r.href);
+            if (r.href) go(r.href);
           },
         }
       : {}),

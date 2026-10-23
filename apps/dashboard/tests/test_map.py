@@ -4,7 +4,6 @@ Probe mark that returns to the map. The chat service is mocked (the dashboard ne
 from __future__ import annotations
 
 import json
-import re
 import sqlite3
 import time
 
@@ -17,7 +16,6 @@ from mudpuppy_dashboard.app import create_app
 from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
-from .test_chat import ORIGIN, text
 
 P = "liveinsurer"
 # screen → (route, title, states [(id, kind, form step)])
@@ -261,62 +259,6 @@ def test_node_detail_has_states_scans_moves_and_items(empty_store: Store) -> Non
     assert other is None
 
 
-def test_the_map_page_without_a_portal_asks_for_one(empty_store: Store) -> None:
-    with client(empty_store) as c:
-        page = c.get("/map").text
-    assert "No portal chosen" in page
-
-
-def test_the_map_page_draws_nodes_tabs_filters_and_a_list(empty_store: Store) -> None:
-    seed(empty_store)
-    mark(empty_store)
-    with client(empty_store) as c:
-        page = c.get(f"/map?portal={P}").text
-        listed = c.get(f"/map?portal={P}&show=list").text
-        junk = c.get(f"/map?portal={P}&layers=bogus&scan=nope&open=x&view=odd")
-    assert page.count('<button class="sy-node') == 5 and 'aria-current="page">Map</a>' in page
-    assert "5 screens · 4 transitions · 2 queued" in text(page)
-    assert "+2 queued" in page and "1 failed" in page
-    assert '<span class="sy-tag sy-tag--intent sy-tag--sm">Probe</span>' in page
-    assert '<button class="sy-node' not in listed and "Screens by depth" in listed
-    assert junk.status_code == 200
-
-
-def test_the_inspector_fragment_and_its_probe_mark_form(empty_store: Store) -> None:
-    seed(empty_store)
-    with client(empty_store) as c:
-        c.get(f"/map?portal={P}")
-        frag = c.get(
-            "/fragments/map/node/sc-form", headers={"HX-Current-URL": "http://t/map?scan=r2"}
-        )
-        missing = c.get("/fragments/map/node/nope")
-    assert frag.status_code == 200 and "Mark for probing" in frag.text
-    assert 'name="back" value="/map?scan=r2&amp;node=sc-form"' in frag.text
-    assert missing.status_code == 404
-
-
-def test_a_probe_mark_from_the_map_returns_to_the_map(empty_store: Store) -> None:
-    seed(empty_store)
-    chat = Chat()
-    with client(empty_store, chat) as c:
-        r = c.post(
-            f"/states/st-f1/probe-mark?portal={P}",
-            data={"action": "mark", "back": "/map?scan=r2&node=sc-form"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-        elsewhere = c.post(
-            f"/states/st-f1/probe-mark?portal={P}",
-            data={"action": "mark", "back": "https://evil.example/map"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-    assert r.status_code == 303 and r.headers["location"].startswith("/map?scan=r2&node=sc-form&")
-    assert re.search(r"probe_note=Marked", r.headers["location"])
-    assert elsewhere.headers["location"].startswith("/states/st-f1")
-    assert chat.calls[0] == ("POST", f"/portals/{P}/marks")
-
-
 @pytest.mark.perf
 def test_a_map_of_three_hundred_screens_opens_in_under_four_seconds(empty_store: Store) -> None:
     """SC-002: 300 screens, every one linking home and to four children, folded into families."""
@@ -348,7 +290,7 @@ def test_a_map_of_three_hundred_screens_opens_in_under_four_seconds(empty_store:
     conn.close()
     with client(empty_store) as c:
         t = time.perf_counter()
-        r = c.get(f"/map?portal={P}")
+        r = c.get(f"/api/portals/{P}/map/recorded")
         took = time.perf_counter() - t
     assert r.status_code == 200 and took < 4, took
-    assert "300 screens" in text(r.text)
+    assert r.json()["nodes"]

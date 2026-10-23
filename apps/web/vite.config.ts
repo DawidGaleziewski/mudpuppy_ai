@@ -9,12 +9,12 @@ export default defineConfig({
   server: {
     port: 5173,
     strictPort: true,
-    // `/evidence`: recorded screenshots and wireframes the pages show; `/static`: the dashboard's
-    // vendored Mermaid, which `Diagram` loads.
+    // `/evidence`: recorded screenshots and wireframes the pages show; `/chat`: the assistant's
+    // relay to the chat service.
     proxy: {
       '/api': 'http://127.0.0.1:8765',
       '/evidence': 'http://127.0.0.1:8765',
-      '/static': 'http://127.0.0.1:8765',
+      '/chat': 'http://127.0.0.1:8765',
     },
   },
   build: { outDir: 'dist', sourcemap: true },

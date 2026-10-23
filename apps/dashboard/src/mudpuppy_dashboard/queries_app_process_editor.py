@@ -1,7 +1,7 @@
 """What the React console's to-be editor needs (R-96, spec 059; designer screen 05): the person's
 draft over a to-be model (or the head until a first edit starts one), each step's change against
 the model it was branched from, what it removed, how many changes are pending, and whether someone
-saved first. The htmx editor's values (`web/processes.editor_values`) as typed JSON. Read-only."""
+saved first, as typed JSON. Read-only."""
 
 from __future__ import annotations
 

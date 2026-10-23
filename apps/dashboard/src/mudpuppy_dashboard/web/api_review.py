@@ -1,7 +1,7 @@
 """The React console's Review page (R-96, spec 062; designer screens v2-04, v2-05, v2-16) and its
 writes: confirm or reject findings, rules and removals (alone, alike or selected), Undo a decision,
-and confirm, reject or comment a record's revision. The same chat calls and `docs:review` run as
-the htmx Review (`web/review.py`); every write answers `{ok, message, href}`, a decision also the
+and confirm, reject or comment a record's revision, through the chat service and `docs:review`;
+every write answers `{ok, message, href}`, a decision also the
 `undo` it can be taken back with. No SQL here (G-15)."""
 
 from __future__ import annotations
@@ -13,13 +13,12 @@ from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
-from .. import queries_app_review, queries_docs, review
-from . import views_access
+from .. import queries_app_review, queries_docs, queries_settings, review
 from .api_common import known_portal, store
 from .chat_forward import read_json
 from .chat_writes import WriteResult, write_answer, write_refused
 from .deps import web_of
-from .views_review import Confirmed, also_settle, model_call
+from .review_calls import Confirmed, also_settle, model_call
 
 router = APIRouter(prefix="/api/portals/{portal}/review")
 
@@ -50,7 +49,7 @@ def review_page(
     c = web.ctx(request, q.env)
     known_portal(web, c, portal)
     asked = queries_app_review.ReviewQuery(q.tab, q.show, q.select, q.page, q.part, q.age)
-    attrs = views_access.attributes_by_persona(web.settings.personas_dir, portal)
+    attrs = queries_settings.attributes_by_persona(web.settings.personas_dir, portal)
     who = queries_app_review.Viewer(bool(web.settings.reviewer), attrs)
     with store(c) as conn:
         return queries_app_review.review_page(conn, portal, asked, who)
@@ -120,8 +119,8 @@ async def undo(request: Request, portal: str) -> JSONResponse:
 
 @router.post("/records/{key}", response_model=WriteResult)
 async def record(request: Request, portal: str, key: str) -> JSONResponse:
-    """Confirm, reject or comment one revision of a record: the `docs:review` write the Docs tab
-    and the htmx Review run. A reject or a comment needs its text."""
+    """Confirm, reject or comment one revision of a record: the `docs:review` write. A reject or
+    a comment needs its text."""
     if (no := write_refused(request, "review records")) is not None:
         return no
     form = await read_json(request)

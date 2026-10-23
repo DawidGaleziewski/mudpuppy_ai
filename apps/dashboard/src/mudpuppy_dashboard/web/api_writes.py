@@ -1,7 +1,7 @@
 """The React console's writes (R-96, spec 054): the marks a person sets on a screen (Start here,
 Focus, Recheck, Retry, Skip; Probe on a form step), Skip on a scan's failed action, and a restart
-of a scan (Resume, Retry this path). Each asks the chat service, through the calls the htmx
-routes make (`chat_writes`); the dashboard never writes the store. The page asks the person
+of a scan (Resume, Retry this path). Each asks the chat service through `chat_writes`; the
+dashboard never writes the store. The page asks the person
 first; this checks the origin, the reviewer's name and the target, and answers `{ok, message}`.
 No SQL here (G-15)."""
 
@@ -18,6 +18,7 @@ from .chat_writes import (
     PROBE_MARK_DONE,
     SCREEN_MARK_KINDS,
     WriteResult,
+    assistant_href,
     mark_call,
     plan_from_form,
     scan_request_text,
@@ -120,8 +121,7 @@ async def skip_action(request: Request, scan: str, env: str | None = None) -> JS
 @router.post("/scans/{scan}/restart", response_model=WriteResult)
 async def restart(request: Request, scan: str, env: str | None = None) -> JSONResponse:
     """Resume a stopped scan (`run_type` continue) or retry one failed action (`retry`, with
-    `transition_id` and `variation`): the request goes to the portal's conversation, as the
-    htmx graph's buttons send it."""
+    `transition_id` and `variation`): the request goes to the portal's conversation."""
     if not same_origin(request):
         return _answer(403, "Cross-origin request refused.")
     web = web_of(request)
@@ -142,11 +142,11 @@ async def restart(request: Request, scan: str, env: str | None = None) -> JSONRe
     }
     plan = plan_from_form(run_type, fields) or {}
     text = scan_request_text(r.portal, r.persona, r.environment or None, run_type, plan)
-    conv, refused = await send_to_chat(web, c.env, r.portal, text)
+    _, refused = await send_to_chat(web, c.env, r.portal, text)
     if refused:
         return _answer(502, f"Not started: {refused}.")
     return _answer(
         200,
         "Sent to the assistant: it starts the scan in the portal's conversation.",
-        c.url("/chat", conversation=conv),
+        assistant_href(r.portal),
     )

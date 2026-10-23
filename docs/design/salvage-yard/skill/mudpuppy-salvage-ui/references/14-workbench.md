@@ -69,7 +69,7 @@ Keeping entries few keeps the beta reversible: the kill switch (§9.3) removes t
 Every view can be linked and reloaded. The path is in the URL; the conversation is on the server.
 
 ```
-/workbench?portal=reference-insurer&c=wbc_7Q2M&path=mapping&scan=01a110d5&sel=/kalkulator/kierowca:2
+/workbench?portal=reference-insurer&c=wbc_7Q2M&path=mapping&scan=01a110d5-2028-7000-8f3e-5c1a9b27d460&sel=/kalkulator/kierowca:2
 ```
 
 | Param | Values | Changes the history? |
@@ -77,7 +77,7 @@ Every view can be linked and reloaded. The path is in the URL; the conversation 
 | `portal` | as in the rest of the console | — |
 | `c` | conversation id | Push (new conversation) |
 | `path` | `chat` (default) · `mapping` · `troubleshoot` · `explain` | **Push** (`hx-push-url`): Back returns to the previous path |
-| `scan` | scan id as stored (`01a110d5`) | Push |
+| `scan` | scan id as stored (`01a110d5-2028`) | Push |
 | `sel` | selected page: `route` or `route:state` (`/kalkulator/kierowca:2`) | **Replace** (`hx-replace-url`): selecting pages must not fill the history |
 | `focus` | `1` = focus mode (phase 3) | Replace |
 
@@ -168,7 +168,7 @@ A path decides which components the assistant may use, how many, and where they 
 
 | | |
 |---|---|
-| **Picked when** | "Map…", "continue the scan", "explore Przedłuż polisę", "watch 01a110d5" |
+| **Picked when** | "Map…", "continue the scan", "explore Przedłuż polisę", "watch 01a110d5-2028" |
 | **Composes** | LiveMap (with its scan meter), PageDetail, Narration, ErrorCard, PageMiniature; ScanMeter only when no map is shown (max 4) |
 | **Never** | Changes the selection because a new page arrived; switches to Troubleshoot by itself when the scan stops |
 | **Ends / hands over** | Scan finishes → a summary message with the counts (from events) and "Open in Scans". Scan stops → ErrorCard + suggestions "Why did it stop here?", "Troubleshoot with me" |
@@ -262,18 +262,18 @@ Numbered so tests and tickets can cite them. "Generated view" = a `.sy-genview` 
 ### 5.5 Errors, commands and hand-offs
 
 - **WB-UI-20** Every write is a command (`commands.json`): `scan.start`, `scan.resume`, `scan.stop`, `path.attempt`,
-  `mark.add`. Whether the assistant proposed it or you clicked a button (Resume on an ErrorCard, Run attempt in FixChoices),
+  `mark.add`, `persona.add` (an editable card, `19-console-answers/04`). Whether the assistant proposed it or you clicked a button (Resume on an ErrorCard, Run attempt in FixChoices),
   it first appears as a **command card** (`.sy-cmd`, `data-cmd-state="proposed"`) that says what will change, what won't, and
   whether it can be undone.
 - **WB-UI-21** The card's one primary button is **Confirm** (marker). Cancel folds it to one muted line, `data-cmd-state="cancelled"`,
   "Cancelled · nothing changed". Nothing is sent to the API before Confirm. A proposal expires after 10 min or when its
-  preconditions change: `data-cmd-state="expired"`, "No longer applies: 01a110d5 was resumed from Scans".
+  preconditions change: `data-cmd-state="expired"`, "No longer applies: 01a110d5-2028 was resumed from Scans".
 - **WB-UI-22** Standing reaction: when a scan bound in the current view stops, the server adds the ErrorCard to that view (a
   `.sy-genview--failure` frame titled by what failed, "Next action failed at /kontakt": red, because an action really failed).
   The scan's own status stays **Stopped** (`data-status="stopped"`, ash), per `03-colour-guide.md` §4 rule 5 and posts a short assistant message with
   suggestions ("Why did it stop here?", "Troubleshoot with me"). The path does not change.
 - **WB-UI-23** Confirm → `running` (cyan, "Resuming…", the button busy with the caret) → `done` (green, the result with links:
-  "Resumed as scan 01a110e7 · continues 01a110d5") or `failed` (red, the command's message and ERR reference, "Try again").
+  "Resumed as scan 01a110e7-2068 · continues 01a110d5-2028") or `failed` (red, the command's message and ERR reference, "Try again").
   The result is also a line in the conversation.
 - **WB-UI-24** Undo exists only where the API can reverse it: `mark.add` shows Undo until a scan uses the mark → `undone`.
   Scans and attempts are never "undone"; the card says how to stop them instead.
@@ -338,9 +338,9 @@ Numbered so tests and tickets can cite them. "Generated view" = a `.sy-genview` 
 | Announcement | When |
 |---|---|
 | "Live map opened" / "Troubleshoot view opened" / "Explain view opened" | The stage changes after a turn or a switch |
-| "Scan 01a110d5 started" | `scan.started` |
+| "Scan 01a110d5-2028 started" | `scan.started` |
 | "Scan stopped at /kontakt, step 171" | `scan.stopped` |
-| "Resumed as scan 01a110e7" | `scan.resume` done |
+| "Resumed as scan 01a110e7-2068" | `scan.resume` done |
 | "Attempt 3 passed" / "Attempt 2 failed" | `attempt.result` |
 | "Scan finished: 42 pages" | `scan.finished` |
 | "Live updates paused" / "Live updates back" | Stream stale / reconnected |
@@ -358,7 +358,7 @@ Numbered so tests and tickets can cite them. "Generated view" = a `.sy-genview` 
 
 - **WB-UI-41** First visit: the head with Chat selected, a beta line ("Beta: the assistant composes this screen. Tell us when it
   picks the wrong view."), an empty state (`.sy-state`) "Nothing composed yet" and three starters (`.sy-suggest`) built from the
-  portal for the paths the person has: "Map the OC/AC calculator", "Why did scan 01a110d5 stop?" and, in phase 1–2,
+  portal for the paths the person has: "Map the OC/AC calculator", "Why did scan 01a110d5-2028 stop?" and, in phase 1–2,
   "Which processes are accepted?" (from phase 3: "Explain the banner on wynik"). No scans yet → the first starter is
   "Start a map scan".
 - **WB-UI-42** A conversation can be renamed and closed; the list of recent conversations is in a menu in the head (last 20).
@@ -409,14 +409,14 @@ telemetry, evals.
 **Scope.** No user-facing UI apart from an empty tab for staff. Tickets WB-01…WB-09.
 
 **Steps, in build order:**
-1. **Event model.** One event per scan step, so the citation ref `scan#step` (`01a110d5#171`) names one event. Types and
+1. **Event model.** One event per scan step, so the citation ref `scan#step` (`01a110d5-2028-7000-8f3e-5c1a9b27d460#171`) names one event. Types and
    payloads: `scan.started`, `page.visited`, `step.recorded`, `links.queued` (counts), `action.failed`, `scan.stopped`,
    `scan.resumed`, `scan.finished`, `attempt.started`, `attempt.result`. The stream adds its own sequence number for
    `Last-Event-ID`. Store them; the store is the replay source.
 2. **Live stream.** One SSE endpoint per Workbench tab, keyed by conversation (`/workbench/stream?c=…`); the server
    subscribes it to every scan the conversation binds, so starting a scan needs no reconnect. It carries both lanes as named
    events, renders fragments per connection (selection and phase differ per viewer), supports `Last-Event-ID` replay and sends
-   a heartbeat every 15 s. Replay of the fixture scan 01a110d5 must produce the six route pages in order plus 11 side trips
+   a heartbeat every 15 s. Replay of the fixture scan 01a110d5-2028 must produce the six route pages in order plus 11 side trips
    folded onto them (`13-v2-fixtures.md` §Workbench).
 3. **Contract.** Load `catalogue.json` and `view-spec.schema.json` at start-up (generated by `workbench/tools/gen_wb_schema.py`; never
    hand-edit the JSON). Write the validator: schema → semantic checks (ids resolve, path × type, phase, limits) → drop, don't
@@ -621,7 +621,7 @@ Scans started from the Workbench are ordinary scans; turning anything off never 
 | OW-2 | Model narration in Phase 1, or templated only? | Templated first; model when grounding failures < 1 % |
 | OW-3 | How long are conversations, specs and feedback text kept? | 90 days, like scan logs |
 | OW-4 | Side sheet below 1100 px: stack or overlay? | Resolved: it stacks under the conversation (`genui.css`); an overlay would need a `.sy-sheet` modifier |
-| OW-5 | Citations per step or per event? | Resolved: one event per step, so `01a110d5#171` names both (`13-v2-fixtures.md` §Workbench) |
+| OW-5 | Citations per step or per event? | Resolved: one event per step, so `01a110d5-2028-7000-8f3e-5c1a9b27d460#171` names both (`13-v2-fixtures.md` §Workbench) |
 | OW-6 | May Troubleshoot send screenshots to the model (vision)? | No for the beta: the model gets the DOM summary and events; the person sees the screenshot |
 | OW-7 | Model-call caps: per scan, per user, per portal? Who sees them? | Per scan and per user per day; shown in Settings ▸ Assistant |
 | OW-8 | `scan.stop` needs `POST /runs/{id}:stop` | Resolved: added to `11-map-runs.md` §10 |

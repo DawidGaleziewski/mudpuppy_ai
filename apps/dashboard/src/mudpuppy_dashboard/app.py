@@ -1,95 +1,54 @@
-"""FastAPI app: builds the app and mounts one router per page (`web/`; guideline G-13).
+"""FastAPI app: the React console's JSON API (`web/api_*.py`, one router per page; guideline
+G-13), the chat relay, evidence files, the console itself at `/app/`, and redirects from the old
+addresses (R-100, spec 071: the console is a React single-page app, no server-rendered pages).
 
-Pages and fragments are GET and read-only; the few POST/DELETE routes only forward a form to the
-chat service (spec 010), which is the only writer of chat tables. A page renders the same
-partials its fragments return, so a live region re-fetching itself and a full page load produce
-identical markup.
+Reads are read-only on the store; every write goes to the chat service (spec 010), which is the
+only writer.
 """
 
 from __future__ import annotations
 
-import itertools
-from pathlib import Path
-from typing import Any
-
 import httpx2
-from fastapi import FastAPI, Request
-from fastapi.responses import PlainTextResponse, RedirectResponse, Response
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI
 
-from . import (
-    as_of,
-    chat_client,
-    glossary,
-    live,
-    nav,
-    queries_docs,
-    queries_map_node,
-    status_map,
-    wb_frames,
-)
-from .formats import fmt_duration, fmt_when, jget, pretty_json, short_id, top_locator
-from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
-from .web import access as access_page
-from .web import activity as activity_page
-from .web import amendments as amendments_page
 from .web import (
+    api_amendments,
     api_app,
     api_assistant,
     api_changes,
     api_docs,
+    api_errors,
+    api_glossary,
+    api_lists,
     api_map,
+    api_plan,
+    api_portal_new,
     api_process,
+    api_process_export,
     api_processes,
     api_recorded,
     api_review,
     api_review_items,
     api_rules,
+    api_same_screen,
     api_scan,
     api_scan_tabs,
     api_scan_trace,
     api_screens,
     api_settings,
+    api_state,
+    api_workbench,
     api_writes,
+    chat_relay,
+    evidence,
+    health,
+    legacy,
     spa,
 )
-from .web import changes as changes_page
-from .web import chat as chat_page
-from .web import check_runs as check_runs_page
-from .web import docs as docs_page
-from .web import events as events_page
-from .web import evidence as evidence_page
-from .web import glossary as glossary_page
-from .web import health as health_page
-from .web import hints as hints_page
-from .web import map as map_page
-from .web import overview as overview_page
-from .web import plan as plan_page
-from .web import portals as portals_page
-from .web import process_export as process_export_page
-from .web import processes as processes_page
-from .web import review as review_page
-from .web import rules as rules_page
-from .web import run_groups as run_groups_page
-from .web import runs as runs_page
-from .web import same_screen as same_screen_page
-from .web import scans as scans_page
-from .web import screens as screens_page
-from .web import states as states_page
-from .web import workbench as workbench_page
-from .web import workbench_actions as workbench_actions_page
-from .web import workbench_stream as workbench_stream_page
-from .web.amendments import MAX_ATTACHMENT_B64
-from .web.deps import PORTAL_COOKIE, PORTAL_ID, Web, build_url
-from .web.runs import SECTIONS
+from .web.deps import Web
 
-__all__ = ["MAX_ATTACHMENT_B64", "create_app"]
-
-PACKAGE = Path(__file__).parent
-# "+ new portal" in the header's portal dropdown (spec 011).
-NEW_PORTAL = "__new__"
+__all__ = ["create_app"]
 
 
 def create_app(
@@ -98,108 +57,16 @@ def create_app(
 ) -> FastAPI:
     """`chat_transport` replaces the network to the chat service (tests mock it)."""
     settings = settings or Settings()
-    app = FastAPI(title="mudpuppy://console", docs_url=None, redoc_url=None, openapi_url=None)
+    app = FastAPI(title="mudpuppy", docs_url=None, redoc_url=None, openapi_url=None)
     app.state.settings = settings
-    templates = Jinja2Templates(directory=PACKAGE / "templates")
-    templates.env.globals.update(
-        RUN_STATUSES=RUN_STATUSES,
-        FRONTIER_STATUSES=FRONTIER_STATUSES,
-        DECISION_KINDS=DECISION_KINDS,
-        SAFETY_CLASSES=SAFETY_CLASSES,
-        SECTIONS=SECTIONS,
-        DOC_STATUSES=queries_docs.DOC_STATUSES,
-        DOC_CONFIDENCES=queries_docs.CONFIDENCES,
-        DOC_FLAGS=queries_docs.FLAGS,
-        EVIDENCE_TABS=queries_docs.EVIDENCE_TABS,
-        BOOT_ID=live.BOOT_ID,
-    )
-    templates.env.filters["duration"] = fmt_duration
-    templates.env.filters["when"] = fmt_when
-    templates.env.filters["pretty_json"] = pretty_json
-    templates.env.filters["kb"] = lambda n: f"{n / 1024:,.0f} KB"
-    templates.env.filters["jget"] = jget
-    templates.env.filters["short_id"] = short_id
-    templates.env.filters["top_locator"] = top_locator
-    templates.env.filters["markdown"] = glossary.markdown_html
-    # Salvage Yard (spec 022): the one status mapping, used by `salvage/macros.html`.
-    templates.env.globals["sy_status_of"] = status_map.status_of
-    templates.env.globals["sy_options"] = status_map.options
-    templates.env.globals["NAV_SECTIONS"] = nav.SECTIONS
-    templates.env.globals["SCREEN_MARKS"] = queries_map_node.SCREEN_MARKS
-    templates.env.globals["nav_section"] = nav.current_section
-    templates.env.globals["section_href"] = nav.href_of
-    templates.env.globals["chat_start_hint"] = chat_client.start_hint
-    templates.env.globals["AS_OF_SECTIONS"] = as_of.SECTIONS
-    templates.env.globals["PATH_WORDS"] = wb_frames.PATH_WORDS
-    templates.env.globals["WB_REASONS"] = wb_frames.REASONS
-    templates.env.filters["wb_clock"] = wb_frames.clock
-
-    # Shared page helpers (web/deps.py); the page routers get them with `web_of(request)`.
-    web = Web(settings, templates, chat_transport)
-    app.state.web = web
-
-    # Templates call GLOSSARY() so the macros see a reload; None means "no tooltips" (FR-011).
-    templates.env.globals["GLOSSARY"] = web.glossary_or_none
-    # Tooltip ids must be unique on a page even when a term repeats; a process-wide counter is.
-    templates.env.globals["GL_UID"] = itertools.count(1).__next__
-
-    class StaticWithCache(StaticFiles):
-        async def get_response(self, path: str, scope: Any) -> Response:
-            response = await super().get_response(path, scope)
-            response.headers["Cache-Control"] = "public, max-age=3600"
-            return response
-
-    app.mount("/static", StaticWithCache(directory=PACKAGE / "static"), name="static")
-
-    @app.middleware("http")
-    async def remember_portal(request: Request, call_next: Any) -> Response:
-        """The header's portal dropdown (spec 011 FR-002): `?portal=` is kept in a cookie;
-        "+ new portal" opens the form."""
-        chosen = request.query_params.get("portal")
-        if request.method == "POST" and request.query_params.get("as_of"):
-            # As of a past version nothing is changed (spec 040 FR-001): forms built on such a
-            # page carry `as_of`, so the refusal holds without the page's script.
-            return PlainTextResponse("Back to now to change anything.", status_code=409)
-        if chosen == NEW_PORTAL:
-            return RedirectResponse(build_url("/portals/new", env=request.query_params.get("env")))
-        response: Response = await call_next(request)
-        if chosen is not None and request.method == "GET":
-            if chosen and PORTAL_ID.match(chosen):
-                response.set_cookie(PORTAL_COOKIE, chosen, samesite="lax", httponly=True)
-            elif not chosen:
-                response.delete_cookie(PORTAL_COOKIE)
-        return response
+    # Shared helpers (web/deps.py); the routers get them with `web_of(request)`.
+    app.state.web = Web(settings, chat_transport)
 
     # Order matters where paths overlap, inside a router and between them.
-    app.include_router(overview_page.router)
-    app.include_router(runs_page.router)
-    app.include_router(states_page.router)
-    app.include_router(evidence_page.router)
-    app.include_router(health_page.router)
-    app.include_router(activity_page.router)
-    app.include_router(docs_page.router)
-    app.include_router(glossary_page.router)
-    app.include_router(chat_page.router)
-    app.include_router(portals_page.router)
-    app.include_router(amendments_page.router)
-    app.include_router(events_page.router)
-    app.include_router(screens_page.router)
-    app.include_router(access_page.router)
-    app.include_router(changes_page.router)
-    app.include_router(rules_page.router)
-    app.include_router(check_runs_page.router)
-    app.include_router(review_page.router)
-    app.include_router(scans_page.router)
-    app.include_router(run_groups_page.router)
-    app.include_router(plan_page.router)
-    app.include_router(process_export_page.router)
-    app.include_router(map_page.router)
-    app.include_router(same_screen_page.router)
-    app.include_router(hints_page.router)
-    app.include_router(workbench_page.router)
-    app.include_router(workbench_actions_page.router)
-    app.include_router(workbench_stream_page.router)
-    # R-96 (spec 050): the React console's JSON API and the app itself.
+    app.include_router(health.router)
+    app.include_router(evidence.router)
+    app.include_router(chat_relay.router)
+    app.include_router(api_portal_new.router)  # /api/portals/new before /api/portals/{portal}/…
     app.include_router(api_app.router)
     # Before api_screens: its /screens/{key} would take /screens/recorded.
     app.include_router(api_recorded.router)
@@ -218,7 +85,16 @@ def create_app(
     app.include_router(api_scan_tabs.router)
     app.include_router(api_scan_trace.router)
     app.include_router(api_writes.router)
+    app.include_router(api_state.router)
+    app.include_router(api_amendments.router)
+    app.include_router(api_same_screen.router)
+    app.include_router(api_plan.router)
+    app.include_router(api_errors.router)
+    app.include_router(api_process_export.router)
+    app.include_router(api_lists.router)
+    app.include_router(api_glossary.router)
+    app.include_router(api_workbench.router)
     app.include_router(spa.router)
-    # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
-    app.include_router(processes_page.router)
+    # Last: the old addresses, each a redirect to its page in the console.
+    app.include_router(legacy.router)
     return app

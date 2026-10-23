@@ -1,6 +1,6 @@
-"""What a scan's Trace and Process tabs read beyond `queries`, shared by the htmx router
-(`web/runs.py`) and the React console's API (`queries_app_trace.py`), G-13: the agent's context
-for each tool call, and a trace run's process drawn as a Mermaid map. Read-only."""
+"""What a scan's Trace and Process tabs read beyond `queries`, for the console's API
+(`queries_app_trace.py`): the agent's context for each tool call, and a trace run's process drawn
+as a Mermaid map. Read-only."""
 
 from __future__ import annotations
 

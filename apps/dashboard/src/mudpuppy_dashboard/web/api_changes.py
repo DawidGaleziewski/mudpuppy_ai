@@ -18,7 +18,7 @@ router = APIRouter(prefix="/api/portals/{portal}/changes")
 
 class ChangesParams(BaseModel):
     """The page's query: the range (from a version, a date or a scan; to a version) and the
-    filters, as the htmx page takes them."""
+    filters."""
 
     env: str | None = None
     from_seq: str | None = None

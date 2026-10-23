@@ -2,7 +2,7 @@
 # Find Console-era styling left in a codebase.
 #
 #   ./find-old-styles.sh [PATH ...]            # default: current directory
-#   SY_DS_PATH=static/salvage ./find-old-styles.sh templates static
+#   SY_DS_PATH=src/design-system/assets ./find-old-styles.sh ../web/src
 #
 # Scans every PATH given (files or folders). Matching is case-insensitive.
 # The installed design system (SY_DS_PATH, default "static/salvage") is skipped,
@@ -17,7 +17,7 @@ if [ "$#" -eq 0 ]; then set -- .; fi
 INCLUDE=(--include='*.html' --include='*.htm' --include='*.jinja' --include='*.jinja2' --include='*.j2'
          --include='*.css' --include='*.scss' --include='*.js' --include='*.mjs' --include='*.ts'
          --include='*.tsx' --include='*.jsx' --include='*.py' --include='*.vue' --include='*.svelte')
-# `vendor`: third-party bundles (htmx, mermaid) are not ours to restyle (spec 022 T039).
+# `vendor`: third-party bundles (mermaid) are not ours to restyle (spec 022 T039).
 EXCLUDE=(--exclude-dir=node_modules --exclude-dir=.git --exclude-dir=dist --exclude-dir=build
          --exclude-dir=vendor --exclude-dir=.venv --exclude-dir=mutants)
 

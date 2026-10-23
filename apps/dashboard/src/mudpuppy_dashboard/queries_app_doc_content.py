@@ -1,5 +1,5 @@
 """A record's content as blocks the React console draws without knowing record kinds (R-96,
-spec 067; data-model.md "Content per kind", the htmx `partials/docs/content.html`): a sentence,
+spec 067; data-model.md "Content per kind"): a sentence,
 facts, a table, preformatted text, or the raw JSON when the shape is unknown, so nothing the BA
 wrote is hidden. Portal-language values carry `lang`."""
 
@@ -16,7 +16,7 @@ from .formats import short_id
 
 class Fact(BaseModel):
     label: str
-    values: list[str]  # one value, or a list ("None" when empty, as the htmx page says)
+    values: list[str]  # one value, or a list ("None" when empty)
     mono: bool = False
     lang: str | None = None
     #: The values are steps or items: a list rather than a line.

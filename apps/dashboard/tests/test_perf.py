@@ -1,5 +1,5 @@
-"""SC-005: pages stay under 1 s on a run with 10 000 frontier items and actions, and on a trace
-of 500 calls / 20 000 spans."""
+"""SC-005: the console's reads (its JSON API, R-100) stay under 1 s on a run with 10 000 frontier
+items and actions, on a trace of 500 calls / 20 000 spans, and on 2 000 documented records."""
 
 import time
 
@@ -12,17 +12,18 @@ pytestmark = pytest.mark.perf
 
 BIG = "run-big"
 URLS = [
-    "/",
-    "/fragments/summary",
-    "/fragments/runs",
-    f"/runs/{BIG}",
+    "/api/portals",
+    "/api/portals/overview",
+    f"/api/scans/{BIG}",
+    f"/api/scans/{BIG}/graph",
     *(
-        f"/runs/{BIG}?tab={tab}"
-        for tab in ("actions", "frontier", "forms", "network", "robots", "decisions", "trace")
+        f"/api/scans/{BIG}/{tab}"
+        for tab in ("actions", "frontier", "forms", "network", "robots", "decisions")
     ),
-    f"/fragments/runs/{BIG}/frontier?status=pending",
-    f"/fragments/runs/{BIG}/decisions?kind=skip",
-    f"/fragments/runs/{BIG}/actions?allowed=0",
+    f"/api/scans/{BIG}/trace",
+    f"/api/scans/{BIG}/frontier?status=pending",
+    f"/api/scans/{BIG}/decisions?kind=skip",
+    f"/api/scans/{BIG}/actions?allowed=0",
 ]
 
 
@@ -76,11 +77,11 @@ def big_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
 @pytest.mark.parametrize("url", URLS)
 def test_page_renders_under_one_second(big_store: Store, url: str) -> None:
     with make_client(big_store) as client:
-        client.get(url)  # warm templates
+        client.get(url)  # warm the caches
         start = time.perf_counter()
         response = client.get(url)
         elapsed = time.perf_counter() - start
-    assert response.status_code == 200
+    assert response.status_code == 200, url
     assert elapsed < 1.0, f"{url} took {elapsed:.3f}s"
 
 
@@ -88,10 +89,10 @@ def test_page_renders_under_one_second(big_store: Store, url: str) -> None:
 
 TRACE_RUN = "run-trace-big"
 TRACE_URLS = [
-    f"/runs/{TRACE_RUN}?tab=trace",
-    f"/fragments/runs/{TRACE_RUN}/trace",
-    f"/fragments/runs/{TRACE_RUN}/trace/summary",
-    f"/fragments/runs/{TRACE_RUN}/trace?problems=1",
+    f"/api/scans/{TRACE_RUN}",
+    f"/api/scans/{TRACE_RUN}/trace",
+    f"/api/scans/{TRACE_RUN}/trace/summary",
+    f"/api/scans/{TRACE_RUN}/trace?problems=1",
 ]
 
 
@@ -119,7 +120,7 @@ def test_trace_summary_and_first_page_render_under_one_second(
     trace_perf_store: Store, url: str
 ) -> None:
     with make_client(trace_perf_store) as client:
-        client.get(url)  # warm templates
+        client.get(url)  # warm the caches
         start = time.perf_counter()
         response = client.get(url)
         elapsed = time.perf_counter() - start
@@ -221,28 +222,21 @@ def docs_perf_store(tmp_path_factory: pytest.TempPathFactory) -> Store:
     return store
 
 
+DOCS = f"/api/portals/{DOC_PORTAL}/docs"
 DOC_URLS = [
-    "/docs",
-    "/fragments/docs/portals",
-    f"/docs/{DOC_PORTAL}",
+    DOCS,
     *(
-        f"/docs/{DOC_PORTAL}?section={s}"
+        f"{DOCS}?section={s}"
         for s in ("capabilities", "screens", "processes", "requirements", "traceability", "data")
     ),
-    f"/docs/{DOC_PORTAL}?section=requirements&status=confirmed",
-    f"/docs/{DOC_PORTAL}?section=requirements&confidence=inferred",
-    f"/docs/{DOC_PORTAL}?section=traceability&flag=not_observable",
-    f"/docs/{DOC_PORTAL}?section=traceability&flag=open_question",
-    f"/fragments/docs/{DOC_PORTAL}/index",
-    f"/fragments/docs/{DOC_PORTAL}/section/requirements",
-    f"/docs/{DOC_PORTAL}/REQ-0001",
-    f"/docs/{DOC_PORTAL}/REQ-0001?rev=1",
-    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/header",
-    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/body",
-    f"/fragments/docs/{DOC_PORTAL}/REQ-0001/reviews",
-    f"/docs/{DOC_PORTAL}/sessions/perf-sess",
-    f"/runs/{DOC_RUN}?tab=docs",
-    f"/fragments/runs/{DOC_RUN}/docs",
+    f"{DOCS}?section=requirements&status=confirmed",
+    f"{DOCS}?section=requirements&confidence=inferred",
+    f"{DOCS}?section=traceability&flag=not_observable",
+    f"{DOCS}?section=traceability&flag=open_question",
+    f"{DOCS}/REQ-0001",
+    f"{DOCS}/REQ-0001?rev=1",
+    f"{DOCS}/sessions/perf-sess",
+    f"/api/scans/{DOC_RUN}/docs",
 ]
 
 
@@ -256,7 +250,7 @@ def test_docs_fixture_has_2000_records_x_3_revisions_x_3_links(docs_perf_store: 
 @pytest.mark.parametrize("url", DOC_URLS)
 def test_docs_page_renders_under_one_second(docs_perf_store: Store, url: str) -> None:
     with make_client(docs_perf_store) as client:
-        client.get(url)  # warm templates
+        client.get(url)  # warm the caches
         start = time.perf_counter()
         response = client.get(url)
         elapsed = time.perf_counter() - start

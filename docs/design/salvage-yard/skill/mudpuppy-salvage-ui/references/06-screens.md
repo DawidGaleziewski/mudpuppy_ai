@@ -94,7 +94,7 @@ How the whole process feature works (lifecycle, flows, rules, diff, data model, 
 
 ## 08 · Screen: observed revisions and amendments — `screens/08-screen-detail.html`
 - **Grievance solved:** rescans add **observed revisions** (r1, r2, r3) instead of replacing the screen.
-- **Regions:** page head with statuses and glossary hints → revision strip (r1 seen unchanged by scans 01a10eb9 and 01a110d5) → recorded screenshot mock with an amendment pin on "Zaloguj się" → amendment AMD-001 r2 (typewriter note, revision timeline) → Add amendment form (primary).
+- **Regions:** page head with statuses and glossary hints → revision strip (r1 seen unchanged by scans 01a10eb9-70f2 and 01a110d5-2028) → recorded screenshot mock with an amendment pin on "Zaloguj się" → amendment AMD-001 r2 (typewriter note, revision timeline) → Add amendment form (primary).
 - **Rule:** amendments carry forward; if their element disappears they are flagged for **re-anchoring** (needs you, in Review), never deleted.
 
 ## 09 · Review inbox — `screens/09-review.html`
@@ -102,7 +102,7 @@ How the whole process feature works (lifecycle, flows, rules, diff, data model, 
 - **Regions:** filter tabs with counts → *Records to confirm* (the intent plate; CAP-005 selected) → empty states for the other groups → detail pane (evidence, Confirm rev 1 primary).
 
 ## 10 · Scans: live monitor and history — `screens/10-scans.html`
-- **Regions:** live monitor for 01a110d5 (progress meter 171 / 400 steps, 17 pages, 113 queued, page map from `/` to `/kontakt`, Resume primary) → history table (01a1083f OK 320 steps · 01a10eb9 interrupted 84 · 01a110d5 interrupted 171) → *What changed* per scan, linking to Review.
+- **Regions:** live monitor for 01a110d5-2028 (progress meter 171 / 400 steps, 17 pages, 113 queued, page map from `/` to `/kontakt`, Resume primary) → history table (01a1083f-5472 OK 320 steps · 01a10eb9-70f2 interrupted 84 · 01a110d5-2028 interrupted 171) → *What changed* per scan, linking to Review.
 - **Rule:** scan progress and the live map live here, not in chat. Chat shows only a one-line scan status that links here.
 - **Links:** the map plate's "Open map" goes to 12; the stop reason's "Recover" goes to 15.
 
@@ -117,7 +117,7 @@ How mapping works now: what the crawler records beyond the happy path, how to re
 
 ### 12 · Map: graph, inspector, marks — `screens/12-map-graph.html`
 - **Need:** a graph of what was mapped, and nodes that steer the crawler.
-- **Regions:** page head (17 pages, 113 queued, 01a110d5 stopped at `/kontakt`) → Scans · **Map** · Server activity → filters (scans, persona, layers, Graph / List) → **graph** (`.sy-graph`): `/`, a collapsed family deck (+10 pages), Samochód, `/porownanie`, `/kontakt` (failed ✕ 01a110d5), `/logowanie`, the `/kalkulator/kierowca` route group with step 1 → step 2 → step 3 (not reached), step 2's validation and technical states, the gap after `/kontakt`, `/moje-polisy` (blocked) → legend + keyboard hint. Side: **inspector** for the selection (screen, route, status, seen in, outcomes, checkpoint, six mark buttons) and the **Next scan plan** (intent plate, one row per marked node, Remove, Clear all, Plan next scan primary).
+- **Regions:** page head (17 pages, 113 queued, 01a110d5-2028 stopped at `/kontakt`) → Scans · **Map** · Server activity → filters (scans, persona, layers, Graph / List) → **graph** (`.sy-graph`): `/`, a collapsed family deck (+10 pages), Samochód, `/porownanie`, `/kontakt` (failed ✕ 01a110d5-2028), `/logowanie`, the `/kalkulator/kierowca` route group with step 1 → step 2 → step 3 (not reached), step 2's validation and technical states, the gap after `/kontakt`, `/moje-polisy` (blocked) → legend + keyboard hint. Side: **inspector** for the selection (screen, route, status, seen in, outcomes, checkpoint, six mark buttons) and the **Next scan plan** (intent plate, one row per marked node, Remove, Clear all, Plan next scan primary).
 - **Rules:** nodes are buttons; selection is `aria-pressed`; marks are `.sy-tag--intent` (a person's intent); the next scan's replay path is a dashed blueprint edge (`.sy-edge--planned`); a failure is red only where the crawler failed. The interactive version is the canvas board MapGraph.
 
 ### 13 · One URL, many states — `screens/13-screen-states.html`
@@ -173,7 +173,7 @@ Phones are out of scope for 2.0; acceptance criterion 2 below (390 px) applies t
 A beta tab where the assistant composes the screen from a fixed catalogue of components (spec: `14-workbench.md`;
 rules: `15-genui-guidelines.md`; parts: `16-genui-components.md`; engineering: `17-genui-architecture.md`).
 Behind the `workbench_beta` flag; the nav item "Workbench" carries a dashed ash "beta" chip (`.sy-chip--dashed`). Pages load `genui.css` after
-`salvage.css`. Same widths as 2.0: 1280 px reference, 1024 px floor, phones out of scope. Data: the replay of scan 01a110d5
+`salvage.css`. Same widths as 2.0: 1280 px reference, 1024 px floor, phones out of scope. Data: the replay of scan 01a110d5-2028
 (fixture in `13-v2-fixtures.md` §Workbench).
 
 | Screen | File | Phase |
@@ -190,6 +190,25 @@ Behind the `workbench_beta` flag; the nav item "Workbench" carries a dashed ash 
 | Under the hood: two lanes, catalogue, view spec, stack | `wb-10-architecture.html` | all |
 
 Component gallery with markup: `design-system/genui-components.html`. Runnable reference: `workbench/reference/`.
+
+---
+
+## 2.1 updates (`18-design-answers/`)
+
+- **v2-07 Screen detail:** the Variants tab uses `.sy-variants` with picture buttons (`.sy-thumb-btn`) that open the wide dialog.
+- **v2-08 Map:** the graph sits in `.sy-graphview` with the sticky zoom bar; the release excerpt is `--embedded`.
+- **All screens:** scan ids in the 13-character short form (full ids in URLs and JSON). On the release timeline, scan marks
+  are labelled by start time.
+- **12 Map (v1), wb-01…wb-05:** map nodes and filmstrip items are named by their visible text.
+- **wb-01:** the side sheet shows the scan id with Copy.
+
+## 2.2 updates (`19-console-answers/`)
+
+- **v2-02 Changes:** the release timeline is `.sy-releases--ranged`; the range label aligns to the right end (`data-label="end"`).
+- **v2-03 Change detail:** the side without the banner shows "Not here" as a dashed line at the insertion point (`.sy-mark--gone[data-shape="line"]`).
+- **v2-11 Rules, v2-12 Rule detail:** the decision tables' facts sit above the tables (`.sy-facts--table`), not in captions.
+- **02 Screen with assistant (v1):** the drawer is one window high and sticky; the log scrolls inside.
+- **New parts without a screen of their own:** the phase bar (Trace), the map overview, the recording dialog, the scan line words: `design-system/components.html#c-22`; the persona card: `genui-components.html#g-persona`.
 
 ---
 

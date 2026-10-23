@@ -1,5 +1,5 @@
-"""The React console's Docs, part 1 (R-96, spec 066): the same sections, counts, records,
-filters, pages and diagrams as the htmx Docs, statuses mapped."""
+"""The React console's Docs, part 1 (R-96, spec 066): the sections, counts, records, filters,
+pages and diagrams, statuses mapped."""
 
 from __future__ import annotations
 

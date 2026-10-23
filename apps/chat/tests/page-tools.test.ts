@@ -79,11 +79,13 @@ describe('uiActionOf', () => {
       elementKey: 'button "Kup"',
       label: null,
     });
-    expect(uiActionOf('mcp__mudpuppy-chat__open_page', { path: '/states/s-1' })).toEqual({
+    expect(uiActionOf('mcp__mudpuppy-chat__open_page', { path: '/app/states/s-1' })).toEqual({
       type: 'ui_action',
       action: 'open',
-      path: '/states/s-1',
+      path: '/app/states/s-1',
     });
+    // only console pages under /app/ (R-100): the old addresses would reload the whole console
+    expect(uiActionOf('mcp__mudpuppy-chat__open_page', { path: '/states/s-1' })).toBeNull();
     expect(
       uiActionOf('mcp__mudpuppy-chat__open_page', { path: 'https://evil.example/' }),
     ).toBeNull();
@@ -229,8 +231,8 @@ describe('page tools', () => {
       (await call('highlight_element', { state_id: 's-1', element_key: 'link "X"' })).isError,
     ).toBe(true);
     expect((await call('highlight_element', { state_id: 'nope' })).isError).toBe(true);
-    expect((await call('open_page', { path: '/states/s-1' })).body).toEqual({
-      opened: '/states/s-1',
+    expect((await call('open_page', { path: '/app/states/s-1' })).body).toEqual({
+      opened: '/app/states/s-1',
     });
   });
 });

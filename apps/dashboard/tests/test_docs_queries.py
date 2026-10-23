@@ -9,7 +9,7 @@ import pytest
 from mudpuppy_dashboard import db
 from mudpuppy_dashboard import queries_docs as q
 
-from .conftest import EVIDENCE, Store, add_evidence_link, insert, make_client, ts
+from .conftest import EVIDENCE, Store, add_evidence_link, insert, ts
 
 PORTAL = "reference-insurer"
 
@@ -220,10 +220,6 @@ def test_a_process_shows_one_map_per_cited_variant_run(ba_fixture: Store) -> Non
         ("run-trace-2", "goal_reached", 1),
     ]
     assert maps[1]["variant"] == "Buy a car policy: no model"
-    with make_client(ba_fixture) as client:
-        html = client.get(f"/docs/{PORTAL}/PROC-001").text
-    assert 'id="variant-map-2"' in html
-    assert "Variant 2: Buy a car policy: no model" in html
 
 
 def test_capability_and_screen_diagram_inputs(conn: sqlite3.Connection) -> None:

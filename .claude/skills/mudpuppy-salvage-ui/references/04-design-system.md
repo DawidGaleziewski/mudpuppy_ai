@@ -210,6 +210,30 @@ rules: `15-genui-guidelines.md`, gallery: `design-system/genui-components.html`.
 | Live bar, sheet, command bar | `.sy-livebar` (`__main`) · `.sy-sheet` (`__head`, `__body`, `__close`) · `.sy-cmdbar` (`__main`, `__reply`) | Live bar is not a live region; Esc closes the sheet |
 | Command card | `.sy-cmd[data-cmd-state=proposed\|running\|done\|failed\|undone\|cancelled\|expired]` > `__head` (`__title`) + `__body` + `__foot` | Every write. Confirm is the one marker button; Send is never marker in the Workbench |
 
+### 2.1 parts (`18-design-answers/`)
+| Part | Classes | Rules |
+|---|---|---|
+| Picture that opens larger | `button.sy-thumb-btn` > `.sy-thumb` or `.sy-shot` + `.sy-thumb-btn__hint` (icon + `.sy-thumb-btn__word`) + sr-only ", enlarge" | Icon always; word on hover / focus / touch; focus ring with steel gap; no button if nothing larger |
+| Wide picture dialog | `dialog.sy-dialog.sy-dialog--wide` > `__head` (facts, Fit `.sy-seg`, `.sy-dialog__close`) + `figure.sy-dialog__figure[data-fit=width\|page]` + `__foot` | 1280px max; fit width scrolls inside; full screen under 640px |
+| Variants | `.sy-variants` (`--sy-min`) > `section.sy-variant` > `__head` + `__pic` + `__body` | auto-fill; `:only-child` → picture left (`--sy-variant-pic`) |
+| Graph view | `.sy-graphview` (`--embedded`) > `.sy-graph__zoom[role=toolbar]` (− · `.sy-graph__zoom-level` · + · Fit) + `.sy-graph` | Bar sticky under the header; height capped (`--sy-graph-top`, `--sy-graph-max`) |
+| Long ids | `.sy-id` (`--full`) + `button.sy-id__copy` | Short form = first two groups; full id in `title` |
+| Recorded map edges | `path.sy-edge--tree` · `path.sy-edge--offtree[marker-end]` + `marker > path.sy-edge-arrow` · `path.sy-edge--others` · `ul.sy-legend > li.sy-legend__item` | Solid = this scan; off-tree bundled per page pair (`↩ 3×`), chip past six; others behind a layer, off by default |
+
+### 2.2 parts (`19-console-answers/`)
+| Part | Classes | Rules |
+|---|---|---|
+| Phase bar | `figure.sy-phasebar` > `ol.sy-phasebar__track` > `li.sy-phasebar__phase[data-kind=work\|wait\|quiet][data-state=running\|failed][data-narrow]` (`--sy-phase` = seconds) > `button.sy-phasebar__btn[aria-pressed]` (`__name`, `__time`) + `.sy-phasebar__axis` · legend `span.sy-phasebar__key` | Sized by length, 24 px floor; wait is the only orange; pressing filters the trace |
+| Map overview | `section.sy-graph.sy-graph--overview` | Under 50 % zoom; words fade (opacity), state borders stay |
+| Not here | `.sy-mark.sy-mark--overlay.sy-mark--gone` (`[data-shape=line]`) + `.sy-mark__label` "Not here" | Box for floating things, line for inserted regions; `aria-hidden`, the figure label says it |
+| Overlay mode | `.sy-compare--overlay` > `.sy-compare__side` > `.sy-compare__stack` (`--sy-overlay`) > `figure.sy-compare__under` + `figure.sy-compare__over` · `label.sy-compare__mix` (range) | The after's `<img>` fades; its marks don't |
+| Ranged timeline | `.sy-releases.sy-releases--ranged` + `.sy-releases__range[data-label=start\|end]` | 24 px of room inside the box for the label |
+| Table facts | `dl.sy-facts.sy-facts--table` + `table[aria-describedby]` + `caption.sy-sr-only` | Above the table; flush inside a plate |
+| Drawer | `aside.sy-drawer` (sticky, `--sy-header-h`), `.sy-drawer--static` (previews) | One window high; the log scrolls |
+| Disabled segment | `.sy-seg > button[aria-disabled="true"][aria-describedby]` | Focusable, reason line, no hover |
+| Recording dialog | `dialog.sy-dialog--wide` > `.sy-dialog__main` > `figure.sy-dialog__figure` + `aside.sy-dialog__aside` (`--sy-dialog-aside`) | Facts column 320 px; under it below 1024 px; one scroll on phones |
+| Editable command card (genui) | `section.sy-cmd` > `form.sy-cmd__body.sy-cmd__form` (`.sy-cmd__wide`, `table.sy-cmd__data`, `[data-edited]`) | Confirm submits what the card shows; secrets never in it |
+
 ### Assistant
 | Part | Classes |
 |---|---|

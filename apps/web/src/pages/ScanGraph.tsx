@@ -18,7 +18,8 @@ import {
   Tag,
   Text,
 } from '../design-system';
-import { scanKey, useScanGraph, type ScanFailure, type ScanGraph as Data, type ScanNode } from '../app/api-scan';
+import { planHref, recoverHref } from '../app/api-plan';
+import { scanKey, useScanGraph, useScanHead, type ScanFailure, type ScanGraph as Data, type ScanNode } from '../app/api-scan';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
@@ -81,7 +82,7 @@ function Summary({ g, here, pick, ask }: { g: Data; here: ScanNode | undefined; 
               >
                 Resume
               </Button>
-              <Text small href={`/scans/recover/${encodeURIComponent(g.scan)}`}>
+              <Text small href={recoverHref(g.scan)}>
                 Recovery page with attempts
               </Text>
             </Cluster>
@@ -147,6 +148,8 @@ function Failure({ g, f, node, ask }: { g: Data; f: ScanFailure; node: ScanNode;
 }
 
 function Inspector({ g, here, ask }: { g: Data; here: ScanNode | undefined; ask: (a: Ask) => void }) {
+  // the scan's head is already fetched by the page: its portal names the plan
+  const portal = useScanHead(g.scan).data?.portal ?? '';
   if (!here)
     return (
       <Plate title="Screen">
@@ -192,7 +195,7 @@ function Inspector({ g, here, ask }: { g: Data; here: ScanNode | undefined; ask:
           >
             Mark Start here
           </Button>
-          <Text small href="/scans/plan">
+          <Text small href={planHref(portal)}>
             Plan the next scan
           </Text>
         </Cluster>

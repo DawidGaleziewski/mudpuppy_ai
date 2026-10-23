@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import sqlite3
 from pathlib import Path
+from urllib.parse import quote, urlencode
 
 from pydantic import BaseModel
 
@@ -30,6 +31,11 @@ class PortalList(BaseModel):
     portals: list[PortalSummary]
     #: Configured portals that declare another environment (R-94 (8)): listed apart.
     other_environments: list[str]
+    #: The Workbench beta is on (`MUDPUPPY_WORKBENCH`): the nav offers it.
+    workbench: bool = False
+    #: Live MCP servers that disagree with the console (R-61): each named, so no call answered
+    #: by a stray server is a mystery.
+    warnings: list[str] = []
 
 
 class StatusOut(BaseModel):
@@ -42,6 +48,13 @@ class StatusOut(BaseModel):
 def status_out(vocabulary: str, value: object) -> StatusOut:
     s = status_of(vocabulary, value)
     return StatusOut(shape=s.shape, word=s.word)
+
+
+def state_href(state: str, **params: str) -> str:
+    """A recording's address in the console (it opens over its Screen page, designer Q10);
+    `left` and `right` pick the personas its Access shows side by side."""
+    query = f"?{urlencode(params)}" if params else ""
+    return f"/app/states/{quote(state, safe='')}{query}"
 
 
 class Chip(BaseModel):

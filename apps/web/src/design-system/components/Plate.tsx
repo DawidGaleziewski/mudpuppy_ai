@@ -17,14 +17,17 @@ export interface PlateProps {
   flush?: boolean;
   /** Section label for assistive technology when the plate has no title. */
   label?: string;
+  /** An address inside the page (`#frontier`): a link to it scrolls here. */
+  anchor?: string;
   children: ReactNode;
 }
 
 /** A solid plate on the grid ground (rule 5): every block of content sits in one. */
-export function Plate({ title, actions, foot, variant, flush = false, label, children }: PlateProps) {
+export function Plate({ title, actions, foot, variant, flush = false, label, anchor, children }: PlateProps) {
   const titleId = useId();
   return (
     <section
+      id={anchor}
       className={cx('sy-plate', variant && `sy-plate--${variant}`)}
       aria-labelledby={title !== undefined ? titleId : undefined}
       aria-label={title === undefined ? label : undefined}

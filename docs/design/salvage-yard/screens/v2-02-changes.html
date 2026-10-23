@@ -10,7 +10,6 @@
 <link rel="stylesheet" href="../design-system/css/salvage.css">
 <style>
   /* What changed: range + release timeline, filters, one table grouped by process (row band) then screen (sub-band). */
-  .mp-releases { margin-top: 22px; }                                               /* room for the "this range" label */
   .mp-releases .sy-releases__lane--scans .sy-releases__track { height: 48px; }   /* one staggered scan label */
   @media (max-width: 1209px) { .mp-wide-only { display: none; } }                 /* 9c21 span too narrow for its label */
   .mp-process > th { background: var(--sy-bg-raised); }
@@ -91,9 +90,9 @@
         <label class="sy-field__label" for="to">To</label>
         <select id="to" class="sy-select sy-select--md" aria-describedby="to-help">
           <option selected>Now · 17 Oct</option>
-          <option>Scan 01a1340c · 17 Oct</option>
+          <option>Scan 01a1340c-3b97 · 17 Oct</option>
           <option>9c21 · kalkulator · 16 Oct</option>
-          <option>Scan 01a12f40 · 15 Oct</option>
+          <option>Scan 01a12f40-8c1e · 15 Oct</option>
           <option>3e1a · shell · 14 Oct</option>
         </select>
         <span id="to-help" class="sy-field__help">Starts at As of in the header. Changing it here doesn't move the rest of the app.</span>
@@ -102,8 +101,8 @@
   </form>
   <hr>
   <div class="sy-plate__body">
-    <p id="tl-sum" class="sy-sr-only">Release timeline, 4 Oct to 17 Oct. Shell: <span class="sy-case-normal">1d77</span> until 14 Oct 08:10Z, then <span class="sy-case-normal">3e1a</span>. Kalkulator app: <span class="sy-case-normal">5f08</span> until 16 Oct 14:02Z; rollout with <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together until 17 Oct 09:30Z; then <span class="sy-case-normal">9c21</span> only. Scans: <span class="sy-case-normal">01a1083f</span> 4 Oct, <span class="sy-case-normal">01a10eb9</span> and <span class="sy-case-normal">01a110d5</span> 6 Oct, <span class="sy-case-normal">01a12f40</span> 15 Oct, check run <span class="sy-case-normal">01a1340c</span> 17 Oct. This range: from 14 Oct 08:10Z to now.</p>
-    <div class="sy-releases mp-releases" style="--sy-releases-name: 112px" aria-describedby="tl-sum">
+    <p id="tl-sum" class="sy-sr-only">Release timeline, 4 Oct to 17 Oct. Shell: <span class="sy-case-normal">1d77</span> until 14 Oct 08:10Z, then <span class="sy-case-normal">3e1a</span>. Kalkulator app: <span class="sy-case-normal">5f08</span> until 16 Oct 14:02Z; rollout with <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together until 17 Oct 09:30Z; then <span class="sy-case-normal">9c21</span> only. Scans: <span class="sy-case-normal">01a1083f-5472</span> 4 Oct, <span class="sy-case-normal">01a10eb9-70f2</span> and <span class="sy-case-normal">01a110d5-2028</span> 6 Oct, <span class="sy-case-normal">01a12f40-8c1e</span> 15 Oct, check run <span class="sy-case-normal">01a1340c-3b97</span> 17 Oct. This range: from 14 Oct 08:10Z to now.</p>
+    <div class="sy-releases sy-releases--ranged mp-releases" style="--sy-releases-name: 112px" aria-describedby="tl-sum">
       <div class="sy-releases__lane">
         <span class="sy-releases__name">Shell<small>main site</small></span>
         <div class="sy-releases__track">
@@ -122,17 +121,17 @@
       <div class="sy-releases__lane sy-releases__lane--scans">
         <span class="sy-releases__name">Scans<small>■ AI · ◇ check</small></span>
         <div class="sy-releases__track">
-          <a class="sy-releases__scan" href="10-scans.html" style="left: 5.6%" aria-label="AI scan 01a1083f, 4 Oct 18:48Z, completed, 320 steps"><span class="sy-case-normal">01a1083f</span></a>
-          <a class="sy-releases__scan" href="10-scans.html" style="left: 14.6%" aria-label="AI scan 01a10eb9, 6 Oct 00:59Z, interrupted, 84 steps"><span style="margin-top: 14px"><span class="sy-case-normal">01a10eb9</span></span></a>
-          <a class="sy-releases__scan" href="10-scans.html" style="left: 17.5%" aria-label="AI scan 01a110d5, 6 Oct 10:49Z, interrupted at 171 of 400 steps"><span class="sy-case-normal">01a110d5</span></a>
-          <a class="sy-releases__scan" href="10-scans.html" style="left: 80.8%" aria-label="AI scan 01a12f40, 15 Oct 07:30Z, completed, 388 steps, saw 3e1a and 5f08"><span class="sy-case-normal">01a12f40</span></a>
-          <a class="sy-releases__scan sy-releases__scan--check" href="10-scans.html" style="left: 95.9%" aria-label="Check run 01a1340c, 17 Oct 10:05Z, 64 checks, 9 findings, saw 3e1a and 9c21"><span style="margin-right: 18px"><span class="sy-case-normal">01a1340c</span></span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 5.6%" aria-label="AI scan 01a1083f-5472, 4 Oct 18:48Z, completed, 320 steps"><span class="sy-case-normal">18:48Z</span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 14.6%" aria-label="AI scan 01a10eb9-70f2, 6 Oct 00:59Z, interrupted, 84 steps"><span style="margin-top: 14px"><span class="sy-case-normal">00:59Z</span></span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 17.5%" aria-label="AI scan 01a110d5-2028, 6 Oct 10:49Z, interrupted at 171 of 400 steps"><span class="sy-case-normal">10:49Z</span></a>
+          <a class="sy-releases__scan" href="10-scans.html" style="left: 80.8%" aria-label="AI scan 01a12f40-8c1e, 15 Oct 07:30Z, completed, 388 steps, saw 3e1a and 5f08"><span class="sy-case-normal">07:30Z</span></a>
+          <a class="sy-releases__scan sy-releases__scan--check" href="10-scans.html" style="left: 95.9%" aria-label="Check run 01a1340c-3b97, 17 Oct 10:05Z, 64 checks, 9 findings, saw 3e1a and 9c21"><span style="margin-right: 18px"><span class="sy-case-normal">10:05Z</span></span></a>
         </div>
       </div>
       <div class="sy-releases__axis" aria-hidden="true">
         <span style="left: 0">4 Oct</span><span style="left: 14.29%">6 Oct</span><span style="left: 28.57%">8 Oct</span><span style="left: 42.86%">10 Oct</span><span style="left: 57.14%">12 Oct</span><span style="left: 71.43%">14 Oct</span><span style="left: 85.71%">16 Oct</span><span style="left: 92.86%">17 Oct</span><span style="left: 100%">now</span>
       </div>
-      <div class="sy-releases__range" style="left: calc(var(--sy-releases-name) + var(--sy-space-3) + (100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.7386); width: calc((100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.2614)"><span>this range · 41 changes</span></div>
+      <div class="sy-releases__range" data-label="end" style="left: calc(var(--sy-releases-name) + var(--sy-space-3) + (100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.7386); width: calc((100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.2614)"><span>this range · 41 changes</span></div>
     </div>
     <div class="sy-stack" style="--sy-gap: 4px">
       <p class="sy-legend" aria-hidden="true"><span>▭ release served</span><span>┄ rollout</span><span>■ AI scan</span><span>◇ check run</span><span>[ ] this range</span></p>
@@ -193,7 +192,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Rule changed</span><span class="sy-tag sy-tag--sm">BR-021</span></span>
               <span>Driver must be 21 or older: threshold moved from 18 to 21</span>
-              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c · 20 → exit · 21 → step 2 · 22 → step 2</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c-3b97 · 20 → exit · 21 → step 2 · 22 → step 2</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">A rule changed, so a person confirms it.</span></span></td>
             <td><span class="sy-status" data-status="needs">Needs you</span></td>
             <td><a class="sy-small" href="v2-12-rule-detail.html">Rule</a></td>
@@ -202,7 +201,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip sy-chip--fail">Rule broke</span><span class="sy-tag sy-tag--sm">BR-026</span></span>
               <span>Postal code must be NN-NNN: "00950" is now accepted</span>
-              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c · "00-950" accepted (ok) · "00950" accepted, was refused on 5f08</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">check run 01a1340c-3b97 · "00-950" accepted (ok) · "00950" accepted, was refused on 5f08</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span></span><span class="sy-small sy-muted">A boundary test failed.</span></span></td>
             <td><span class="sy-status" data-status="needs">Needs you</span></td>
             <td><a class="sy-small" href="v2-11-rules.html">Rule</a></td>
@@ -261,7 +260,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster"><span class="sy-chip">Variant</span></span>
               <span>Banner "Oferta specjalna" on 6 of 11 visits</span>
-              <span class="sy-mono sy-mono--sm sy-muted">variant r3 · check run 01a1340c · same release and persona</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">variant r3 · check run 01a1340c-3b97 · same release and persona</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip sy-chip--tobe">A/B test?</span></span><span class="sy-small sy-muted">Cookie ab_calc = B shows the banner; replayed 10 / 10.</span></span></td>
             <td><span class="sy-status" data-status="needs">Needs you</span></td>
             <td><a class="sy-small" href="v2-03-change-detail.html">Before / after</a></td>
@@ -323,7 +322,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster"><span class="sy-chip">Leads elsewhere</span></span>
               <span>Link "Porównaj produkty" now leads to <span class="sy-route">/porownanie-2026</span></span>
-              <span class="sy-mono sy-mono--sm sy-muted">was /porownanie · seen in 01a12f40</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">was /porownanie · seen in 01a12f40-8c1e</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip">Replaced</span></span><span class="sy-small sy-muted">Replaced with release <span class="sy-case-normal">3e1a</span>; the old screen is kept.</span></span></td>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
             <td><a class="sy-small" href="v2-08-map.html">Map</a></td>
@@ -348,7 +347,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster"><span class="sy-chip">Removed</span></span>
               <span>Link "Moje polisy" gone from the menu since 17 Oct</span>
-              <span class="sy-mono sy-mono--sm sy-muted">in the menu in 01a12f40 (15 Oct) · missing in 01a1340c (17 Oct)</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">in the menu in 01a12f40-8c1e (15 Oct) · missing in 01a1340c-3b97 (17 Oct)</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip sy-chip--dashed">No release</span></span><span class="sy-small sy-muted">Removed without a release: the shell is still <span class="sy-case-normal">3e1a</span>.</span></span></td>
             <td><span class="sy-status" data-status="needs">Needs you</span></td>
             <td><a class="sy-small" href="v2-08-map.html">Map</a></td>
@@ -369,7 +368,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster"><span class="sy-chip">New screen</span></span>
               <span>New screen: Polityka cookies (<span class="sy-route">/polityka-cookies</span>)</span>
-              <span class="sy-mono sy-mono--sm sy-muted">first seen in 01a12f40 (15 Oct) · shell 3e1a</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">first seen in 01a12f40-8c1e (15 Oct) · shell 3e1a</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">New in the portal with the shell release <span class="sy-case-normal">3e1a</span> (14 Oct 08:10Z).</span></span></td>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
             <td><a class="sy-small" href="v2-06-screens.html">Screens</a></td>
@@ -387,7 +386,7 @@
             <th scope="row"><span class="sy-stack" style="--sy-gap: 4px">
               <span class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-chip">Variant</span><span class="sy-chip">×10</span></span>
               <span>Text changed: footer text on every page (3) and 7 other text changes</span>
-              <span class="sy-mono sy-mono--sm sy-muted">10 changes · first seen in 01a12f40 (15 Oct)</span></span></th>
+              <span class="sy-mono sy-mono--sm sy-muted">10 changes · first seen in 01a12f40-8c1e (15 Oct)</span></span></th>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span><span class="sy-chip"><span>Release <span class="sy-case-normal">3e1a</span></span></span></span><span class="sy-small sy-muted">The shell's marker changed <span class="sy-case-normal">1d77</span> → <span class="sy-case-normal">3e1a</span> on 14 Oct 08:10Z.</span></span></td>
             <td><span class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="inferred">Explained automatically</span><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-describedby="overturn-what" style="align-self: flex-start">Overturn…</button></span></td>
             <td><a class="sy-small" href="#">Before / after</a></td>

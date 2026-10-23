@@ -19,7 +19,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'A Mermaid diagram (a trace run\'s process map) drawn in the Salvage Yard tokens. Mermaid is the dashboard\'s vendored copy (`/static/vendor/mermaid.min.js`), loaded only when a diagram is shown, with `securityLevel: strict`. Until it is drawn, and if it cannot be (Storybook does not serve the dashboard\'s `/static`), the source is shown as text: it is also the diagram\'s text alternative.',
+          'A Mermaid diagram (a trace run\'s process map) drawn in the Salvage Yard tokens. Mermaid is the console\'s vendored copy (`public/vendor/mermaid.min.js`, served at `/app/vendor/`), loaded only when a diagram is shown, with `securityLevel: strict`. Until it is drawn, and if it cannot be (Storybook does not serve `/app/`), the source is shown as text: it is also the diagram\'s text alternative.',
       },
     },
   },

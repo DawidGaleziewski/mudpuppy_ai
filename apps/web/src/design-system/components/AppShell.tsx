@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { Anchor } from './Anchor.js';
 import { Count } from './Count.js';
 
 export interface NavItem {
@@ -41,9 +42,9 @@ export function AppShell({ header, headerEnd, nav, navFoot, drawer, narrow = fal
         Skip to content
       </a>
       <header className="sy-header">
-        <a className="sy-wordmark" href="/app/">
+        <Anchor className="sy-wordmark" href="/app/">
           <span className="sy-wordmark__paint">MUD</span>PUPPY
-        </a>
+        </Anchor>
         {header}
         <span className="sy-header__spacer" />
         {headerEnd}
@@ -73,7 +74,7 @@ function NavItems({ group }: { group: NavGroup }) {
         </div>
       )}
       {group.items.map((item) => (
-        <a
+        <Anchor
           key={item.href}
           className="sy-nav__item"
           href={item.href}
@@ -86,7 +87,7 @@ function NavItems({ group }: { group: NavGroup }) {
             ) : (
               <span className="sy-nav__count">{item.count}</span>
             ))}
-        </a>
+        </Anchor>
       ))}
     </>
   );

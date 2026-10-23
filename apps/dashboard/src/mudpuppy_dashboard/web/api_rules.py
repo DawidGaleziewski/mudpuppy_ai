@@ -7,7 +7,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.concurrency import run_in_threadpool
-from fastapi.responses import JSONResponse
+from fastapi.responses import FileResponse, JSONResponse, Response
 
 from .. import chat_client, queries_app_rules, rules_export
 from .api_common import known_portal, store
@@ -16,6 +16,37 @@ from .chat_writes import WriteResult, write_answer, write_refused
 from .deps import web_of
 
 router = APIRouter(prefix="/api/portals/{portal}/rules")
+
+
+def _exported(request: Request, portal: str, env: str | None) -> rules_export.RulesExport:
+    web = web_of(request)
+    c = web.ctx(request, env)
+    try:
+        return rules_export.export(web.settings, c.data_dir, c.env, portal)
+    except rules_export.ExportFailed as err:
+        raise HTTPException(404, f"No export: {err}") from err
+
+
+# Before `/{key}`: `export.zip` is not a rule's key.
+@router.get("/export.zip", response_model=None)
+def rules_zip(request: Request, portal: str, env: str | None = None) -> Response:
+    """Every rule as DMN and Markdown, `rules.csv` and the README (owner answer OV-5)."""
+    top = f"{portal}-rules"
+    return Response(
+        _exported(request, portal, env).zip_bytes(top),
+        media_type="application/zip",
+        headers={"Content-Disposition": f'attachment; filename="{top}.zip"'},
+    )
+
+
+@router.get("/export/{name}", response_model=None)
+def rules_file(request: Request, portal: str, name: str, env: str | None = None) -> Response:
+    """One file of the export: a rule's `.md` or `.dmn`, `rules.csv` or the README."""
+    path = _exported(request, portal, env).file(name)
+    if path is None:
+        raise HTTPException(404, f"There is no file {name} in the rules export.")
+    media = rules_export.MEDIA.get(path.suffix, "text/plain")
+    return FileResponse(path, media_type=media, filename=f"{portal}-{name}")
 
 
 @router.get("")

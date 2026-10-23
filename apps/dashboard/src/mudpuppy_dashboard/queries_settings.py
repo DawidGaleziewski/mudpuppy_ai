@@ -89,6 +89,21 @@ def persona_rows(personas_dir: Path, portal: str | None) -> list[PersonaRow]:
     return out
 
 
+def attributes_line(attributes: dict[str, Any]) -> str:
+    """`tariff: basic · features: export, share`; attributes as written, never interpreted."""
+    parts = []
+    for key, value in attributes.items():
+        shown = ", ".join(str(v) for v in value) if isinstance(value, list) else str(value)
+        parts.append(f"{key}: {shown}")
+    return " · ".join(parts)
+
+
+def attributes_by_persona(personas_dir: Path, portal: str) -> dict[str, str]:
+    """persona id → its attributes line; personas without attributes are left out (spec 024)."""
+    rows = persona_rows(personas_dir, portal)
+    return {r.id: attributes_line(r.attributes) for r in rows if r.attributes}
+
+
 @dataclass(frozen=True)
 class CrawlRules:
     robots: str  # "respect" | "ignore"

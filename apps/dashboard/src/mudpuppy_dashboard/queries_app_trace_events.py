@@ -1,6 +1,6 @@
-"""A trace event's detail as label–value facts (R-96, spec 056): the htmx macro
-`trace_event_detail` (contracts/005 trace-spans.md "Names") in the API's words, so the React
-console renders facts and never reads an event's attributes itself. Pure functions."""
+"""A trace event's detail as label–value facts (R-96, spec 056; contracts/005 trace-spans.md
+"Names") in the API's words, so the React console renders facts and never reads an event's
+attributes itself. Pure functions."""
 
 from __future__ import annotations
 

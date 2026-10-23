@@ -1,8 +1,8 @@
 # @mudpuppy/web
 
-The MudPuppy console as a React single-page app (R-96; owner 2026-10-22: "whole app to be react
-from now, no more htmx"). The Salvage Yard design system as React components, documented in
-Storybook; pages over the dashboard's JSON API (`/api`, read-only on the store).
+The MudPuppy console as a React single-page app, the only UI (R-96, R-100). The Salvage Yard
+design system as React components, documented in Storybook; pages over the dashboard's JSON API
+(`/api`, read-only on the store).
 
 **All work here follows skill `mudpuppy-react-ui`.** Pages compose design-system components and
 never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
@@ -47,9 +47,12 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
   address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
   section's address), `Shell.tsx`, `QueryState.tsx`.
-- The design system's `Diagram` draws Mermaid from the dashboard's vendored copy at
-  `/static/vendor/mermaid.min.js` (Vite proxies `/static` in development); without it, the source
-  shows as text.
+- The design system's `Diagram` draws Mermaid from the vendored copy in `public/vendor/`
+  (served at `/app/vendor/mermaid.min.js`); without it, the source shows as text.
+- Every link inside the app moves through React Router (`RouterAnchor.tsx`: `routerLink` for the
+  design system's `LinkProvider`, `useGo` for moves made by code); a raw `<a>` is refused by lint.
+  Links and API calls keep the page address's `?store=` (`store.ts`, the data store) and, on the
+  model pages, `?as_of=` (`asOf.ts`).
 - `src/pages/`: one file per page.
 - `tests/`: Vitest + Testing Library (components, pages with a stubbed API, the design-system drift).
 

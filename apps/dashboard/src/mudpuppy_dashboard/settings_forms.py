@@ -1,7 +1,6 @@
 """Settings ▸ Hints and Budgets as the chat service takes them (spec 040 T021, 12-v2-ux § 10): a
 form's fields (`{field: [values]}`, as a url-encoded post parses) into `PUT /portals/{p}/hints`'s
-body. Shared by the htmx route (`web/hints.py`) and the React console's API (`web/api_settings.py`,
-spec 068), so both write the portal file the same way (G-13)."""
+body, for the console's Settings API (`web/api_settings.py`, spec 068)."""
 
 from __future__ import annotations
 

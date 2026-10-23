@@ -1,0 +1,17 @@
+{# Phase 1, and the Chat path in every phase: generated cards sit inside the conversation; details open in a side sheet. #}
+<div class="sy-wb sy-wb--inline{% if not slots.aside %} sy-wb--nosheet{% endif %}" id="wb-layout" data-phase="{{ sess.phase }}"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+  {% include "layouts/_conversation.html.j2" %}
+  {% if slots.aside %}
+  <aside class="sy-wb__aside" id="wb-aside" aria-label="Side sheet">
+    <section class="sy-sheet" aria-labelledby="wb-sheet-h">
+      <div class="sy-sheet__head"><h2 class="sy-plate__title" id="wb-sheet-h">Details</h2>
+        <button class="sy-sheet__close" type="button" data-sheet-close aria-label="Close the side sheet (Esc)"
+                hx-post="/workbench/sheet" hx-vals='{"open": "0"}' hx-swap="none">×</button></div>
+      <div class="sy-sheet__body">
+        {# Opened by the person (a click): not generated, no mark. Put there by the assistant's view: generated frame. #}
+        {% for c in slots.aside %}{{ r.component(view, c, "aside", framed=view.sheet_by != "you") }}{% endfor %}
+      </div>
+    </section>
+  </aside>
+  {% endif %}
+</div>

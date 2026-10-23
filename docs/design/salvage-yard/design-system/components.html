@@ -19,18 +19,28 @@
   .doc-swatch { display: flex; flex-direction: column; border: 1px solid var(--sy-border-weld); background: var(--sy-bg-plate); }
   .doc-swatch > i { display: block; height: 56px; }
   .doc-swatch > div { padding: 8px 10px; font-size: 13px; display: flex; flex-direction: column; gap: 2px; }
+  /* 2.2 demos (docs page only) */
+  .doc-region { position: relative; display: flex; align-items: center; min-height: 36px; padding: 6px 10px; margin-block: 4px; }
+  .doc-region--empty { min-height: 36px; }
+  .doc-line { position: relative; height: 2px; margin: 6px 0 8px; }
+  .doc-tall2 { min-height: 520px; }
+  /* mock pictures have no <img>: fade the after's words, keep its mark */
+  .doc-demo .sy-compare__over > :not(.doc-region), .doc-demo .sy-compare__over .doc-region > b { opacity: 0.5; }
   /* 2.1 demos (docs page only) */
   .doc-sub { display: flex; flex-direction: column; gap: 8px; scroll-margin-top: 80px; }
   .doc-mini { padding: var(--sy-space-3); gap: 6px; font-size: 12px; }
   .doc-mini .sy-shot__title { font-size: 16px; }
   .doc-mini .sy-mark { margin-top: 10px; padding: 4px 6px; }
   .doc-tall { min-height: 760px; }
+  .doc-demo .sy-dialog__figure { padding: var(--sy-space-3); }
   .doc-hover > .sy-shot { border-color: var(--sy-text); }
   .doc-hover .sy-thumb-btn__word { display: inline; }
   .doc-hover .sy-thumb-btn__hint { border-color: var(--sy-text); }
   .doc-focus { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; box-shadow: 0 0 0 2px var(--sy-bg-ground); }
   .doc-focus .sy-thumb-btn__word { display: inline; }
   .doc-nav { width: 220px; border: 1px solid var(--sy-border-weld); }
+  .doc-layers { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center; border: 0; padding: 0; margin: 0; }
+  .doc-layers > legend { float: left; margin-right: 8px; padding: 0; }
 </style>
 </head>
 <body class="sy-ground">
@@ -436,7 +446,7 @@
 <section class="doc-sec" aria-labelledby="c-more">
   <header><h2 id="c-more" class="sy-h2">More parts: drawer, disclosure, code, thumbnails, flush table, note pin</h2></header>
   <div class="sy-grid" style="--sy-min: 340px">
-    <aside class="sy-drawer" aria-label="Assistant (example)" style="max-width:none">
+    <aside class="sy-drawer sy-drawer--static" aria-label="Assistant (example)" style="max-width:none">
       <div class="sy-drawer__head"><h3 class="sy-plate__title">Assistant</h3><button class="sy-btn sy-btn--md sy-btn--icon" type="button" aria-label="Close assistant">×</button></div>
       <div class="sy-drawer__context">
         <div class="sy-seg" role="group" aria-label="What the assistant can see"><button type="button" aria-pressed="true">This page</button><button type="button" aria-pressed="false">Whole yard</button></div>
@@ -462,6 +472,8 @@
 </section>
 
 
+
+
 <!-- 2.1 BEGIN -->
 <section class="doc-sec" aria-labelledby="c-21">
   <header><h2 id="c-21" class="sy-h2">2.1: pictures, variants, map view, long ids</h2><p class="sy-meta">Answers to the developers' open questions of 23 Oct: docs/18-design-answers/. Every part below is in salvage.css.</p></header>
@@ -471,7 +483,7 @@
   <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Keyboard focus</span><button class="sy-thumb-btn doc-focus" type="button" aria-haspopup="dialog"><span class="sy-shot doc-mini" role="img" aria-label="Variant r1 of Kalkulator OC/AC — dane kierowcy (mock)"><span class="sy-shot__title">Kalkulator OC/AC</span><span>Data urodzenia [ __________ ]</span><span>Kod pocztowy [ 00-950 ]</span><span>[ Wstecz ] [ Dalej ]</span></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg><span class="sy-thumb-btn__word">Enlarge</span></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-small sy-muted">Marker ring with a steel gap: reads on paper, manila and steel.</span></div>
   <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Nothing larger</span><span class="sy-thumb sy-thumb--locked" role="img" aria-label="Screen behind a login, not recorded"></span><span class="sy-small sy-muted">No button: nothing opens.</span></div>
 </div></div><pre class="doc-code">&lt;button class=&quot;sy-thumb-btn&quot; type=&quot;button&quot; aria-haspopup=&quot;dialog&quot; aria-controls=&quot;pic-dlg&quot;&gt;
-  &lt;img class=&quot;sy-thumb&quot; src=&quot;/screens/…/<span class="sy-case-normal">r3</span>.webp&quot; alt=&quot;Variant <span class="sy-case-normal">r3</span> of Kalkulator OC/AC — wynik&quot;&gt;
+  &lt;img class=&quot;sy-thumb&quot; src=&quot;/screens/…/r3.webp&quot; alt=&quot;Variant r3 of Kalkulator OC/AC — wynik&quot;&gt;
   &lt;span class=&quot;sy-thumb-btn__hint&quot; aria-hidden=&quot;true&quot;&gt;&lt;svg …expand icon…/&gt;&lt;span class=&quot;sy-thumb-btn__word&quot;&gt;Enlarge&lt;/span&gt;&lt;/span&gt;
   &lt;span class=&quot;sy-sr-only&quot;&gt;, enlarge&lt;/span&gt;
 &lt;/button&gt;
@@ -486,16 +498,16 @@
       <button class="sy-btn sy-btn--icon sy-btn--md sy-dialog__close" type="button" aria-label="Close (Esc)">×</button></div></div></header>
   <figure class="sy-dialog__figure" data-fit="width"><div><span class="sy-shot doc-mini doc-tall" role="img" aria-label="Kalkulator OC/AC — wynik, variant r3, visit 01a1340c-3b97#15"><span class="sy-shot__title">Kalkulator OC/AC — wynik</span><span>Twoja składka</span><span>OC 612 zł / rok</span><span>Szczegóły składki</span><span>Płatność: [ karta ] [ przelew ]</span><span>Pobierz ofertę (PDF)</span><span>Kup online</span><span>Wróć</span><span>Towarzystwo Ubezpieczeń Wzorcowych S.A.</span><span>Regulamin · Polityka prywatności</span><mark class="sy-mark"><span class="sy-mark__label">Changed</span>Oferta specjalna: −10% przy zakupie dziś</mark></span></div></figure>
   <footer class="sy-dialog__foot"><div class="sy-split" style="width: 100%"><div class="sy-cluster">
-    <button class="sy-btn sy-btn--sm" type="button"><span>← <span class="sy-case-normal">r2</span></span></button><button class="sy-btn sy-btn--sm" type="button"><span><span class="sy-case-normal">r4</span> →</span></button>
+    <button class="sy-btn sy-btn--sm" type="button">← r2</button><button class="sy-btn sy-btn--sm" type="button">r4 →</button>
     <span class="sy-small sy-muted">3 of 4 variants</span></div><a class="sy-small" href="#">Open full size in a new tab</a></div></footer>
 </div></div><pre class="doc-code">&lt;dialog id=&quot;pic-dlg&quot; class=&quot;sy-dialog sy-dialog--wide&quot; aria-labelledby=&quot;pic-h&quot;&gt;
   &lt;header class=&quot;sy-dialog__head&quot;&gt;&lt;div class=&quot;sy-split&quot;&gt;
-    &lt;div&gt;&lt;h2 id=&quot;pic-h&quot; class=&quot;sy-h3&quot;&gt;Kalkulator OC/AC — wynik · variant <span class="sy-case-normal">r3</span>&lt;/h2&gt;&lt;span class=&quot;sy-meta&quot;&gt;release · persona · visit · time · size&lt;/span&gt;&lt;/div&gt;
+    &lt;div&gt;&lt;h2 id=&quot;pic-h&quot; class=&quot;sy-h3&quot;&gt;Kalkulator OC/AC — wynik · variant r3&lt;/h2&gt;&lt;span class=&quot;sy-meta&quot;&gt;release · persona · visit · time · size&lt;/span&gt;&lt;/div&gt;
     &lt;div class=&quot;sy-cluster&quot;&gt;
       &lt;div class=&quot;sy-seg&quot; role=&quot;group&quot; aria-label=&quot;Fit&quot;&gt;&lt;button aria-pressed=&quot;true&quot;&gt;Fit width&lt;/button&gt;&lt;button aria-pressed=&quot;false&quot;&gt;Whole page&lt;/button&gt;&lt;/div&gt;
       &lt;button class=&quot;sy-btn sy-btn--icon sy-btn--md sy-dialog__close&quot; aria-label=&quot;Close (Esc)&quot;&gt;×&lt;/button&gt;&lt;/div&gt;&lt;/div&gt;&lt;/header&gt;
   &lt;figure class=&quot;sy-dialog__figure&quot; data-fit=&quot;width&quot;&gt;&lt;img src=&quot;…full…&quot; alt=&quot;…same as the thumbnail…&quot;&gt;&lt;/figure&gt;
-  &lt;footer class=&quot;sy-dialog__foot&quot;&gt;← <span class="sy-case-normal">r2</span> · <span class="sy-case-normal">r4</span> → · Open full size in a new tab&lt;/footer&gt;
+  &lt;footer class=&quot;sy-dialog__foot&quot;&gt;← r2 · r4 → · Open full size in a new tab&lt;/footer&gt;
 &lt;/dialog&gt;
 &lt;!-- Width min(1280px, 100vw − 32px): a 1280px capture shows at about 1:1. Fit width (default): the picture scrolls inside,
      head and foot stay. Whole page: the picture shrinks to the visible height (an overview). Under 640px: full screen.
@@ -516,7 +528,7 @@
     <div class="sy-variant__pic"><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-shot doc-mini" role="img" aria-label="Variant r3 (mock)"><span class="sy-shot__title">Kalkulator OC/AC</span><span>Data urodzenia [ __________ ]</span><span>Kod pocztowy [ 00-950 ]</span><span>[ Wstecz ] [ Dalej ]</span><mark class="sy-mark"><span class="sy-mark__label">New</span>Rabat dla stałych klientów [ ___ ]</mark></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg><span class="sy-thumb-btn__word">Enlarge</span></span><span class="sy-sr-only">, enlarge</span></button></div><div class="sy-variant__body"><span class="sy-status" data-status="needs">Needs you</span></div></section>
 </div></div><pre class="doc-code">&lt;div class=&quot;sy-variants&quot; style=&quot;--sy-min: 240px&quot;&gt;          &lt;!-- a list, not a before/after: auto-fill keeps one column width --&gt;
   &lt;section class=&quot;sy-variant&quot; aria-labelledby=&quot;r1-h&quot;&gt;
-    &lt;header class=&quot;sy-variant__head&quot;&gt;&lt;h3 id=&quot;r1-h&quot; class=&quot;sy-h3&quot;&gt;<span class="sy-case-normal">r1</span>&lt;/h3&gt;&lt;span class=&quot;sy-chip&quot;&gt;Baseline&lt;/span&gt;&lt;/header&gt;
+    &lt;header class=&quot;sy-variant__head&quot;&gt;&lt;h3 id=&quot;r1-h&quot; class=&quot;sy-h3&quot;&gt;r1&lt;/h3&gt;&lt;span class=&quot;sy-chip&quot;&gt;Baseline&lt;/span&gt;&lt;/header&gt;
     &lt;div class=&quot;sy-variant__pic&quot;&gt;&lt;button class=&quot;sy-thumb-btn&quot;&gt;…&lt;/button&gt;&lt;/div&gt;
     &lt;div class=&quot;sy-variant__body&quot;&gt;release · persona · seen · status · why it differs · Overturn…&lt;/div&gt;
   &lt;/section&gt;
@@ -546,6 +558,52 @@
 &lt;!-- The bar floats in the graph&#x27;s top-right corner and sticks under the sticky header while any of the graph is on screen.
      Height: natural, capped at the viewport below the header (--sy-graph-top) on the Map page, 520px when embedded
      (--sy-graph-max). Keys on the focused graph: + − 0 (100%). Phones: list first; the graph opens full screen. --&gt;</pre></div>
+  <div class="doc-sub" id="c-21-edges"><h3 class="sy-h3">Recorded map: the moves of one scan</h3><p class="sy-meta">spec 054 · .sy-edge--tree, --offtree, --others · .sy-edge-arrow · .sy-legend__item</p><div class="doc-demo"><div class="sy-stack" style="--sy-gap: var(--sy-space-3)">
+  <fieldset class="doc-layers"><legend class="sy-legend-label">Layers</legend>
+    <label class="sy-check"><input type="checkbox" checked> Moves off the tree</label>
+    <label class="sy-check"><input type="checkbox" checked> Other scans' moves (1)</label></fieldset>
+  <section class="sy-graph" aria-label="Example: scan 01a110d5-2028, four pages" style="max-width: 744px">
+    <div class="sy-graph__canvas" style="width: 680px; height: 330px">
+      <svg class="sy-graph__edges" aria-hidden="true" focusable="false"><defs><marker id="demo-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="8" markerHeight="8" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path class="sy-edge-arrow" d="M1 1 7 4 1 7"/></marker></defs>
+        <path class="sy-edge sy-edge--tree" d="M200 192 C220 192 220 102 240 102"/>
+        <path class="sy-edge sy-edge--tree" d="M440 102 H480"/>
+        <path class="sy-edge sy-edge--tree" d="M200 192 C220 192 220 282 240 282"/>
+        <path class="sy-edge sy-edge--offtree" d="M580 60 C580 0 100 0 100 150" marker-end="url(#demo-arrow)"/>
+        <text class="sy-edge-label" x="340" y="14" text-anchor="middle">↩ 3×</text>
+        <path class="sy-edge sy-edge--offtree" d="M340 240 V144" marker-end="url(#demo-arrow)"/>
+        <text class="sy-edge-label" x="348" y="196">↩ step 140</text>
+        <path class="sy-edge sy-edge--others" d="M580 144 V240"/>
+        <text class="sy-edge-label" x="588" y="196">2 scans</text>
+      </svg><button class="sy-node" type="button" aria-pressed="false" style="left: 0px; top: 150px; --sy-node-w: 200px; height: 84px"><span class="sy-node__route">/</span><span class="sy-node__title">Ubezpieczenia dla Ciebie</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Visited</span></span></button><button class="sy-node" type="button" aria-pressed="false" style="left: 240px; top: 60px; --sy-node-w: 200px; height: 84px"><span class="sy-node__route">/ubezpieczenia/samochod</span><span class="sy-node__title">Samochód</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Visited</span></span></button><button class="sy-node" type="button" aria-pressed="false" style="left: 480px; top: 60px; --sy-node-w: 200px; height: 84px"><span class="sy-node__route">/kalkulator/kierowca</span><span class="sy-node__title">Dane kierowcy</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Visited</span></span></button><button class="sy-node" type="button" aria-pressed="false" style="left: 240px; top: 240px; --sy-node-w: 200px; height: 84px"><span class="sy-node__route">/kontakt</span><span class="sy-node__title">Kontakt</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Visited</span></span></button><button class="sy-node sy-node--dim" type="button" aria-pressed="false" style="left: 480px; top: 240px; --sy-node-w: 200px; height: 84px"><span class="sy-node__route">/porownanie</span><span class="sy-node__title">Porównanie produktów</span><span class="sy-node__meta"><span class="sy-status" data-status="unobserved">Not reached</span><span class="sy-sr-only">, reached by other scans</span></span></button></div></section>
+  <div class="sy-split" style="--sy-gap: var(--sy-space-3) var(--sy-space-5); align-items: flex-start">
+    <ul class="sy-legend" aria-label="Moves of this scan">
+      <li class="sy-legend__item"><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--tree" d="M0 5H28"/></svg>First visit</li>
+      <li class="sy-legend__item"><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--offtree" d="M0 5H24" marker-end="url(#demo-arrow)"/></svg>Move off the tree</li>
+      <li class="sy-legend__item"><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--others" d="M0 5H28"/></svg>Other scans' move</li>
+      <li class="sy-legend__item"><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--frontier" d="M0 5H28"/></svg>Queued</li>
+      <li class="sy-legend__item"><svg width="28" height="10" aria-hidden="true"><path class="sy-edge sy-edge--failed" d="M0 5H28"/></svg>Failed</li>
+    </ul>
+    <div class="sy-stack" style="--sy-gap: 6px; align-items: flex-start"><span class="sy-label">A page many moves return to</span>
+      <button class="sy-node" type="button" aria-pressed="false" style="position: relative; --sy-node-w: 170px; height: 84px">
+        <span class="sy-node__route">/</span><span class="sy-node__title">Ubezpieczenia dla Ciebie</span>
+        <span class="sy-node__meta"><span class="sy-status" data-status="ok">Visited</span><span class="sy-chip">↩ 14</span><span class="sy-sr-only">moves back here from 9 pages</span></span></button>
+      <span class="sy-small sy-muted">More than six lines into one page: none drawn, a chip instead.</span></div>
+  </div>
+</div></div><pre class="doc-code">&lt;svg class=&quot;sy-graph__edges&quot; aria-hidden=&quot;true&quot; focusable=&quot;false&quot;&gt;
+  &lt;defs&gt;&lt;marker id=&quot;{graphId}-arrow&quot; viewBox=&quot;0 0 8 8&quot; refX=&quot;7&quot; refY=&quot;4&quot; markerWidth=&quot;8&quot; markerHeight=&quot;8&quot;
+          markerUnits=&quot;userSpaceOnUse&quot; orient=&quot;auto-start-reverse&quot;&gt;&lt;path class=&quot;sy-edge-arrow&quot; d=&quot;M1 1 7 4 1 7&quot;/&gt;&lt;/marker&gt;&lt;/defs&gt;
+  &lt;path class=&quot;sy-edge sy-edge--tree&quot; d=&quot;…&quot;/&gt;                                       &lt;!-- first arrival at a page --&gt;
+  &lt;path class=&quot;sy-edge sy-edge--offtree&quot; d=&quot;…&quot; marker-end=&quot;url(#{graphId}-arrow)&quot;/&gt;  &lt;!-- back or across; one per page pair --&gt;
+  &lt;text class=&quot;sy-edge-label&quot; x=&quot;…&quot; y=&quot;…&quot;&gt;↩ 3×&lt;/text&gt;                                &lt;!-- &quot;↩ step 140&quot; when it happened once --&gt;
+  &lt;path class=&quot;sy-edge sy-edge--others&quot; d=&quot;…&quot;/&gt;                                     &lt;!-- layer &quot;Other scans&#x27; moves&quot;, off by default --&gt;
+  &lt;path class=&quot;sy-edge sy-edge--frontier&quot; d=&quot;…&quot;/&gt; &lt;path class=&quot;sy-edge sy-edge--failed&quot; d=&quot;…&quot;/&gt;   &lt;!-- unchanged --&gt;
+&lt;/svg&gt;
+&lt;button class=&quot;sy-node sy-node--dim&quot; …&gt;…&lt;span class=&quot;sy-status&quot; data-status=&quot;unobserved&quot;&gt;Not reached&lt;/span&gt;
+  &lt;span class=&quot;sy-sr-only&quot;&gt;, reached by other scans&lt;/span&gt;&lt;/button&gt;          &lt;!-- a page only other scans reached --&gt;
+&lt;span class=&quot;sy-chip&quot;&gt;↩ 14&lt;/span&gt;&lt;span class=&quot;sy-sr-only&quot;&gt;moves back here from 9 pages&lt;/span&gt;   &lt;!-- hub: more than 6 lines in --&gt;
+&lt;!-- Off-tree arcs bow outside the tree (over the top row, or straight between neighbours), never across a node.
+     The List view and the inspector carry the same facts: &quot;Moves off the tree: 3 (steps 88, 112, 140)&quot;,
+     &quot;Also taken by 01a1083f-5472, 01a12f40-8c1e&quot;. The marker id must be unique per graph (React: useId()). --&gt;</pre></div>
   <div class="doc-sub" id="c-21-ids"><h3 class="sy-h3">Long ids</h3><p class="sy-meta">Q6 · .sy-id, .sy-id--full, .sy-id__copy</p><div class="doc-demo"><div class="sy-grid" style="--sy-min: 260px">
   <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Short form (everywhere people read)</span>
     <span><span class="sy-id" title="01a110d5-2028-7000-8f3e-5c1a9b27d460">01a110d5-2028</span><button class="sy-id__copy" type="button" aria-label="Copy the full scan id 01a110d5-2028-7000-8f3e-5c1a9b27d460">Copy</button></span>
@@ -555,9 +613,9 @@
   <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Same millisecond (rare)</span>
     <span><span class="sy-id" title="01a16388-1f2c-7000-8a41-0b2c3d4e5f60">01a16388-1f2c-7000</span> · <span class="sy-id" title="01a16388-1f2c-7001-9b52-1c2d3e4f5a61">01a16388-1f2c-7001</span></span>
     <span class="sy-small sy-muted">Two scans that share the short form show the third group too.</span></div>
-</div></div><pre class="doc-code">&lt;span class=&quot;sy-id&quot; title=&quot;01a110d5-2028-7000-8f3e-5c1a9b27d460&quot;&gt;<span class="sy-case-normal">01a110d5-2028</span>&lt;/span&gt;
+</div></div><pre class="doc-code">&lt;span class=&quot;sy-id&quot; title=&quot;01a110d5-2028-7000-8f3e-5c1a9b27d460&quot;&gt;01a110d5-2028&lt;/span&gt;
 &lt;button class=&quot;sy-id__copy&quot; type=&quot;button&quot; aria-label=&quot;Copy the full scan id 01a110d5-2028-7000-8f3e-5c1a9b27d460&quot;&gt;Copy&lt;/button&gt;
-&lt;a class=&quot;sy-tag sy-tag--sm&quot; href=&quot;/scans/01a110d5-2028-7000-8f3e-5c1a9b27d460&quot; title=&quot;01a110d5-2028-7000-8f3e-5c1a9b27d460&quot;&gt;<span class="sy-case-normal">01a110d5-2028</span>&lt;/a&gt;
+&lt;a class=&quot;sy-tag sy-tag--sm&quot; href=&quot;/scans/01a110d5-2028-7000-8f3e-5c1a9b27d460&quot; title=&quot;01a110d5-2028-7000-8f3e-5c1a9b27d460&quot;&gt;01a110d5-2028&lt;/a&gt;
 &lt;span class=&quot;sy-id sy-id--full&quot;&gt;01a110d5-2028-7000-8f3e-5c1a9b27d460&lt;/span&gt;      &lt;!-- wraps; for the scan&#x27;s own page --&gt;
 &lt;!-- Short form = first two groups = the start time in ms (UUIDv7): unique in practice and sorts by time.
      On a time axis (release timeline), label a scan by its start time instead (&quot;10:49Z&quot;); the id is in its name. --&gt;</pre></div>
@@ -568,6 +626,225 @@
 &lt;!-- On the selected (chalk) item, chips take the item&#x27;s ink: steel-900 on chalk 14.7:1 (was ash on chalk 1.9:1). Still dashed. --&gt;</pre></div>
 </section>
 <!-- 2.1 END -->
+<!-- 2.2 BEGIN -->
+<section class="doc-sec" aria-labelledby="c-22">
+  <header><h2 id="c-22" class="sy-h2">2.2: phases, map zoom, before / after, timeline, table facts, drawer, recordings, scan line</h2><p class="sy-meta">Answers to the React console's questions of 23 Oct (evening): docs/19-console-answers/. Every part below is in salvage.css; the persona card is in genui-components.html.</p></header>
+  <div class="doc-sub" id="c-22-phase"><h3 class="sy-h3">Phase bar</h3><p class="sy-meta">Q2 · .sy-phasebar (Trace, spec 056)</p><div class="doc-demo"><div class="sy-stack" style="--sy-gap: var(--sy-space-5)">
+  <div class="sy-stack" style="--sy-gap: 8px"><figure class="sy-phasebar" aria-labelledby="pb1-h"><figcaption id="pb1-h" class="sy-split"><span class="sy-label">Phases · AI scan <span class="sy-case-normal">01a110d5-2028</span></span><span class="sy-small sy-muted">6 Oct 10:49:20Z – 10:58:44Z · 9 min 24 s · 171 steps · <span class="sy-status" data-status="stopped">Stopped</span></span></figcaption><ol class="sy-phasebar__track"><li class="sy-phasebar__phase" data-kind="work" data-narrow style="--sy-phase: 11"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Start · 10:49:20Z · 11 s · steps 1–11"><span class="sy-phasebar__name">Start</span><span class="sy-phasebar__time">10:49:20Z · 11 s · steps 1–11</span></button></li><li class="sy-phasebar__phase" data-kind="work" style="--sy-phase: 249"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Explore · 10:49:31Z · 4 min 9 s · steps 12–76"><span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">10:49:31Z · 4 min 9 s · steps 12–76</span></button></li><li class="sy-phasebar__phase" data-kind="work" style="--sy-phase: 205"><button class="sy-phasebar__btn" type="button" aria-pressed="true" title="Fill forms · 10:53:40Z · 3 min 25 s · steps 77–139"><span class="sy-phasebar__name">Fill forms</span><span class="sy-phasebar__time">10:53:40Z · 3 min 25 s · steps 77–139</span></button></li><li class="sy-phasebar__phase" data-kind="work" data-state="failed" style="--sy-phase: 99"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Explore · 10:57:05Z · 1 min 39 s · steps 140–171"><span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">10:57:05Z · 1 min 39 s · steps 140–171</span><span class="sy-sr-only">, ended in a failure at step 171</span></button></li></ol><div class="sy-phasebar__axis" aria-hidden="true"><span style="left: 0%">10:49:20Z</span><span style="left: 17.73%">10:51Z</span><span style="left: 39.01%">10:53Z</span><span style="left: 60.28%">10:55Z</span><span style="left: 81.56%">10:57Z</span><span style="left: 100%">10:58:44Z</span></div></figure>
+    <p class="sy-small" role="status">Showing <b>Fill forms</b>: steps 77–139 · 10:53:40Z – 10:57:05Z · <a href="#">Show all 171 steps</a></p></div>
+  <figure class="sy-phasebar" aria-labelledby="pb2-h"><figcaption id="pb2-h" class="sy-split"><span class="sy-label">Phases · AI scan <span class="sy-case-normal">01a110e7-2068</span> (illustrative)</span><span class="sy-small sy-muted">continues <span class="sy-case-normal">01a110d5-2028</span> · since 11:30:00Z · 23 min · <span class="sy-status" data-status="running">Running</span></span></figcaption><ol class="sy-phasebar__track"><li class="sy-phasebar__phase" data-kind="work" data-narrow style="--sy-phase: 20"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Start · 11:30:00Z · 20 s"><span class="sy-phasebar__name">Start</span><span class="sy-phasebar__time">11:30:00Z · 20 s</span></button></li><li class="sy-phasebar__phase" data-kind="work" data-narrow style="--sy-phase: 45"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Replay · 11:30:20Z · 45 s · to step 140"><span class="sy-phasebar__name">Replay</span><span class="sy-phasebar__time">11:30:20Z · 45 s · to step 140</span></button></li><li class="sy-phasebar__phase" data-kind="work" style="--sy-phase: 335"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Explore · 11:31:05Z · 5 min 35 s · steps 141–198"><span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">11:31:05Z · 5 min 35 s · steps 141–198</span></button></li><li class="sy-phasebar__phase" data-kind="wait" style="--sy-phase: 330"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Waiting for you · 11:36:40Z · 5 min 30 s · sign-in on /moje-polisy"><span class="sy-phasebar__name">Waiting for you</span><span class="sy-phasebar__time">11:36:40Z · 5 min 30 s · sign-in on /moje-polisy</span></button></li><li class="sy-phasebar__phase" data-kind="work" style="--sy-phase: 170"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Explore · 11:42:10Z · 2 min 50 s · steps 199–224"><span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">11:42:10Z · 2 min 50 s · steps 199–224</span></button></li><li class="sy-phasebar__phase" data-kind="quiet" style="--sy-phase: 360"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Quiet · 11:45:00Z · 6 min · no new step"><span class="sy-phasebar__name">Quiet</span><span class="sy-phasebar__time">11:45:00Z · 6 min · no new step</span></button></li><li class="sy-phasebar__phase" data-kind="work" data-state="running" style="--sy-phase: 140"><button class="sy-phasebar__btn" type="button" aria-pressed="false" title="Explore · 11:51:00Z · now · steps 225–231"><span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">11:51:00Z · now · steps 225–231</span><span class="sy-sr-only">, running</span></button></li></ol><div class="sy-phasebar__axis" aria-hidden="true"><span style="left: 0%">11:30Z</span><span style="left: 21.43%">11:35Z</span><span style="left: 42.86%">11:40Z</span><span style="left: 64.29%">11:45Z</span><span style="left: 85.71%">11:50Z</span><span style="left: 100%">now 11:53Z</span></div></figure>
+  <ul class="sy-legend" aria-label="Phase bar"><li class="sy-legend__item"><span class="sy-phasebar__key" aria-hidden="true"></span>Working</li><li class="sy-legend__item"><span class="sy-phasebar__key" data-kind="wait" aria-hidden="true"></span>Waiting for you</li><li class="sy-legend__item"><span class="sy-phasebar__key" data-kind="quiet" aria-hidden="true"></span>Quiet: no new step for 60 s or more</li><li class="sy-legend__item"><span class="sy-phasebar__key" data-state="running" aria-hidden="true"></span>Running</li><li class="sy-legend__item"><span class="sy-phasebar__key" data-state="failed" aria-hidden="true"></span>Ended in a failure</li></ul>
+</div></div><pre class="doc-code">&lt;figure class=&quot;sy-phasebar&quot; aria-labelledby=&quot;pb-h&quot;&gt;
+  &lt;figcaption id=&quot;pb-h&quot;&gt;Phases · AI scan 01a110d5-2028 · 9 min 24 s · Stopped&lt;/figcaption&gt;
+  &lt;ol class=&quot;sy-phasebar__track&quot;&gt;
+    &lt;li class=&quot;sy-phasebar__phase&quot; data-kind=&quot;work&quot; data-narrow style=&quot;--sy-phase: 11&quot;&gt;          &lt;!-- seconds --&gt;
+      &lt;button class=&quot;sy-phasebar__btn&quot; type=&quot;button&quot; aria-pressed=&quot;false&quot; title=&quot;Start · 10:49:20Z · 11 s · steps 1–11&quot;&gt;
+        &lt;span class=&quot;sy-phasebar__name&quot;&gt;Start&lt;/span&gt;&lt;span class=&quot;sy-phasebar__time&quot;&gt;10:49:20Z · 11 s · steps 1–11&lt;/span&gt;&lt;/button&gt;&lt;/li&gt;
+    &lt;li class=&quot;sy-phasebar__phase&quot; data-kind=&quot;wait&quot; style=&quot;--sy-phase: 330&quot;&gt;…Waiting for you…&lt;/li&gt;     &lt;!-- the only orange --&gt;
+    &lt;li class=&quot;sy-phasebar__phase&quot; data-kind=&quot;quiet&quot; style=&quot;…&quot;&gt;…Quiet · 6 min · no new step…&lt;/li&gt;                  &lt;!-- derived gap --&gt;
+    &lt;li class=&quot;sy-phasebar__phase&quot; data-kind=&quot;work&quot; data-state=&quot;failed&quot; style=&quot;…&quot;&gt;…&lt;span class=&quot;sy-sr-only&quot;&gt;, ended in a failure at step 171&lt;/span&gt;&lt;/li&gt;
+    &lt;li class=&quot;sy-phasebar__phase&quot; data-kind=&quot;work&quot; data-state=&quot;running&quot; style=&quot;…&quot;&gt;…&lt;span class=&quot;sy-sr-only&quot;&gt;, running&lt;/span&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+  &lt;div class=&quot;sy-phasebar__axis&quot; aria-hidden=&quot;true&quot;&gt;&lt;span style=&quot;left: 0&quot;&gt;10:49:20Z&lt;/span&gt;…&lt;span style=&quot;left: 100%&quot;&gt;10:58:44Z&lt;/span&gt;&lt;/div&gt;
+&lt;/figure&gt;
+&lt;p role=&quot;status&quot;&gt;Showing Fill forms: steps 77–139 · … · &lt;a href=&quot;…&quot;&gt;Show all 171 steps&lt;/a&gt;&lt;/p&gt;
+&lt;!-- --sy-phase = the phase&#x27;s length in seconds; phases share the track by length with a 24px floor. Axis ticks: left =
+     (tick − scan start) / scan length. A running scan&#x27;s last phase grows; recompute once a minute (not per event). Pressing a phase filters the trace below to its steps (aria-pressed);
+     pressing it again, or &quot;Show all&quot;, clears it. data-narrow under 72px: the time line is kept for screen readers only. --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-zoom"><h3 class="sy-h3">Open readable, Fit for the overview</h3><p class="sy-meta">Q3 · F-01@061 · .sy-graph--overview</p><div class="doc-demo"><div class="sy-grid" style="--sy-min: 300px; align-items: start">
+  <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">On open: never below 80%</span>
+  <div class="sy-graphview sy-graphview--embedded" style="--sy-graph-max: 260px; --sy-graph-sticky: 8px">
+  <div class="sy-graph__zoom" role="toolbar" aria-label="Zoom the map" aria-controls="zg1">
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom out">−</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet sy-graph__zoom-level" type="button" aria-label="Zoom 80%, reset to 100%">80%</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom in">+</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false">Fit</button></div>
+  <section id="zg1" class="sy-graph" aria-label="Example map, three pages">
+    <div class="sy-graph__canvas" style="width: 272px; height: 168px">
+      <div style="width: 340px; height: 210px; position: relative; transform: scale(0.8); transform-origin: 0 0">
+      <svg class="sy-graph__edges" aria-hidden="true" focusable="false" style="width: 340px; height: 210px"><path class="sy-edge" d="M150 82 C160 82 160 42 170 42"/>
+        <path class="sy-edge sy-edge--failed" d="M150 82 C160 82 160 162 170 162"/></svg><button class="sy-node" type="button" aria-pressed="false" style="left: 0px; top: 40px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/</span><span class="sy-node__title">Ubezpieczenia dla Ciebie</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Observed</span></span></button><button class="sy-node" type="button" aria-pressed="false" style="left: 170px; top: 0px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/ubezpieczenia/samochod</span><span class="sy-node__title">Samochód</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Observed</span></span></button><button class="sy-node" type="button" data-state="failed" aria-pressed="false" style="left: 170px; top: 120px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/kontakt</span><span class="sy-node__title">Kontakt</span><span class="sy-node__meta"><span class="sy-status" data-status="failed">Failed here</span></span></button></div></div></section></div></div>
+  <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Fit pressed: whole map, overview under 50%</span>
+  <div class="sy-graphview sy-graphview--embedded" style="--sy-graph-max: 260px; --sy-graph-sticky: 8px">
+  <div class="sy-graph__zoom" role="toolbar" aria-label="Zoom the map" aria-controls="zg2">
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom out">−</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet sy-graph__zoom-level" type="button" aria-label="Zoom 40%, overview, reset to 100%">40%</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom in">+</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="true">Fit</button></div>
+  <section id="zg2" class="sy-graph sy-graph--overview" aria-label="Example map, three pages">
+    <div class="sy-graph__canvas" style="width: 136px; height: 84px">
+      <div style="width: 340px; height: 210px; position: relative; transform: scale(0.4); transform-origin: 0 0">
+      <svg class="sy-graph__edges" aria-hidden="true" focusable="false" style="width: 340px; height: 210px"><path class="sy-edge" d="M150 82 C160 82 160 42 170 42"/>
+        <path class="sy-edge sy-edge--failed" d="M150 82 C160 82 160 162 170 162"/></svg><button class="sy-node" type="button" aria-pressed="false" style="left: 0px; top: 40px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/</span><span class="sy-node__title">Ubezpieczenia dla Ciebie</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Observed</span></span></button><button class="sy-node" type="button" aria-pressed="false" style="left: 170px; top: 0px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/ubezpieczenia/samochod</span><span class="sy-node__title">Samochód</span><span class="sy-node__meta"><span class="sy-status" data-status="ok">Observed</span></span></button><button class="sy-node" type="button" data-state="failed" aria-pressed="false" style="left: 170px; top: 120px; --sy-node-w: 150px; height: 84px"><span class="sy-node__route">/kontakt</span><span class="sy-node__title">Kontakt</span><span class="sy-node__meta"><span class="sy-status" data-status="failed">Failed here</span></span></button></div></div></section></div></div>
+</div></div><pre class="doc-code">// On open: readable first.  openZoom = fit &gt;= 0.8 ? Math.min(fit, 1) : 0.8   → scroll to the start page (or ?sel=)
+// Fit button: the whole map at any zoom (min 0.1). Under 0.5 the graph is an overview:
+&lt;section class=&quot;sy-graph sy-graph--overview&quot; …&gt;   &lt;!-- node words fade (opacity: 0, still read by screen readers) --&gt;
+// In overview, clicking a node selects it and zooms to 100% centred on it. Steps: 25 · 33 · 50 · 67 · 80 · 100 · 125 · 150.
+&lt;button class=&quot;… sy-graph__zoom-level&quot; aria-label=&quot;Zoom 40%, overview, reset to 100%&quot;&gt;40%&lt;/button&gt;</pre></div>
+  <div class="doc-sub" id="c-22-compare"><h3 class="sy-h3">Before / after: Not here, overlay</h3><p class="sy-meta">Q5 · .sy-mark--gone, .sy-compare--overlay</p><div class="doc-demo"><div class="sy-stack" style="--sy-gap: var(--sy-space-5)">
+  <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Side by side: the banner was inserted, so the other side gets the line form</span><div class="sy-compare" style="--sy-min: 260px">
+  <section class="sy-compare__side" aria-labelledby="cb-h"><header class="sy-compare__head"><span id="cb-h">Without banner</span><span class="sy-chip">r2</span></header>
+    <figure class="sy-shot doc-mini" aria-label="Kalkulator OC/AC — wynik, visit 01a1340c-3b97#14, without the banner; a dashed box marks where it is on the other visit"><u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u><div class="sy-cluster" style="--sy-gap: 2px 10px"><span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Kontakt</span></div><span class="sy-shot__title">Twoja składka</span><div class="doc-line"><span class="sy-mark sy-mark--overlay sy-mark--gone" data-shape="line" aria-hidden="true" style="left: 0; top: 0; width: 100%"><span class="sy-mark__label">Not here</span></span></div><b>OC 612 zł / rok</b><span class="sy-shot__link">Kup online</span></figure></section>
+  <section class="sy-compare__side" aria-labelledby="ca-h"><header class="sy-compare__head"><span id="ca-h">With banner</span><span class="sy-chip">r3</span></header>
+    <figure class="sy-shot doc-mini" aria-label="Kalkulator OC/AC — wynik, visit 01a1340c-3b97#15, with the banner marked as changed"><u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u><div class="sy-cluster" style="--sy-gap: 2px 10px"><span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Kontakt</span></div><span class="sy-shot__title">Twoja składka</span><div class="doc-region"><b>Oferta specjalna: −10% przy zakupie dziś</b><mark class="sy-mark sy-mark--overlay" style="left: 0; top: 0; width: 100%; height: 100%"><span class="sy-mark__label">Changed</span></mark></div><b>OC 612 zł / rok</b><span class="sy-shot__link">Kup online</span></figure></section>
+</div></div>
+  <div class="sy-grid" style="--sy-min: 280px; align-items: start">
+    <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Overlay: after over before at 50%</span><div class="sy-compare sy-compare--overlay">
+  <section class="sy-compare__side" aria-labelledby="co-h"><header class="sy-compare__head"><span id="co-h">Without banner, with banner over it</span><span class="sy-chip">r2 · r3 at 50%</span></header>
+    <div class="sy-compare__stack" style="--sy-overlay: 0.5">
+      <figure class="sy-shot doc-mini sy-compare__under" aria-label="Kalkulator OC/AC — wynik: visit 14 without the banner, with visit 15 drawn over it at 50%"><u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u><div class="sy-cluster" style="--sy-gap: 2px 10px"><span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Kontakt</span></div><span class="sy-shot__title">Twoja składka</span><b>OC 612 zł / rok</b><span class="sy-shot__link">Kup online</span></figure>
+      <figure class="sy-shot doc-mini sy-compare__over" aria-hidden="true"><u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u><div class="sy-cluster" style="--sy-gap: 2px 10px"><span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Kontakt</span></div><span class="sy-shot__title">Twoja składka</span><div class="doc-region"><b>Oferta specjalna: −10% przy zakupie dziś</b><mark class="sy-mark sy-mark--overlay" style="left: 0; top: 0; width: 100%; height: 100%"><span class="sy-mark__label">Changed</span></mark></div><b>OC 612 zł / rok</b><span class="sy-shot__link">Kup online</span></figure>
+    </div>
+    <label class="sy-compare__mix"><span>Before</span><input type="range" min="0" max="100" value="50" aria-label="How strongly the after shows" aria-valuetext="After at 50%"><span>After</span><output>50%</output></label>
+  </section>
+</div></div>
+    <div class="sy-stack" style="--sy-gap: 6px"><span class="sy-label">Box form: a floating chat button on the other visit</span><figure class="sy-shot doc-mini" aria-label="Kalkulator OC/AC — wynik without the chat button; a dashed box marks where it floats on the other visit">
+  <span class="sy-shot__title">Twoja składka</span><b>OC 612 zł / rok</b><span class="sy-shot__link">Kup online</span><span class="sy-shot__link">Wróć</span>
+  <span class="sy-mark sy-mark--overlay sy-mark--gone" aria-hidden="true" style="right: 14px; bottom: 14px; width: 132px; height: 34px"><span class="sy-mark__label">Not here</span></span></figure></div>
+  </div>
+</div></div><pre class="doc-code">&lt;!-- Side by side. The same place on the side without the change: --&gt;
+&lt;span class=&quot;sy-mark sy-mark--overlay sy-mark--gone&quot; aria-hidden=&quot;true&quot; style=&quot;left: …; top: …; width: …; height: …&quot;&gt;
+  &lt;span class=&quot;sy-mark__label&quot;&gt;Not here&lt;/span&gt;&lt;/span&gt;                       &lt;!-- box: the region&#x27;s coordinates (floats, badges) --&gt;
+&lt;span class=&quot;sy-mark sy-mark--overlay sy-mark--gone&quot; data-shape=&quot;line&quot; aria-hidden=&quot;true&quot; style=&quot;left: …; top: …; width: …&quot;&gt;
+  &lt;span class=&quot;sy-mark__label&quot;&gt;Not here&lt;/span&gt;&lt;/span&gt;                       &lt;!-- line: the region was inserted and pushed the page --&gt;
+&lt;!-- The figure&#x27;s own label says it in words: &quot;…, without the banner; a dashed box marks where it is on the other visit&quot;. --&gt;
+
+&lt;!-- Overlay mode (the &quot;Overlay&quot; segment): one column, the after over the before. --&gt;
+&lt;div class=&quot;sy-compare sy-compare--overlay&quot;&gt;
+  &lt;section class=&quot;sy-compare__side&quot; aria-labelledby=&quot;co-h&quot;&gt;
+    &lt;header class=&quot;sy-compare__head&quot;&gt;&lt;span id=&quot;co-h&quot;&gt;Without banner, with banner over it&lt;/span&gt;&lt;span class=&quot;sy-chip&quot;&gt;r2 · r3 at 50%&lt;/span&gt;&lt;/header&gt;
+    &lt;div class=&quot;sy-compare__stack&quot; style=&quot;--sy-overlay: 0.5&quot;&gt;
+      &lt;figure class=&quot;sy-shot sy-compare__under&quot; aria-label=&quot;…visit 14, with visit 15 drawn over it at 50%&quot;&gt;&lt;img …before…&gt;&lt;/figure&gt;
+      &lt;figure class=&quot;sy-shot sy-compare__over&quot; aria-hidden=&quot;true&quot;&gt;&lt;img …after…&gt;&lt;mark class=&quot;sy-mark sy-mark--overlay&quot; style=&quot;…&quot;&gt;…Changed…&lt;/mark&gt;&lt;/figure&gt;&lt;/div&gt;
+    &lt;label class=&quot;sy-compare__mix&quot;&gt;&lt;span&gt;Before&lt;/span&gt;&lt;input type=&quot;range&quot; min=&quot;0&quot; max=&quot;100&quot; value=&quot;50&quot; …&gt;&lt;span&gt;After&lt;/span&gt;&lt;output&gt;50%&lt;/output&gt;&lt;/label&gt;
+  &lt;/section&gt;&lt;/div&gt;
+&lt;!-- The slider sets --sy-overlay (0–1) on the after&#x27;s &lt;img&gt;; its marks are siblings of the img, so they stay at full strength.
+     Both pictures are drawn at the same width from the same top-left. --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-releases"><h3 class="sy-h3">Release range label and phone axis</h3><p class="sy-meta">Q5 · Q6 · .sy-releases--ranged, [data-label]</p><div class="doc-demo"><div class="sy-stack" style="--sy-gap: var(--sy-space-3)"><label class="sy-field"><span class="sy-field__label">From</span><select class="sy-select sy-select--md" style="max-width: 280px"><option>Previous release of each part</option></select></label><div class="sy-releases sy-releases--ranged" style="--sy-releases-name: 104px">
+  <div class="sy-releases__lane"><span class="sy-releases__name">Shell<small>main site</small></span>
+    <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 73.9%"><span><span class="sy-case-normal">1d77</span></span></span>
+      <span class="sy-releases__span sy-releases__span--current" style="left: 73.9%; width: 26.1%"><span><span class="sy-case-normal">3e1a</span></span></span></div></div>
+  <div class="sy-releases__lane"><span class="sy-releases__name">Kalkulator<small>/kalkulator/</small></span>
+    <div class="sy-releases__track"><span class="sy-releases__span" style="left: 0; width: 89.9%"><span><span class="sy-case-normal">5f08</span></span></span>
+      <span class="sy-releases__span sy-releases__span--rollout" style="left: 89.9%; width: 5.8%"></span>
+      <span class="sy-releases__span sy-releases__span--current" style="left: 95.7%; width: 4.3%"></span></div></div>
+  <div class="sy-releases__lane sy-releases__lane--scans"><span class="sy-releases__name">Scans</span>
+    <div class="sy-releases__track"><a class="sy-releases__scan" href="#" style="left: 17.5%" aria-label="AI scan 01a110d5-2028, 6 Oct 10:49Z"><span>10:49Z</span></a>
+      <a class="sy-releases__scan" href="#" style="left: 80.8%" aria-label="AI scan 01a12f40-8c1e, 15 Oct 07:30Z"><span>07:30Z</span></a>
+      <a class="sy-releases__scan sy-releases__scan--check" href="#" style="left: 95.9%" aria-label="Check run 01a1340c-3b97, 17 Oct 10:05Z"><span style="margin-right: 18px">10:05Z</span></a></div></div>
+  <div class="sy-releases__axis" aria-hidden="true"><span style="left: 0">4 Oct</span><span style="left: 28.57%">8 Oct</span><span style="left: 57.14%">12 Oct</span><span style="left: 85.71%">16 Oct</span><span style="left: 100%">now</span></div>
+  <div class="sy-releases__range" data-label="end" style="left: calc(var(--sy-releases-name) + var(--sy-space-3) + (100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.7386); width: calc((100% - var(--sy-releases-name) - var(--sy-space-3)) * 0.2614)"><span>this range · 41 changes</span></div>
+</div>
+  <p class="sy-small sy-muted">The label sits in the timeline's own top padding, so it never covers the field above. Near an end it aligns to that end (data-label). On phones the axis keeps only its two ends and the scan times leave the lane.</p></div></div><pre class="doc-code">&lt;div class=&quot;sy-releases sy-releases--ranged&quot; style=&quot;--sy-releases-name: 112px&quot;&gt;   &lt;!-- --ranged: 24px of room above the lanes --&gt;
+  …lanes… &lt;div class=&quot;sy-releases__axis&quot; aria-hidden=&quot;true&quot;&gt;…&lt;/div&gt;
+  &lt;div class=&quot;sy-releases__range&quot; data-label=&quot;end&quot; style=&quot;left: …; width: …&quot;&gt;&lt;span&gt;this range · 41 changes&lt;/span&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;!-- data-label=&quot;end&quot; when the bracket reaches the right end (a range up to Now), &quot;start&quot; when it begins at the left end;
+     otherwise the label is centred. Measure if you like: the label must stay inside the box.
+     Ticks: keep them at least 64px apart and always keep the first and last (drop the ones in between first).
+     Under 640px CSS keeps only the ends; scan times are hidden there (each scan link keeps its full aria-label). --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-facts"><h3 class="sy-h3">Facts above a table</h3><p class="sy-meta">Q7 · .sy-facts--table (replaces .mp-caption)</p><div class="doc-demo"><section class="sy-plate" aria-labelledby="dtf-h">
+  <div class="sy-plate__head"><h4 id="dtf-h" class="sy-plate__title">Decision table</h4></div>
+  <div class="sy-plate__body" style="--sy-gap: 0">
+    <dl id="dtf-facts" class="sy-facts sy-facts--table">
+      <dt>Input</dt><dd><b>Wiek kierowcy</b> = age on today's date, from "Data urodzenia" on dane kierowcy</dd>
+      <dt>Hit policy</dt><dd><b>First match</b>: rows are checked top to bottom; the first that matches decides.</dd>
+      <dt>Decided</dt><dd>When "Dalej" is pressed on Kalkulator OC/AC — dane kierowcy</dd></dl>
+    <div class="sy-table-wrap">
+      <table class="sy-table sy-table--decision" aria-describedby="dtf-facts" style="min-width: 480px">
+        <caption class="sy-sr-only">BR-021 decision table</caption>
+        <thead><tr class="sy-dt-group"><th scope="colgroup" colspan="2">Inputs</th><th scope="colgroup" colspan="2" class="sy-dt-result">Result</th></tr>
+          <tr><th scope="col" class="sy-dt-n">#</th><th scope="col">Wiek kierowcy</th><th scope="col" class="sy-dt-result">Next screen</th><th scope="col">Message</th></tr></thead>
+        <tbody><tr><td class="sy-dt-n">1</td><td class="sy-dt-cond">&lt; 21</td><td class="sy-dt-result">Nie możemy Cię ubezpieczyć</td><td>none</td></tr>
+          <tr><td class="sy-dt-n">2</td><td class="sy-dt-cond">≥ 21</td><td class="sy-dt-result">Kalkulator OC/AC — opcje</td><td>none</td></tr></tbody></table></div>
+  </div></section></div><pre class="doc-code">&lt;dl id=&quot;br021-facts&quot; class=&quot;sy-facts sy-facts--table&quot;&gt;     &lt;!-- how to read the table: inputs, hit policy, where it&#x27;s decided --&gt;
+  &lt;dt&gt;Input&lt;/dt&gt;&lt;dd&gt;…&lt;/dd&gt;&lt;dt&gt;Hit policy&lt;/dt&gt;&lt;dd&gt;…&lt;/dd&gt;&lt;dt&gt;Decided&lt;/dt&gt;&lt;dd&gt;…&lt;/dd&gt;&lt;/dl&gt;
+&lt;div class=&quot;sy-table-wrap&quot;&gt;
+  &lt;table class=&quot;sy-table sy-table--decision&quot; aria-describedby=&quot;br021-facts&quot;&gt;
+    &lt;caption class=&quot;sy-sr-only&quot;&gt;BR-021 decision table&lt;/caption&gt;   &lt;!-- the caption names the table; it is not a place for paragraphs --&gt;
+    …&lt;/table&gt;&lt;/div&gt;
+&lt;!-- Replaces .mp-caption. Facts sit above the table (you need the hit policy before the rows), joined to it,
+     and are announced once through aria-describedby instead of every time the table is entered. --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-drawer"><h3 class="sy-h3">Drawer one window high, a disabled segment</h3><p class="sy-meta">Q8 · Q9 · .sy-drawer (sticky), .sy-seg > [aria-disabled]</p><div class="doc-demo"><div class="sy-grid" style="--sy-min: 320px; align-items: start">
+  <aside class="sy-drawer sy-drawer--static" aria-label="Assistant (example)" style="max-width: none; height: 440px">
+    <div class="sy-drawer__head"><h4 class="sy-plate__title">Assistant</h4><button class="sy-btn sy-btn--md sy-btn--icon" type="button" aria-label="Close assistant">×</button></div>
+    <div class="sy-drawer__context">
+      <div class="sy-seg" role="group" aria-label="What the assistant can see">
+        <button type="button" aria-pressed="false" aria-disabled="true" aria-describedby="ctx-why">This page</button>
+        <button type="button" aria-pressed="true">Whole yard</button></div>
+      <span id="ctx-why" class="sy-small sy-muted">Nothing on this page to ask about. Open a screen, process or rule to use This page.</span>
+    </div>
+    <div class="sy-chat__log" role="log" aria-label="Messages" tabindex="0"><div class="sy-msg sy-msg--user"><p>What changed on the calculator since 3e1a?</p></div><div class="sy-msg"><span class="sy-msg__who">Assistant</span><p>Three things on Kalkulator OC/AC: the age limit moved from 18 to 21 (BR-021), the help text on dane kierowcy changed, and “Zapisz kalkulację” is gone.</p></div><div class="sy-msg sy-msg--user"><p>Is the banner on wynik an A/B test?</p></div><div class="sy-msg"><span class="sy-msg__who">Assistant</span><p>Probably: it showed on 6 of 11 visits, always with the cookie ab_calc = B, same release and persona. FND-007 proposes that explanation; it waits in Review.</p></div><div class="sy-msg sy-msg--user"><p>Which processes does it touch?</p></div><div class="sy-msg"><span class="sy-msg__who">Assistant</span><p>Only Oblicz składkę OC/AC: wynik is its last screen.</p></div></div>
+    <div class="sy-composer"><label class="sy-field"><span class="sy-field__label">Message</span><textarea class="sy-textarea" rows="2" placeholder="Ask about the whole yard"></textarea></label>
+      <div class="sy-actions sy-actions--end"><button class="sy-btn sy-btn--strong" type="button">Send</button></div></div>
+  </aside>
+  <div class="sy-stack" style="--sy-gap: 8px">
+    <span class="sy-label">One window high</span>
+    <p class="sy-small">In the app the drawer is sticky under the header and exactly one window high (<code>100dvh − --sy-header-h</code>). The log scrolls inside; the context switch and the composer never leave the screen. This demo fixes the height at 440 px to show the inner scroll.</p>
+    <span class="sy-label">This page, when there is no page</span>
+    <p class="sy-small">The segment stays, disabled with <code>aria-disabled="true"</code>: still focusable, so a screen reader hears it and the reason (<code>aria-describedby</code>). Whole yard is pressed. No hover, ash text.</p>
+  </div>
+</div></div><pre class="doc-code">&lt;aside class=&quot;sy-drawer&quot; aria-label=&quot;Assistant&quot;&gt;     &lt;!-- sticky, height: calc(100dvh − var(--sy-header-h)); the log scrolls --&gt;
+  &lt;div class=&quot;sy-drawer__context&quot;&gt;
+    &lt;div class=&quot;sy-seg&quot; role=&quot;group&quot; aria-label=&quot;What the assistant can see&quot;&gt;
+      &lt;button type=&quot;button&quot; aria-pressed=&quot;false&quot; aria-disabled=&quot;true&quot; aria-describedby=&quot;ctx-why&quot;&gt;This page&lt;/button&gt;
+      &lt;button type=&quot;button&quot; aria-pressed=&quot;true&quot;&gt;Whole yard&lt;/button&gt;&lt;/div&gt;
+    &lt;span id=&quot;ctx-why&quot; class=&quot;sy-small sy-muted&quot;&gt;Nothing on this page to ask about. Open a screen, process or rule to use This page.&lt;/span&gt;
+  &lt;/div&gt;
+  &lt;div class=&quot;sy-chat__log&quot; role=&quot;log&quot; aria-label=&quot;Messages&quot; tabindex=&quot;0&quot;&gt;…&lt;/div&gt;   &lt;!-- tabindex: the scroll area is keyboard-reachable --&gt;
+  &lt;div class=&quot;sy-composer&quot;&gt;…&lt;/div&gt;
+&lt;/aside&gt;
+&lt;!-- --sy-header-h: 65px from 1200px, 121px below (set in salvage.css; override if your header differs).
+     Under 1024px the drawer stacks under the page: static, and the log is capped at 60dvh.
+     A click on an aria-disabled segment does nothing (handle it in onClick). --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-recording"><h3 class="sy-h3">A recording in the picture dialog</h3><p class="sy-meta">Q10 · .sy-dialog__main, .sy-dialog__aside</p><div class="doc-demo"><div class="sy-dialog sy-dialog--wide sy-dialog--static" role="dialog" aria-labelledby="rec-h" style="--sy-dialog-static-h: 560px">
+  <header class="sy-dialog__head"><div class="sy-split">
+    <div class="sy-stack" style="--sy-gap: 2px"><h4 id="rec-h" class="sy-h3">Kalkulator OC/AC — dane kierowcy · variant <span class="sy-case-normal">r1</span> · recording</h4>
+      <span class="sy-meta">visit <span class="sy-case-normal">01a110d5-2028</span>#77 · 6 Oct 10:53:40Z · release <span class="sy-case-normal">5f08</span> · guest · 1280 × 1460</span></div>
+    <div class="sy-cluster"><div class="sy-seg" role="group" aria-label="Show as"><button type="button" aria-pressed="true">Screenshot</button><button type="button" aria-pressed="false">Wireframe</button></div>
+      <button class="sy-btn sy-btn--icon sy-btn--md sy-dialog__close" type="button" aria-label="Close (Esc)">×</button></div></div></header>
+  <div class="sy-dialog__main">
+    <figure class="sy-dialog__figure" data-fit="width"><div><figure class="sy-shot doc-mini doc-tall2" aria-label="Recording of Kalkulator OC/AC — dane kierowcy, visit 01a110d5-2028#77"><span class="sy-shot__title">Kalkulator OC/AC</span><span>Krok 1 z 3 · Dane kierowcy</span><mark class="sy-mark"><span class="sy-mark__label">Marked by assistant</span>Data urodzenia [ 1985-04-12 ]</mark><span>Kod pocztowy [ 00-950 ]</span><mark class="sy-mark sy-mark--note"><span class="sy-mark__label">AMD-003</span><span class="sy-shot__link">Jak liczymy składkę?</span></mark><span>[ Wstecz ] [ Dalej ]</span><small>Towarzystwo Ubezpieczeń Wzorcowych S.A. · v5f08</small></figure></div></figure>
+    <aside class="sy-dialog__aside" aria-label="About this recording">
+      <dl class="sy-facts"><dt>Screen</dt><dd><a href="#">Kalkulator OC/AC — dane kierowcy</a> · variant <span class="sy-case-normal">r1</span></dd>
+        <dt>Reached at</dt><dd class="sy-route">/kalkulator/kierowca · step 1</dd>
+        <dt>Also reached at</dt><dd><span class="sy-route">/kalkulator/kierowca?src=menu</span> · 3 visits</dd>
+        <dt>Settled</dt><dd>after 1.2 s · fingerprint stable</dd>
+        <dt>Cited by</dt><dd><a href="#">3 records</a> (BR-021, CAP-005, REQ-004)</dd></dl>
+      <fieldset class="sy-stack" style="--sy-gap: 4px"><legend class="sy-legend-label">Show on the picture</legend>
+        <label class="sy-check"><input type="checkbox" checked> Assistant's marks (1)</label>
+        <label class="sy-check"><input type="checkbox" checked> Amendment pins (1)</label>
+        <label class="sy-check"><input type="checkbox"> Elements (14)</label></fieldset>
+      <div class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Amendments on this screen</span>
+        <a class="sy-small" href="#">AMD-003 · Explain the age limit next to the field</a></div>
+      <a class="sy-btn sy-btn--sm" href="#">Open in Scans, step 77</a>
+    </aside>
+  </div>
+  <footer class="sy-dialog__foot"><div class="sy-split" style="width: 100%"><div class="sy-cluster">
+    <button class="sy-btn sy-btn--sm" type="button">← earlier visit</button><button class="sy-btn sy-btn--sm" type="button">later visit →</button>
+    <span class="sy-small sy-muted">2 of 12 visits of <span class="sy-case-normal">r1</span></span></div><button class="sy-btn sy-btn--sm sy-id__copy" type="button">Copy link</button></div></footer>
+</div></div><pre class="doc-code">&lt;!-- /states/{state_id} redirects (301) to /screens/{screen_id}?variant=r1&amp;recording={state_id}: the Screen page opens with
+     this dialog. Every old link (docs evidence, Scans ▸ States, exports) keeps working. --&gt;
+&lt;dialog class=&quot;sy-dialog sy-dialog--wide&quot; aria-labelledby=&quot;rec-h&quot;&gt;
+  &lt;header class=&quot;sy-dialog__head&quot;&gt;title · visit · time · release · persona · size · Screenshot / Wireframe · ×&lt;/header&gt;
+  &lt;div class=&quot;sy-dialog__main&quot;&gt;
+    &lt;figure class=&quot;sy-dialog__figure&quot; data-fit=&quot;width&quot;&gt;…marks: .sy-mark (assistant), .sy-mark--note (amendment pins)…&lt;/figure&gt;
+    &lt;aside class=&quot;sy-dialog__aside&quot; aria-label=&quot;About this recording&quot;&gt;
+      &lt;dl class=&quot;sy-facts&quot;&gt;Screen · Reached at · Also reached at · Settled · Cited by&lt;/dl&gt;
+      &lt;fieldset&gt;Show on the picture: Assistant&#x27;s marks · Amendment pins · Elements&lt;/fieldset&gt;
+      Amendments on this screen · Open in Scans, step N&lt;/aside&gt;&lt;/div&gt;
+  &lt;footer class=&quot;sy-dialog__foot&quot;&gt;← earlier visit · later visit → · Copy link&lt;/footer&gt;
+&lt;/dialog&gt;
+&lt;!-- Under 1024px the aside goes under the picture (max 40dvh). --sy-dialog-aside sets its width (320px). --&gt;</pre></div>
+  <div class="doc-sub" id="c-22-scanline"><h3 class="sy-h3">Scan line words</h3><p class="sy-meta">Q12 · .sy-scanline</p><div class="doc-demo"><div class="sy-stack" style="--sy-gap: 10px"><div class="sy-scanline"><span class="sy-status" data-status="running">Running</span><span>AI scan <span class="sy-id" title="01a110e7-2068-7d10-8c55-91e2b3f4a6d8">01a110e7-2068</span> · 12 / 120 steps · 9 pages · 3 queued · now at <span class="sy-route">/porownanie</span></span><a href="#">Open</a></div><div class="sy-scanline"><span class="sy-status" data-status="running">Running</span><span>AI scan <span class="sy-id" title="01a110e7-2068-7d10-8c55-91e2b3f4a6d8">01a110e7-2068</span> · 12 / 120 steps · 9 pages · 3 queued · <span class="sy-muted">no new step for 9 min</span></span><a href="#">Open</a></div><div class="sy-scanline"><span class="sy-status" data-status="stopped">Stopped</span><span>AI scan <span class="sy-id" title="01a110d5-2028-7000-8f3e-5c1a9b27d460">01a110d5-2028</span> · 171 / 400 steps · 17 pages · 113 queued · at <span class="sy-route">/kontakt</span></span><a href="#">Open</a></div><div class="sy-scanline"><span class="sy-status" data-status="ok">Completed</span><span>Check run <span class="sy-id" title="01a1340c-3b97-7000-9e61-0c5d8f2a7b14">01a1340c-3b97</span> · 17 Oct 10:05Z · 64 / 64 checks · 9 findings</span><a href="#">Open</a></div></div></div><pre class="doc-code">&lt;div class=&quot;sy-scanline&quot;&gt;
+  &lt;span class=&quot;sy-status&quot; data-status=&quot;running&quot;&gt;Running&lt;/span&gt;
+  &lt;span&gt;AI scan &lt;span class=&quot;sy-id&quot; title=&quot;{full id}&quot;&gt;01a110e7-2068&lt;/span&gt; · 12 / 120 steps · 9 pages · 3 queued · now at &lt;span class=&quot;sy-route&quot;&gt;/porownanie&lt;/span&gt;&lt;/span&gt;
+  &lt;a href=&quot;/scans/{full id}&quot;&gt;Open&lt;/a&gt;&lt;/div&gt;
+&lt;!-- {Kind} {short id} · {done} / {limit} {unit} · {pages} pages · {queued} queued · {where or when}
+     Kind: &quot;AI scan&quot; or &quot;Check run&quot;. Unit: steps (AI scan) or checks (check run). Last part: &quot;now at /route&quot; while events
+     arrive; &quot;no new step for 9 min&quot; (muted) after 2 min without one; &quot;at /route&quot; when stopped; the date when finished. --&gt;</pre></div>
+</section>
+<!-- 2.2 END -->
 
 <section class="doc-sec" aria-labelledby="c-misc">
   <header><h2 id="c-misc" class="sy-h2">Facts, hints, keys</h2></header>

@@ -1,4 +1,4 @@
-"""The React console's scan sections (R-96, spec 055): each htmx tab as typed JSON, statuses
+"""The React console's scan sections (R-96, spec 055): each section as typed JSON, statuses
 mapped, paged by cursor at the dashboard's page size, filtered, 404 for an unknown scan."""
 
 from __future__ import annotations

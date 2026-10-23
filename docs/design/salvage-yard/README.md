@@ -10,7 +10,10 @@ exception is the original wireframes, which ask Google Fonts for IBM Plex Sans a
 
 **Open `index.html` in a browser to browse it all.** New: **MudPuppy 2.0** (`docs/12-v2-ux.md`, screens `v2-*`), the design answer
 to spec 039 · R-81: one living model of the portal, What changed, Needs you, business rules.
-Newest: the **Workbench** (generative UI beta, `docs/14`–`17`, screens `wb-*`, `workbench/`): one tab where the assistant composes
+Newest: **console answers of 23 Oct, evening** (`docs/19-console-answers/`: phase bar, readable map opening, the persona card,
+Not here and overlay, time axes, table facts, drawer, recordings, scan line, the A2UI catalogue in `workbench/a2ui/`). Before
+that, the **design answers of 23 Oct** (`docs/18-design-answers/`: picture button, wide dialog, variants, graph zoom bar, record and
+full scan ids, chip contrast, the recorded map's edges). Before that, the **Workbench** (generative UI beta, `docs/14`–`17`, screens `wb-*`, `workbench/`): one tab where the assistant composes
 the screen from a catalogue of components, with a runnable reference built on htmx + server templates + SSE.
 
 ## What's inside
@@ -53,12 +56,15 @@ mudpuppy-salvage-yard/
 │   ├── 14-workbench.md         Workbench feature spec: paths, layouts, behaviour rules, states, the phased plan step by step
 │   ├── 15-genui-guidelines.md  gen UI style guide and good practices: provenance, writing, stability, trust, accessibility
 │   ├── 16-genui-components.md  the gen UI component catalogue and frame components, props, states, markup
-│   └── 17-genui-architecture.md htmx vs React decision, view-spec pipeline, SSE, validation, security, evals, tickets
+│   ├── 17-genui-architecture.md htmx vs React decision, view-spec pipeline, SSE, validation, security, evals, tickets
+│   ├── 18-design-answers/      answers to the developers' open questions of 23 Oct: one file each (pictures, dialog, variants, graph, ids, chip, names, A2UI, recorded map edges)
+│   └── 19-console-answers/     the React console's 13 questions (same evening): one file per question, numbered like them
 ├── workbench/
 │   ├── schema/                 view-spec, narration and command JSON Schemas, catalogue, commands, model tool definitions
+│   ├── a2ui/                   the catalogue as an A2UI v0.9.1 catalog (generated), example streams, check.py (R-96 spike)
 │   ├── examples/               valid and invalid view specs, narration, commands (the contract tests use them)
 │   ├── tools/gen_wb_schema.py  the single source of the contract (regenerates schema/ and examples/)
-│   └── reference/              runnable reference app (Starlette + Jinja + htmx + SSE): ships in the next update
+│   └── reference/              runnable reference app: Starlette + Jinja + htmx + SSE, scripted assistant, tests, evals
 ├── skill/mudpuppy-salvage-ui/  the frontend skill: SKILL.md + references/ + scripts/ (copy to .claude/skills/)
 └── migration/
     ├── token-map.csv           Console (and never-shipped rust) tokens → Salvage roles
@@ -76,8 +82,8 @@ mudpuppy-salvage-yard/
 2. Load `tokens.css`, `fonts.css`, `salvage.css` in a new base template (`docs/05-css-guide.md`).
 3. Follow `docs/08-migration-guide.md`: re-skin first, then the redesign, page by page behind a flag.
 
-**Workbench (gen UI beta):** read `docs/14-workbench.md` §7 (the plan) and open `screens/wb-01…wb-10`
-(the runnable reference app in `workbench/reference/` follows in the next update). Stack decision and reasons: `docs/17-genui-architecture.md` §1.
+**Workbench (gen UI beta):** read `docs/14-workbench.md` §7 (the plan), then run `workbench/reference/` (see its README)
+and open `screens/wb-01…wb-10`. Stack decision and reasons: `docs/17-genui-architecture.md` §1.
 
 **Harness (Claude Code or similar):**
 1. Commit this package to the repo (for example `docs/design/salvage-yard/`), then copy `skill/mudpuppy-salvage-ui/` to `<repo>/.claude/skills/mudpuppy-salvage-ui/` and set `DS_PATH` / `DESIGN_PKG` at the top of its SKILL.md.
@@ -101,7 +107,7 @@ mudpuppy-salvage-yard/
 - Every text pair meets WCAG 2.2 AA (`docs/03-colour-guide.md` §5); status colours checked under deuteranopia and protanopia simulation.
 - All three fonts cover Polish (checked glyph by glyph).
 - Every v1 screen renders offline at 1280 and 390, and every 2.0 and Workbench screen at 1280 and 1024 (desktop-first, per the brief), with no page-level horizontal scroll and no console errors.
-- The Workbench contract validates: valid examples pass, invalid ones fail for the expected reason.
+- The Workbench contract validates (valid examples pass, invalid ones fail for the expected reason); the reference app's tests and golden-prompt evals pass.
 
 ## Open items
 
@@ -111,5 +117,6 @@ Product decisions still needed: `docs/02-design-decisions.md` → *Open items* (
 ## Credits and licences
 
 - Fonts: Archivo and IBM Plex Mono (SIL Open Font License 1.1), Special Elite (Apache License 2.0). Licence files are in `design-system/fonts/`.
+- htmx 2.0.4 and the htmx SSE extension 2.2.3 (BSD Zero Clause), vendored in `workbench/reference/static/vendor/` with their licences.
 - The pixel mudpuppy mark is the existing MudPuppy artwork, recoloured to this palette.
 - Data in the screens comes from MudPuppy scans of the `reference-insurer` demo portal (all data fictitious) and `wikipedia` settings.

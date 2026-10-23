@@ -1,5 +1,5 @@
 // Review (spec 062) over a stubbed API: the tabs and groups, the selected item, a decision behind a
-// confirm whose answer offers Undo, a record's review, an item whose detail is still on htmx, and
+// confirm whose answer offers Undo, a record's review, an item with nothing more than its row, and
 // the Explained and Decided tabs.
 import { fireEvent, screen, within } from '@testing-library/react';
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
@@ -59,7 +59,7 @@ const base = {
   ],
   filters: { parts: [{ value: 'Shell', label: 'Shell (3)' }], ages: [], part: null, age: null, active: false },
   reasons: { rules: ['Seen the release.'] },
-  selected: { row: rule, in_react: true, htmx: '/review?portal=shop&select=rules:H-0002', text: 'Mined from 12 cases.', link: { value: '/rules/H-0002', label: 'Open the rule: its decision table and tests' }, also: [], rev: null, revs: null, cited: [] },
+  selected: { row: rule, has_detail: true, text: 'Mined from 12 cases.', link: { value: '/app/portals/shop/rules/H-0002', label: 'Open the rule: its decision table and tests' }, also: [], rev: null, revs: null, cited: [] },
   neighbours: { index: 1, total: 1, label: 'Rules', prev: null, next: null },
   explained: [],
   decided: [],
@@ -77,7 +77,7 @@ describe('Review', () => {
     expect(screen.getByRole('link', { name: 'Probe suites to approve' })).toBeTruthy(); // nothing waits there
     const detail = screen.getByRole('region', { name: 'Driver must be 21 or older' });
     expect(within(detail).getByText('Mined from 12 cases.')).toBeTruthy();
-    expect(within(detail).getByRole('link', { name: 'Open the rule: its decision table and tests' }).getAttribute('href')).toBe('/rules/H-0002');
+    expect(within(detail).getByRole('link', { name: 'Open the rule: its decision table and tests' }).getAttribute('href')).toBe('/app/portals/shop/rules/H-0002');
     expect(screen.getByRole('link', { name: 'Review' }).getAttribute('aria-current')).toBe('page');
   });
 
@@ -137,11 +137,11 @@ describe('Review decisions', () => {
       ...base,
       show: 'records',
       groups: [{ kind: 'records', label: 'Records to confirm', count: 1, rows: [record], empty: '', alike: [], page: 1, pages: 1, decides: false }],
-      selected: { row: record, in_react: true, htmx: '', text: null, link: { value: '/docs/shop/BR-021', label: 'Open the full record in Docs' }, also: [], rev: 2, revs: 2, cited: [{ state: 'st-1', title: 'Kierowca', route: '/kalkulator/kierowca', picture: null }] },
+      selected: { row: record, has_detail: true, text: null, link: { value: '/app/portals/shop/docs/BR-021', label: 'Open the full record in Docs' }, also: [], rev: 2, revs: 2, cited: [{ state: 'st-1', title: 'Kierowca', route: '/kalkulator/kierowca', picture: null }] },
     };
     const fetch = at('/app/portals/shop/review?show=records', { [`${API}?show=records`]: page, [`POST ${API}/records/BR-021`]: { ok: true, message: 'Recorded confirm on BR-021 revision 2.', href: null } });
     const detail = await screen.findByRole('region', { name: 'Driver age' });
-    expect(within(detail).getByRole('link', { name: 'Kierowca' }).getAttribute('href')).toBe('/states/st-1');
+    expect(within(detail).getByRole('link', { name: 'Kierowca' }).getAttribute('href')).toBe('/app/states/st-1');
     expect(within(detail).getByRole('button', { name: 'Reject rev 2' }).hasAttribute('disabled')).toBe(true);
     fireEvent.click(within(detail).getByRole('button', { name: 'Confirm rev 2' }));
     fireEvent.click(within(screen.getByRole('dialog', { name: 'Confirm BR-021 revision 2?' })).getByRole('button', { name: 'Confirm' }));
@@ -150,12 +150,12 @@ describe('Review decisions', () => {
     expect(JSON.parse(post[1].body)).toEqual({ action: 'confirm', rev: 2, text: '' });
   });
 
-  it('an item whose detail is not in React (an edit conflict) opens the htmx Review on it', async () => {
+  it('an item with nothing beyond its row (an edit conflict) says so', async () => {
     const conflict = row({ kind: 'conflicts', id: 'c-1', title: 'Two saves of AMD-001' });
-    const page = { ...base, selected: { row: conflict, in_react: false, htmx: '/review?portal=shop&select=conflicts:c-1', text: null, link: null, also: [], rev: null, revs: null, cited: [] } };
+    const page = { ...base, selected: { row: conflict, has_detail: false, text: null, link: null, also: [], rev: null, revs: null, cited: [] } };
     at('/app/portals/shop/review', { [API]: page });
     const detail = await screen.findByRole('region', { name: 'Two saves of AMD-001' });
-    expect(within(detail).getByRole('link', { name: 'Open it there' }).getAttribute('href')).toBe('/review?portal=shop&select=conflicts:c-1');
+    expect(within(detail).getByText('Nothing more is recorded for this item.')).toBeTruthy();
     expect(within(detail).queryByRole('button', { name: 'Confirm' })).toBeNull();
   });
 

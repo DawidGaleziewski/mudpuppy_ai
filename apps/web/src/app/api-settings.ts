@@ -65,7 +65,7 @@ export const settingsWrites = {
     path: `${api(portal)}/environments/${encodeURIComponent(environment)}/revoke`,
     body: {},
   }),
-  /** Release marker, A/B cookies and business refusals (lists one per line, as the htmx form). */
+  /** Release marker, A/B cookies and business refusals (lists one per line). */
   hints: (portal: string, fields: { marker_header: string; marker_meta: string; ab_flags: string; refusals: string }): Write => ({
     path: `${api(portal)}/hints/hints`,
     body: fields,

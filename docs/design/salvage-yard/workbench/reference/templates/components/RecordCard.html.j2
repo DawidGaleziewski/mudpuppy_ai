@@ -1,0 +1,8 @@
+{# RecordCard — one process, rule or record from the portal model. #}
+{% set rec = vm.r %}
+<div class="sy-stack sy-askable" style="--sy-gap: 8px">
+  <span class="sy-cluster" style="--sy-gap: 6px 10px"><a class="sy-tag sy-tag--sm" href="{{ rec.href }}">{{ rec.id }}</a><span class="sy-small sy-muted">{{ rec.kind }}</span>
+    <span class="sy-status" data-status="{{ rec.status }}">{{ rec.word }}</span></span>
+  <dl class="sy-facts">{% for k, v in rec.facts %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}</dl>
+  <a class="sy-small" href="{{ rec.href }}">Open {{ rec.id }}</a>
+</div>

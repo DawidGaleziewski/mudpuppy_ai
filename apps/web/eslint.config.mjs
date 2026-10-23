@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint';
 
 // The typed rules of apps/chat and apps/crawler (G-21, G-22), plus React's hooks rules.
 export default defineConfig(
-  globalIgnores(['**/node_modules/', '**/dist/', 'storybook-static/', 'src/design-system/assets/']),
+  globalIgnores(['**/node_modules/', '**/dist/', 'storybook-static/', 'src/design-system/assets/', 'public/vendor/']),
   {
     files: ['**/*.{js,mjs,cjs,ts,mts,tsx}'],
     extends: [
@@ -61,7 +61,17 @@ export default defineConfig(
           selector: "JSXAttribute[name.name='style']",
           message: 'Pages never style: compose a design-system component (add one if it is missing).',
         },
+        {
+          // R-100: a raw anchor reloads the whole app; links go through the design system's Anchor.
+          selector: "JSXOpeningElement[name.name='a']",
+          message: 'No raw <a>: use a design-system link (Text, Tag, LinkButton, Anchor) so the router moves.',
+        },
       ],
     },
+  },
+  {
+    // The one place a plain anchor is drawn: files, downloads and other sites.
+    files: ['src/app/RouterAnchor.tsx'],
+    rules: { 'no-restricted-syntax': 'off' },
   },
 );

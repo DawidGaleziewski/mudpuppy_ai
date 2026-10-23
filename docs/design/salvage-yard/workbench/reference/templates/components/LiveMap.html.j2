@@ -1,0 +1,61 @@
+{# LiveMap — pages in visit order. Node and filmstrip buttons have NO aria-label: the visible text names them (WCAG 2.5.3),
+   with the screen title added as sr-only text after the route.
+   Pages in visit order, the crawler's position, the queue, and the scan meter. Data lane only: the stream
+   fills it, no model calls. Side trips fold into a "+N side pages" chip on the page they came from.
+   The <sy-livemap> island adds follow-the-crawler scrolling and arrow keys (static/sy-livemap.js). #}
+<div id="{{ cid }}-meter">{% block live_meter %}{% with s = vm.scan, m = vm.meter %}{% include "components/_meter.html.j2" %}{% endwith %}{% endblock %}</div>
+<sy-livemap id="{{ cid }}-island" data-follow="{{ 'on' if vm.follow else 'off' }}" style="display: block">
+{% if vm.mode == "graph" %}
+  <div class="sy-graph" role="group" aria-label="Pages the crawler visited, in order. Arrow keys move between pages.">
+    <div class="sy-graph__canvas" id="{{ cid }}-canvas" style="width: {{ vm.cw }}px; height: {{ vm.ch }}px">
+    {%- block live_canvas %}{% from "components/_mini.html.j2" import mini %}
+      <svg class="sy-graph__edges" aria-hidden="true" focusable="false">{% for e in vm.edges %}<path class="{{ e.cls }}" d="{{ e.d }}"></path>{% endfor %}</svg>
+      {% for n in vm.nodes %}
+      <div class="sy-askable" style="position: absolute; left: {{ n.x }}px; top: {{ n.y }}px; width: {{ vm.w }}px; height: {{ vm.h }}px">
+        <button class="sy-node" type="button" id="{{ cid }}-n{{ n.k }}" data-state="{{ n.ds }}" aria-pressed="{{ n.pressed }}"
+                style="left: 0; top: 0; --sy-node-w: {{ vm.w }}px; height: {{ vm.h }}px" data-order="{{ n.k }}"
+                data-ask="{{ n.ask | tojson_attr }}"
+                {% if live %}hx-get="{{ n.select }}" hx-swap="none" hx-push-url="false"{% endif %}>
+          <span class="sy-order">{{ n.k }}</span>{{ mini(n.mini, vm.mh) }}
+          <span class="sy-node__route">{{ n.label }}</span><span class="sy-sr-only"> · {{ n.title }} ·</span>
+          <span class="sy-node__meta"><span class="sy-status" data-status="{{ n.status }}">{{ n.word }}</span>
+            {% if n.side %}<span class="sy-chip">+{{ n.side }} side pages</span>{% endif %}</span>
+        </button>
+        <button class="sy-ask" type="button" tabindex="-1" data-ask="{{ n.ask | tojson_attr }}" aria-label="Ask about {{ n.label }}">Ask</button>
+      </div>
+      {% endfor %}
+      {% if vm.scan.queued %}
+      <div class="sy-node" data-state="frontier" style="left: {{ vm.q.x }}px; top: {{ vm.q.y }}px; --sy-node-w: {{ vm.w }}px; height: {{ vm.h }}px">
+        <span class="sy-node__route">+{{ vm.scan.queued }} queued</span><span class="sy-node__title">links found, not visited yet</span>
+        <span class="sy-node__meta"><span class="sy-status" data-status="queued">Queued</span></span></div>
+      {% endif %}
+      {% if not vm.nodes %}
+      <div class="sy-state" style="position: absolute; left: 0; top: 0; width: {{ vm.cw - 20 }}px"><span class="sy-state__title">No pages yet</span>
+        <span>The map fills in as soon as the scan starts.</span></div>
+      {% endif %}
+    {%- endblock %}
+    </div>
+  </div>
+{% else %}
+  <div class="sy-film" id="{{ cid }}-film" role="group" aria-label="Pages visited, in order">
+  {%- block live_film %}{% from "components/_mini.html.j2" import mini %}
+    {% for n in vm.nodes %}
+    <button class="sy-film__item" type="button" id="{{ cid }}-f{{ n.k }}" data-state="{{ n.ds }}" aria-pressed="{{ n.pressed }}"
+            data-order="{{ n.k }}" data-ask="{{ n.ask | tojson_attr }}"
+            {% if live %}hx-get="{{ n.select }}" hx-swap="none"{% endif %}>
+      <span class="sy-order">{{ n.k }}</span>{{ mini(n.mini, 46) }}
+      <span class="sy-film__route">{{ n.label }}</span><span class="sy-sr-only"> · {{ n.title }} ·</span>
+      <span class="sy-status" data-status="{{ n.status }}">{{ n.word }}</span>
+      {% if n.side %}<span class="sy-chip">+{{ n.side }} side pages</span>{% endif %}
+    </button>
+    {% endfor %}
+    {% if vm.nodes and vm.scan.queued %}
+    <span class="sy-film__item" data-state="frontier"><span class="sy-film__route">+{{ vm.scan.queued }} queued</span>
+      <span class="sy-status" data-status="queued">Queued</span></span>
+    {% endif %}
+    {% if not vm.nodes %}<span class="sy-small sy-muted">No pages yet. The strip fills in as soon as the scan starts.</span>{% endif %}
+  {%- endblock %}
+  </div>
+{% endif %}
+</sy-livemap>
+<span class="sy-small sy-muted">Click a page for details, or press <span class="sy-kbd">A</span> on it to ask about it. <a href="/screens/v2-08-map.html">Open the full map</a></span>

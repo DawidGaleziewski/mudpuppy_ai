@@ -144,8 +144,8 @@ sequenceDiagram
   W-->>P: SSE: command card cmd_9F (proposed) inside #turn-t42
   P->>W: Confirm (one-time token)
   W->>X: POST /portals/reference-insurer/runs
-  X-->>W: scan 01a110d5 started
-  W->>M: new turn t43 with an event message "cmd_9F done: scan 01a110d5 started"
+  X-->>W: scan 01a110d5-2028 started
+  W->>M: new turn t43 with an event message "cmd_9F done: scan 01a110d5-2028 started"
   M-->>W: render_view starts (tool-use block opens)
   W-->>P: SSE: composing frame where the view will go (#turn-t43 inline, #wb-stage in split)
   M-->>W: render_view {path: mapping, LiveMap, PageDetail, Narration}
@@ -181,14 +181,14 @@ before the conversation continues, and the 30 s turn cap is never spent waiting 
 { "version": "1", "path": "mapping", "why": "You asked to map the OC/AC calculator.",
   "select": { "route": "/kalkulator/kierowca", "state": 2 },
   "components": [
-    { "id": "map",    "type": "LiveMap",    "bind": { "scan": "01a110d5" }, "props": { "follow": true } },
-    { "id": "meter",  "type": "ScanMeter",  "bind": { "scan": "01a110d5" } },
-    { "id": "detail", "type": "PageDetail", "bind": { "scan": "01a110d5", "page": "@selected" } },
-    { "id": "story",  "type": "Narration",  "bind": { "scan": "01a110d5" }, "props": { "every": "page" } } ],
+    { "id": "map",    "type": "LiveMap",    "bind": { "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460" }, "props": { "follow": true } },
+    { "id": "meter",  "type": "ScanMeter",  "bind": { "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460" } },
+    { "id": "detail", "type": "PageDetail", "bind": { "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460", "page": "@selected" } },
+    { "id": "story",  "type": "Narration",  "bind": { "scan": "01a110d5-2028-7000-8f3e-5c1a9b27d460" }, "props": { "every": "page" } } ],
   "suggestions": ["Where does it go next?", "Skip /logowanie this time"] }
 ```
 
-- **Binds are ids, never content.** Scans (`01a110d5`), pages (`{route, state}` or `@selected`), steps, records
+- **Binds are ids, never content.** Scans (`01a110d5-2028`), pages (`{route, state}` or `@selected`), steps, records
   (`PROC-001`, `BR-021`), changes (`CHG-019`), findings (`FND-007`).
 - **Strings are plain words**: `why` ≤ 140, suggestions ≤ 60, no `<>{}`.
 - **Limits:** 4 components (chat 2, explain 3); path × type rules are in the schema's `allOf`.
@@ -196,7 +196,7 @@ before the conversation continues, and the 30 s turn cap is never spent waiting 
 
 ### 4.2 Narration
 
-`narration.schema.json`: up to 6 lines, each with `text` (≤ 160) and `cites` (`01a110d5#171`, at least one). The server
+`narration.schema.json`: up to 6 lines, each with `text` (≤ 160) and `cites` (`01a110d5-2028-7000-8f3e-5c1a9b27d460#171`, at least one). The server
 then checks that **every number in a line appears in a cited event** (digits, normalised: "1 234" = "1234"); a failing line is
 replaced by the templated line for its first cited event and counted (`wb_narration_dropped`).
 
@@ -205,7 +205,7 @@ replaced by the templated line for its first cited event and counted (`wb_narrat
 `command.schema.json` + `commands.json`: `scan.start`, `scan.resume`, `scan.stop`, `path.attempt`, `mark.add`. A proposal has
 `command`, `args`, `reason`. The server checks the args, the preconditions (resume needs a stopped scan, stop a running one,
 an attempt a failed step), the person's permission and the environment, then renders a `.sy-cmd` in `proposed` state. Failed
-checks become one plain assistant line ("I can't resume 01a110d5: it is running").
+checks become one plain assistant line ("I can't resume 01a110d5-2028: it is running").
 
 ### 4.4 Tools
 
@@ -336,7 +336,7 @@ Drop, don't fail: every drop is logged with its reason code; the turn continues 
 | Send a message | `hx-post="/workbench/turn"`, response = your message + the empty assistant message `#turn-t42`; the composing frame arrives over SSE when `render_view` starts (into `#turn-t42` inline, `#wb-stage` in split) |
 | Stream the answer | SSE `frag` events that replace `#turn-t42-text` (`hx-swap-oob="innerHTML:#turn-t42-text"`), coalesced every 250 ms (whole paragraph, not deltas, so escaping stays simple) |
 | Deliver the view | SSE `frag` with the views (`outerHTML:#t43-map` …) and the Path switch; the URL via `wb.js`: `history.pushState({htmx: true}, "", url)` |
-| Live updates | SSE `frag` per event: `outerHTML:#node-6`, `beforeend:#map-canvas` (new node), `outerHTML:#meter-01a110d5`, `outerHTML:#livebar` |
+| Live updates | SSE `frag` per event: `outerHTML:#node-6`, `beforeend:#map-canvas` (new node), `outerHTML:#t43-map-meter`, `outerHTML:#livebar` |
 | Switch path | `<button hx-get="/workbench/view?c=…&path=troubleshoot" hx-target="#wb-layout" hx-swap="outerHTML" hx-push-url="true">`; the stream lives on `#wb-root` and survives; `#wb-log` and `#wb-composer` (typed text, chips) keep their state with `hx-preserve` |
 | Select a page | `hx-get="/workbench/select?…&sel=/kontakt" hx-target="#wb-layout" hx-swap="outerHTML" hx-replace-url="true"`: the layout comes back with the sheet (and without `--nosheet`) or with PageDetail on the stage; log and composer are preserved |
 | Confirm a command | `<form class="sy-cmd" hx-post="/workbench/commands/cmd_9F/confirm" hx-swap="outerHTML">` with the one-time token; the result arrives later over SSE replacing `#cmd_9F` |
@@ -412,7 +412,7 @@ the entry as its own on `popstate`.
 | Contract | Every file in `workbench/examples/valid` passes layers 1–5; every file in `invalid` is dropped with the expected reason; narration grounding on `examples/narration`; command checks on `examples/command` | Unit, every commit |
 | Schema drift | `workbench/tools/gen_wb_schema.py` regenerates the JSON; CI fails if the committed JSON differs | Every commit |
 | Render snapshots | Each component partial in each state (live, stopped, stale, composing, failure) and each `.sy-cmd` state, from the fixture; HTML snapshots + screenshots of `wb-01…wb-08` at 1280 and 1024 | Every commit (HTML), nightly (screenshots) |
-| e2e | Fixture replay of 01a110d5: start → six pages → stop at /kontakt → Resume card → confirm → done; troubleshoot → attempt 3 passes; model switched off → map still updates; SSE dropped → stale → replay | Every merge |
+| e2e | Fixture replay of 01a110d5-2028: start → six pages → stop at /kontakt → Resume card → confirm → done; troubleshoot → attempt 3 passes; model switched off → map still updates; SSE dropped → stale → replay | Every merge |
 | Accessibility | axe on wb-01…wb-08; keyboard scripts (Tab order on the graph, `A`, `Esc`, focus return); live-region log (one announcement per stage change and milestone) | Every merge |
 | Evals | Golden prompts (40 in phase 0, 120 by phase 2): path accuracy, component recall and precision, invalid-spec rate, repair rate, narration grounding failures, "never decides" on Explain, injection cases | Nightly + before each model or prompt change |
 | Load | 200 viewers of one scan, 20 scans at once: event → screen p95 < 1 s; server render of a 4-component spec p95 < 300 ms | Before each phase rollout |
@@ -452,7 +452,7 @@ Sizes: S ≤ 2 days, M ≤ 1 week, L ≤ 2 weeks. "Acceptance" lists the check; 
 
 | Ticket | Size | Depends on | Does | Acceptance | FE-W |
 |---|---|---|---|---|---|
-| WB-01 | M | — | Scan event model + store (types, payloads, sequence, `scan#step` refs) | Fixture 01a110d5 stored with 6 pages in order | W06 |
+| WB-01 | M | — | Scan event model + store (types, payloads, sequence, `scan#step` refs) | Fixture 01a110d5-2028 stored with 6 pages in order | W06 |
 | WB-02 | L | WB-01 | SSE endpoint per tab, named events, `Last-Event-ID` / `last_event_id`, heartbeat, replay, fan-out | Drop and reconnect replays missed events; 50 viewers p95 < 1 s | W06 |
 | WB-03 | M | — | Catalogue loader + validator (layers 1–6), drop reasons | Contract tests green over `workbench/examples` | W02, W03 |
 | WB-04 | M | WB-03 | Frame partials: `.sy-genview` (+ `--card`, `--failure`), Why, source line, feedback, `.sy-genskel`, `.sy-cmd` × 5 states | Render snapshots match | W04 |

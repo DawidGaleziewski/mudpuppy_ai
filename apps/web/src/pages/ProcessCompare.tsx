@@ -81,7 +81,7 @@ function ChangeSpec({ c, ask }: { c: Compare; ask: (a: Ask) => void }) {
       }),
     });
   };
-  const exportHref = `/processes/${encodeURIComponent(c.head.key)}/spec.md?left=${encodeURIComponent(c.left)}&right=${encodeURIComponent(c.right ?? '')}`;
+  const exportHref = `/api/portals/${encodeURIComponent(c.head.portal)}/processes/${encodeURIComponent(c.head.key)}/spec.md?left=${encodeURIComponent(c.left)}&right=${encodeURIComponent(c.right ?? '')}`;
   return (
     <Plate variant="drawn" title="Change spec" actions={c.saved ? <Tag size="sm">{c.saved}</Tag> : <Text small muted>generated · editable</Text>}>
       <form onSubmit={submit} aria-label="Change spec">

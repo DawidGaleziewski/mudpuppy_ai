@@ -63,9 +63,11 @@ this file wins over habits found in existing code.
   `ba-tools/index.ts`) stay a thin wrapper; the logic goes in `services/<tool-name>.ts` with its
   unit tests. Agent-callable tools are added to the allowlist constant and the agent definition.
   Checked by: reviewer.
-- **G-15** **New dashboard page**: one router module `web/<page>.py`, its template
-  `templates/<page>.html`, its fragments in the same router, read queries in a `queries_*.py`
-  module, a route test `tests/test_<page>.py`; no SQL in routers. Checked by: reviewer.
+- **G-15** **New console page** (R-100: React only): the data in one read model
+  `queries_app_<page>.py` with typed response models, one router `web/api_<page>.py` under `/api`
+  with an API test `tests/test_api_<page>.py`, no SQL in routers; the page in
+  `apps/web/src/pages/<Page>.tsx` composed from the design system, its route in `App.tsx`, a page
+  test with a stubbed API (skill `mudpuppy-react-ui`). Checked by: reviewer.
 - **G-16** **New table or column**: always through the `db-admin` agent: the Zod schema in the
   owning model package, a reversible migration (`NNNN_name.up.sql` / `.down.sql`), regenerated
   `data/schema/schema.sql`, and a dashboard read model if the dashboard reads it (drift test).

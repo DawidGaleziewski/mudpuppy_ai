@@ -1,11 +1,12 @@
 import { useParams, useSearchParams } from 'react-router';
 import { Button, Callout, Cluster, Columns, LinkButton, PageHead, Segmented, Stack, Tag, Text } from '../design-system';
 import { docHref, useProcessPage, type ProcessPage } from '../app/api-process';
-import { htmxExportHref, processesKey } from '../app/api-processes';
+import { exportHref, processesKey } from '../app/api-processes';
 import { processPageHref } from '../app/api-process-compare';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
+import { useGo } from '../app/RouterAnchor';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { useDraft } from '../app/useDraft';
@@ -48,7 +49,7 @@ function Actions({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void }) {
     <Cluster>
       {right && <LinkButton href={processPageHref(d.portal, d.key, 'compare', `?left=A&right=${right}`)}>{`Compare A and ${right}`}</LinkButton>}
       <LinkButton href={processPageHref(d.portal, d.key, 'history')}>History</LinkButton>
-      <LinkButton href={htmxExportHref(d.key)}>Documentation</LinkButton>
+      <LinkButton href={exportHref(d.portal, d.key)}>Documentation</LinkButton>
       {!d.archived_at && (
         <Button
           variant="quiet"
@@ -70,6 +71,7 @@ function Actions({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void }) {
 
 function ModelSwitch({ d, ask, setModel }: { d: ProcessPage; ask: (a: Ask) => void; setModel: (m: string) => void }) {
   const from = d.model;
+  const go = useGo();
   return (
     <Cluster>
       <Segmented
@@ -93,7 +95,7 @@ function ModelSwitch({ d, ask, setModel }: { d: ProcessPage; ask: (a: Ask) => vo
               write: writes.newModel(d.portal, d.id, from.label),
               follow: 'Open the new model',
               onDone: (r) => {
-                if (r.href) window.location.assign(r.href);
+                if (r.href) go(r.href);
               },
             })
           }

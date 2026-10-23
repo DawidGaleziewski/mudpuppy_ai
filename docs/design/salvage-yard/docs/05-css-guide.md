@@ -103,6 +103,9 @@ Put the mapping in **one** place in the backend or view layer, for example a tem
 `margin`, `align-*`, `justify-*`, image `height`) and the hooks `--sy-gap`, `--sy-min` (for `.sy-grid`) and `--value` (for `.sy-meter`).
 Graph and timeline layout are the exceptions: `.sy-node`, `.sy-node-group` and `.sy-graph__canvas` take `left`, `top`, `width`, `height` and `--sy-node-w` from the server's layout, and `path.sy-edge` takes its `d`; `.sy-releases__span`, `__scan` and `__range` take `left`/`width` in %, `.sy-releases` takes `--sy-releases-name`.
 Gen UI hooks (`genui.css`): `.sy-wb` takes `--sy-wb-h` (conversation height), `--sy-wb-conv` and `--sy-wb-aside` (column widths); `.sy-mini` takes `--sy-mini-h`; `.sy-film__item` `--sy-film-w`; `.sy-genskel__block` `--sy-skel-h` (reserve the final size); `.sy-evstrip` `--sy-evstrip-n`.
+2.2 hooks: `.sy-phasebar__phase` takes `--sy-phase` (the phase's length in seconds); `.sy-compare__stack` `--sy-overlay` (0–1, the after's strength); `--sy-header-h` on `:root` (65px, 121px below 1200px: the drawer's top and height); `.sy-dialog__main` `--sy-dialog-aside` (320px). State as attributes: `data-kind`, `data-state`, `data-narrow` (phase bar), `data-shape="line"` (Not here), `data-label` (range label), `data-edited` (command card field).
+
+2.1 hooks: `.sy-dialog--wide` takes `--sy-dialog-wide` (1280px); `.sy-variant` `--sy-variant-pic` (360px); `.sy-graphview` `--sy-graph-top` (space above the graph on the Map page), `--sy-graph-sticky` (where the zoom bar sticks) and `--sy-graph-max` (embedded cap, 520px). The graph canvas keeps its inline size, node positions and `transform: scale()` from the API's layout.
 
 **Forbidden everywhere outside `tokens.css`:**
 - hex, `rgb()` or named colours (use roles)

@@ -1,6 +1,6 @@
-"""The React console's Settings (R-96, spec 068): the page's data as the htmx Settings reads it
-(environments through the chat service, credentials by name only, personas, crawl rules, hints,
-screen identity, the store), and the writes through the chat service (mocked)."""
+"""The React console's Settings (R-96, spec 068): the page's data (environments through the chat
+service, credentials by name only, personas, crawl rules, hints, screen identity, the store), and
+the writes through the chat service (mocked)."""
 
 from __future__ import annotations
 

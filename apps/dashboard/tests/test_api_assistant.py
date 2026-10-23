@@ -46,7 +46,7 @@ def test_the_timeline_has_messages_failures_and_credential_requests(empty_store:
     )
     assert not cred["stored"] and cred["status"]["word"] == "Needs you"
     assert body["items"][3]["text"] == "Login form reached."
-    assert FAKE_SECRET not in r.text and body["full_page"] == f"/chat?conversation={CONV}"
+    assert FAKE_SECRET not in r.text and "full_page" not in body  # designer Q11: no chat page
 
 
 def test_a_stored_credential_is_marked_stored(empty_store: Store) -> None:

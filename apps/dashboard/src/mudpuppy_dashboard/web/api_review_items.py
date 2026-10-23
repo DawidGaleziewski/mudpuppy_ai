@@ -1,7 +1,7 @@
 """The React console's Review writes for the kinds spec 063 moves (R-96): re-anchor or dismiss an
-amendment, apply or discard an assistant proposal, save, approve or dismiss a probe suite. The
-same chat calls as the htmx forms (`web/amendments.py`, `web/review.py`), signed with the
-reviewer; every write answers `{ok, message, href}`. No SQL here (G-15)."""
+amendment, apply or discard an assistant proposal, save, approve or dismiss a probe suite. Each
+is a chat service call signed with the reviewer; every write answers `{ok, message, href}`. No SQL
+here (G-15)."""
 
 from __future__ import annotations
 
@@ -93,7 +93,7 @@ async def decide_proposal(request: Request, portal: str, proposal: str, verb: st
 @router.post("/suites/{suite}", response_model=WriteResult)
 async def decide_suite(request: Request, portal: str, suite: str) -> JSONResponse:
     """Save the edited suite, approve it (save, then approve: written into traces.yaml) or dismiss
-    it, through the chat service; the edit goes through `suite_form` as the htmx form's does."""
+    it, through the chat service; the edit goes through `suite_form`."""
     if (no := write_refused(request, "decide on suites")) is not None:
         return no
     body = await read_json(request)

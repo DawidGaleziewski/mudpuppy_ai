@@ -1,5 +1,6 @@
 import type { AnchorHTMLAttributes, ButtonHTMLAttributes, ReactNode } from 'react';
 import { cx } from '../cx.js';
+import { Anchor } from './Anchor.js';
 
 export type ButtonVariant = 'default' | 'primary' | 'strong' | 'quiet' | 'danger';
 
@@ -53,13 +54,13 @@ export function Button({
   );
 }
 
-export type LinkButtonProps = Omit<Common, 'busy'> & AnchorHTMLAttributes<HTMLAnchorElement>;
+export type LinkButtonProps = Omit<Common, 'busy'> & AnchorHTMLAttributes<HTMLAnchorElement> & { href: string };
 
 /** A link drawn as a button, for a move to another page that is the view's main way on. */
 export function LinkButton({ variant = 'default', size, children, className, ...rest }: LinkButtonProps) {
   return (
-    <a {...rest} className={cx(classes(variant, size), className)}>
+    <Anchor {...rest} className={cx(classes(variant, size), className)}>
       {children}
-    </a>
+    </Anchor>
   );
 }

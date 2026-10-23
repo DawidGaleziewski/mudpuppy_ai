@@ -1,4 +1,5 @@
 import { useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
+import { Anchor } from './Anchor.js';
 import { Button, LinkButton } from './Button.js';
 import { Segmented } from './Segmented.js';
 import { Cluster, Split, Stack } from './Layout.js';
@@ -126,7 +127,8 @@ function Head({ heading, route, scans, view, setView, fit, setFit, onClose }: He
 function Figure({ src, alt, fit }: { src: string | null; alt: string; fit: Fit }) {
   const [failed, setFailed] = useState<string | null>(null);
   return (
-    <figure className="sy-dialog__figure" data-fit={fit}>
+    // it scrolls a tall picture: keyboard users reach it too (axe scrollable-region-focusable)
+    <figure className="sy-dialog__figure" data-fit={fit} tabIndex={0} aria-label={alt}>
       {src && failed !== src ? (
         <img src={src} alt={alt} onError={() => setFailed(src)} />
       ) : (
@@ -171,9 +173,9 @@ function Foot({ set, index, go, src, href }: FootProps) {
         )}
         <Cluster>
           {src && (
-            <a className="sy-small" href={src} target="_blank" rel="noopener">
+            <Anchor className="sy-small" href={src} target="_blank" rel="noopener">
               Open full size in a new tab
-            </a>
+            </Anchor>
           )}
           {href && <LinkButton href={href}>Open the recorded page</LinkButton>}
         </Cluster>

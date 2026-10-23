@@ -26,7 +26,8 @@ const base = flag('--base', 'http://127.0.0.1:8765');
 const out = flag('--out', 'ui-check');
 // Desktop-first pages (2.0, the Workbench) are checked at their own widths: `--widths 1280,1024`.
 const WIDTHS = flag('--widths', '1280,390').split(',').map(Number);
-const paths = args.length ? args : ['/', '/screens', '/docs', '/activity', '/glossary', '/search?q=a'];
+// The console is the React app under /app/ (R-100); a portal's pages need its id in the path.
+const paths = args.length ? args : ['/app/', '/app/glossary', '/app/glossary/wiki', '/app/search?q=a'];
 
 const slug = (p) => p.replace(/[^a-z0-9]+/gi, '-').replace(/^-|-$/g, '') || 'home';
 
@@ -39,8 +40,9 @@ for (const width of WIDTHS) {
   page.on('console', (m) => m.type() === 'error' && errors.push(m.text()));
   for (const path of paths) {
     errors.length = 0;
-    await page.goto(base + path, { waitUntil: 'load' });
-    await page.waitForTimeout(800);
+    // the page draws once its API answers: wait for the network to settle, then a beat
+    await page.goto(base + path, { waitUntil: 'networkidle' });
+    await page.waitForTimeout(300);
     const shot = join(out, `${slug(path)}-${width}.png`);
     await page.screenshot({ path: shot, fullPage: true });
     const facts = await page.evaluate(() => ({

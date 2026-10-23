@@ -21,7 +21,7 @@ afterEach(() => {
 const API = '/api/portals/shop/review';
 const status = (shape: string, word: string) => ({ shape, word });
 const row = (over: Record<string, unknown>) => ({ tags: [], chip: null, status: null, meta: null, hint: null, route: null, at: null, keys: [], ...over });
-const detail = (r: Record<string, unknown>, own: Record<string, unknown>) => ({ row: r, in_react: true, htmx: '', text: null, link: null, also: [], rev: null, revs: null, cited: [], ...own });
+const detail = (r: Record<string, unknown>, own: Record<string, unknown>) => ({ row: r, has_detail: true, text:null, link: null, also: [], rev: null, revs: null, cited: [], ...own });
 const page = (kind: string, r: Record<string, unknown>, own: Record<string, unknown>) => ({
   portal: 'shop',
   decides: true,

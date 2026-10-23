@@ -1,4 +1,5 @@
 import { Button, Cluster, Facts, Plate, Row, Rows, ScanId, Stack, SubHead, Tag, Tags, Text } from '../design-system';
+import { planHref } from '../app/api-plan';
 import { recordedMapKey, useRecordedNode, type RecordedNodeDetail } from '../app/api-recorded';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -9,8 +10,9 @@ import { ShownStatus } from '../app/ShownStatus';
 /** How many moves out the inspector lists; the screen page has them all. */
 const MOVES_SHOWN = 20;
 
-/** The htmx screen page of a recorded state (the React one comes with a later step). */
-export const stateHref = (state: string) => `/states/${encodeURIComponent(state)}`;
+import { stateHref } from '../app/api-state';
+
+export { stateHref };
 export const scanHref = (scan: string) => `/app/scans/${encodeURIComponent(scan)}`;
 
 function About({ d }: { d: RecordedNodeDetail }) {
@@ -113,7 +115,7 @@ function Left({ d }: { d: RecordedNodeDetail }) {
   );
 }
 
-function Marks({ d, ask }: { d: RecordedNodeDetail; ask: (a: Ask) => void }) {
+function Marks({ portal, d, ask }: { portal: string; d: RecordedNodeDetail; ask: (a: Ask) => void }) {
   if (d.marks.length === 0 && !d.probe) return null;
   const probe = d.probe;
   return (
@@ -144,7 +146,7 @@ function Marks({ d, ask }: { d: RecordedNodeDetail; ask: (a: Ask) => void }) {
               </Button>
             ))}
           </Cluster>
-          <Text small href="/scans/plan">
+          <Text small href={planHref(portal)}>
             Plan the next scan
           </Text>
         </>
@@ -200,7 +202,7 @@ function Selected({ portal, screen }: { portal: string; screen: string }) {
             <States d={d} />
             <Moves d={d} />
             <Left d={d} />
-            <Marks d={d} ask={ask} />
+            <Marks portal={portal} d={d} ask={ask} />
             {view}
           </Stack>
         )}

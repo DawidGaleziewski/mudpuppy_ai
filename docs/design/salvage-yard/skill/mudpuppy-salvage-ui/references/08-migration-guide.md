@@ -122,13 +122,13 @@ Full table: `migration/component-map.csv`.
 | SCR-002 Overview (portals and runs) | **Home** per portal; "All portals" in the picker shows the portal cards; the runs table moves to **Scans** |
 | SCR-003/004/005 Documentation | **Docs** (restyle only); draft records to confirm also surface in **Review** |
 | SCR-006 Server activity | **Scans ▸ Server activity** tab |
-| SCR-007 Guided chat (workflow, credentials, process scope) | **Home** (assistant) + drawer on every page; workflow → Home "Where this portal is"; credentials → Settings vault + in-chat request; process scope → **Processes** |
+| SCR-007 Guided chat (workflow, credentials, process scope) | **Home** (assistant) + drawer on every page; workflow → Home "Where this portal is"; credentials → Settings vault + in-chat request; process scope → **Processes**. **2.0:** no chat page; the drawer and Workbench ▸ Chat; the step tracker only as Get started on a new portal's Home; credentials via the vault and the persona card (`19-console-answers/11`) |
 | SCR-008 Glossary · SCR-009 BA wiki | "?" in the header + `[?]` hints (open item O-3) |
-| SCR-010 State detail with amendments | **Screens ▸ screen detail** (`08-screen-detail.html`) |
+| SCR-010 State detail with amendments | **Screens ▸ screen detail** (`08-screen-detail.html`). **2.0:** `/states/{id}` redirects to the Screen page with the recording dialog; amendments and inputs become Screen page tabs (`19-console-answers/10`) |
 | SCR-011 Amendments to review (superseded) | **Review ▸ re-anchor** |
 | SCR-012 Portal settings | **Settings** (`11-settings.html`) |
 | SCR-013 New portal | Portal picker "+ New portal" → Settings flow (restyle only) |
-| SCR-014 Run detail | **Scans ▸ scan detail**: same tabs (States, Actions, Frontier, Forms, Network, Robots, Decisions, Trace, Process, Docs) as `.sy-tabs` (restyle only) |
+| SCR-014 Run detail | **Scans ▸ scan detail**: same tabs (States, Actions, Frontier, Forms, Network, Robots, Decisions, Trace, Process, Docs) as `.sy-tabs` (restyle only). Trace gets the phase bar (`.sy-phasebar`, `19-console-answers/02`) |
 
 Keep old URLs working: add redirects (for example `/chat` → `/portal/{p}/home`, `/amendments/superseded` → `/portal/{p}/review?type=reanchor`).
 

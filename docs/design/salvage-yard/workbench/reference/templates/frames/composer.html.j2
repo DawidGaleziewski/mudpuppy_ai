@@ -1,0 +1,18 @@
+{# Composer: one structure in every layout (focus mode wraps it in .sy-cmdbar), because it is preserved (hx-preserve)
+   across layout swaps — typed text and context chips survive a path switch or a new view. Chips (point and ask) are
+   added by wb.js as .sy-ctxchip with a hidden input each; they travel as structured context, not pasted text.
+   Send is .sy-btn--strong: the marker is kept for Confirm. The response carries only headers; the turn arrives over
+   the stream. #}
+{% set sugg = (view.spec.suggestions if view and view.spec else []) %}
+<form class="sy-composer" id="wb-composer" hx-preserve="true" data-phase="{{ sess.phase }}" aria-label="Message the assistant"
+      hx-post="/workbench/turn" hx-swap="none" hx-disabled-elt="find button[type=submit]">
+  <div class="sy-ctxbar" id="wb-ctxbar" hidden><span class="sy-label">Asking about</span></div>
+  {% with items = sugg, oob = False %}{% include "frames/suggest.html.j2" %}{% endwith %}
+  <label class="sy-field"><span class="sy-field__label">Message</span>
+    <textarea class="sy-textarea" id="wb-input" name="text" rows="2" required placeholder="Ask, or tell the crawler what to do"></textarea></label>
+  <div class="sy-actions sy-actions--split">
+    <span class="sy-meta"><span class="sy-kbd">Enter</span> sends{% if sess.phase >= 2 %} · <span class="sy-kbd">@</span> points at a page{% endif %} ·
+      <span class="sy-kbd">A</span> asks about the focused item</span>
+    <button class="sy-btn sy-btn--strong" type="submit">Send</button></div>
+  <div class="sy-genview__notice" role="listbox" id="wb-picker" aria-label="Point at a page" hidden></div>
+</form>

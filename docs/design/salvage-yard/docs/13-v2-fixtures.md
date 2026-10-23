@@ -34,7 +34,8 @@ Illustrative 2.0 fixture (everything below). Use it as the seed for tests and de
 **check run** (replays + rule tests, no AI), 64 checks, 9 findings (saw 3e1a + 9c21). Last scan = 01a1340c-3b97. "Now" = 17 Oct 12:00Z.
 All times are UTC and written with Z (FE-Q07). **Decided** (Review's history tab): 31 decisions since 4 Oct.
 
-**Personas:** guest (real) · client (logged in) · premium (a premium customer).
+**Personas:** guest (real) · client (logged in) · premium (a premium customer). In the persona card demo (`19-console-answers/04`)
+client signs in with the vault reference `CLIENT_LOGIN` and has test data Data urodzenia 1985-04-12, Kod pocztowy 00-950.
 
 **Screens now:** 23 known = **19 active**, **2 merged**, **2 retired**.
 - Merged: "Kalkulator OC/AC — dane kierowcy (?src=menu)" → merged into Kalkulator OC/AC — dane kierowcy on 15 Oct
@@ -186,6 +187,9 @@ Used by `screens/wb-*`, `design-system/genui-components.html`, `workbench/exampl
   isn't there, not a timing problem · #3 "Record the form, don't submit", **passed** 11:04:10Z: the form and its 4 fields are
   recorded, nothing is submitted. Variations come from the recovery API: `wait_longer` "Wait longer" · `record_only` "Record the
   form, don't submit" · `skip_action` "Skip this action".
+- **Phases of 01a110d5-2028** (the Trace phase bar, `19-console-answers/02`): Start 10:49:20Z, 11 s, steps 1–11 · Explore
+  10:49:31Z, 4 min 9 s, steps 12–76 · Fill forms 10:53:40Z, 3 min 25 s, steps 77–139 · Explore 10:57:05Z, 1 min 39 s,
+  steps 140–171, ended in a failure. The running bar of 01a110e7-2068 in the demo (wait and quiet phases) is illustrative.
 - **Resume (demo):** a new scan **01a110e7-2068** "continues 01a110d5-2028" from /porownanie step 140, on sandbox; 17 pages and the 113
   queued links are kept. Resumed straight from the ErrorCard (wb-02), /kontakt gets one more try with the original action;
   resumed after troubleshooting (wb-04), /kontakt is recorded without submitting (attempt 3's variation).

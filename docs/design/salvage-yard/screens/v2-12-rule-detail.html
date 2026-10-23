@@ -9,8 +9,6 @@
 <link rel="stylesheet" href="../design-system/css/fonts.css">
 <link rel="stylesheet" href="../design-system/css/salvage.css">
 <style>
-  /* Screen layout only: the decision table's caption reads left-aligned above the table, as a block of facts. */
-  .mp-caption { caption-side: top; text-align: left; padding: var(--sy-space-3) 12px; display: table-caption; }
   .mp-sentences { list-style: decimal; padding-left: var(--sy-space-5); display: flex; flex-direction: column; gap: 4px; }
 </style>
 </head>
@@ -72,7 +70,7 @@
           <!-- The finding, first -->
           <div class="sy-callout">
             <span class="sy-callout__title">What happened</span>
-            <span>On 17 Oct, check run <span class="sy-tag sy-tag--sm">01a1340c</span> got the exit page for ages 18 and 19 on release <span class="sy-case-normal">9c21</span>, where the table said opcje. A threshold search found the new limit: <b>21</b>. The table below is the new one; the old one is under <a href="#changes">Changes</a>.</span>
+            <span>On 17 Oct, check run <span class="sy-tag sy-tag--sm">01a1340c-3b97</span> got the exit page for ages 18 and 19 on release <span class="sy-case-normal">9c21</span>, where the table said opcje. A threshold search found the new limit: <b>21</b>. The table below is the new one; the old one is under <a href="#changes">Changes</a>.</span>
             <span class="sy-cluster sy-small" style="--sy-gap: 6px 8px">
               <span class="sy-chip"><span>Release <span class="sy-case-normal">9c21</span></span></span>
               <span class="sy-muted">Explained as a new release: the app's code changed at 14:02Z on 16 Oct (marker <span class="sy-case-normal">5f08</span> → <span class="sy-case-normal">9c21</span>). Needs you because a rule changed.</span>
@@ -85,16 +83,14 @@
               <h2 id="dt-h" class="sy-plate__title">Decision table</h2>
               <span class="sy-status" data-status="inferred"><span>Inferred from tests · <span class="sy-case-normal">9c21</span></span></span>
             </div>
+            <dl id="br021-facts" class="sy-facts sy-facts--table">
+              <dt>Input</dt><dd><b>Wiek kierowcy</b> = age on today's date, from field "Data urodzenia" on dane kierowcy</dd>
+              <dt>Hit policy</dt><dd><b>First match</b>: rows are checked top to bottom; the first that matches decides. The 2 rows cover every age and don't overlap.</dd>
+              <dt>Decided</dt><dd>When "Dalej" is pressed on Kalkulator OC/AC — dane kierowcy</dd>
+            </dl>
             <div class="sy-table-wrap sy-table-wrap--flush">
-              <table class="sy-table sy-table--decision" style="min-width: 560px">
-                <caption class="mp-caption">
-                  <span class="sy-sr-only">BR-021 decision table. </span>
-                  <dl class="sy-facts">
-                    <dt>Input</dt><dd><b>Wiek kierowcy</b> = age on today's date, from field "Data urodzenia" on dane kierowcy</dd>
-                    <dt>Hit policy</dt><dd><b>First match</b>: rows are checked top to bottom; the first that matches decides. The 2 rows cover every age and don't overlap.</dd>
-                    <dt>Decided</dt><dd>When "Dalej" is pressed on Kalkulator OC/AC — dane kierowcy</dd>
-                  </dl>
-                </caption>
+              <table class="sy-table sy-table--decision" style="min-width: 560px" aria-describedby="br021-facts">
+                <caption class="sy-sr-only">BR-021 decision table</caption>
                 <colgroup><col></colgroup>
                 <colgroup><col></colgroup>
                 <colgroup><col><col></colgroup>
@@ -151,7 +147,7 @@
           <section id="tests" class="sy-plate" aria-labelledby="bt-h">
             <div class="sy-plate__head">
               <h2 id="bt-h" class="sy-plate__title">Boundary tests</h2>
-              <span class="sy-cluster" style="--sy-gap: 6px 12px"><span class="sy-meta">check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct 10:05Z</span><span class="sy-status" data-status="ok">Pass</span></span>
+              <span class="sy-cluster" style="--sy-gap: 6px 12px"><span class="sy-meta">check run <span class="sy-tag sy-tag--sm">01a1340c-3b97</span> · 17 Oct 10:05Z</span><span class="sy-status" data-status="ok">Pass</span></span>
             </div>
             <div class="sy-table-wrap sy-table-wrap--flush">
               <table class="sy-table sy-table--middle" style="min-width: 600px" aria-labelledby="bt-h">
@@ -168,7 +164,7 @@
                 <tbody>
                   <tr>
                     <td><span class="sy-mono">9c21</span></td>
-                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c-3b97</span></td>
                     <th scope="row" class="sy-num">20</th>
                     <td><span class="sy-small sy-muted">row 1 →</span> Nie możemy Cię ubezpieczyć</td>
                     <td><div class="sy-stack" style="--sy-gap: 2px"><span>Nie możemy Cię ubezpieczyć</span><a class="sy-small" href="10-scans.html">case 7</a></div></td>
@@ -176,7 +172,7 @@
                   </tr>
                   <tr>
                     <td><span class="sy-mono">9c21</span></td>
-                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c-3b97</span></td>
                     <th scope="row" class="sy-num">21</th>
                     <td><span class="sy-small sy-muted">row 2 →</span> Kalkulator OC/AC — opcje</td>
                     <td>Kalkulator OC/AC — opcje</td>
@@ -184,7 +180,7 @@
                   </tr>
                   <tr>
                     <td><span class="sy-mono">9c21</span></td>
-                    <td><span class="sy-tag sy-tag--sm">01a1340c</span></td>
+                    <td><span class="sy-tag sy-tag--sm">01a1340c-3b97</span></td>
                     <th scope="row" class="sy-num">22</th>
                     <td><span class="sy-small sy-muted">row 2 →</span> Kalkulator OC/AC — opcje</td>
                     <td>Kalkulator OC/AC — opcje</td>
@@ -198,7 +194,7 @@
               <h3 class="sy-label" id="rh-h">Rerun history</h3>
               <ol class="sy-timeline" aria-labelledby="rh-h">
                 <li data-status="ok">
-                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c-3b97</span><span class="sy-status" data-status="ok">Pass</span></div>
                   <div class="sy-timeline__body">20 / 21 / 22 → exit / opcje / opcje, on the new table</div>
                 </li>
                 <li data-status="draft">
@@ -206,7 +202,7 @@
                   <div class="sy-timeline__body">The first age that leads to opcje on <span class="sy-case-normal">9c21</span> is 21. This became row 2 of the new table.</div>
                 </li>
                 <li data-status="failed">
-                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c</span><span class="sy-status" data-status="failed">Failed on the old table</span></div>
+                  <div class="sy-timeline__head"><b>17 Oct</b><span class="sy-mono sy-mono--sm">9c21 · 01a1340c-3b97</span><span class="sy-status" data-status="failed">Failed on the old table</span></div>
                   <div class="sy-timeline__body">17 / 18 / 19 → <b>exit / exit / exit</b>; the old table expected exit / opcje / opcje</div>
                 </li>
                 <li>
@@ -214,11 +210,11 @@
                   <div class="sy-timeline__body">Rollout: <span class="sy-case-normal">5f08</span> and <span class="sy-case-normal">9c21</span> served together until 17 Oct 09:30Z. Help text on dane kierowcy became "Musisz mieć ukończone 21 lat".</div>
                 </li>
                 <li data-status="ok">
-                  <div class="sy-timeline__head"><b>15 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a12f40</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__head"><b>15 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a12f40-8c1e</span><span class="sy-status" data-status="ok">Pass</span></div>
                   <div class="sy-timeline__body">17 / 18 / 19 → exit / opcje / opcje</div>
                 </li>
                 <li data-status="ok">
-                  <div class="sy-timeline__head"><b>4 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a1083f</span><span class="sy-status" data-status="ok">Pass</span></div>
+                  <div class="sy-timeline__head"><b>4 Oct</b><span class="sy-mono sy-mono--sm">5f08 · 01a1083f-5472</span><span class="sy-status" data-status="ok">Pass</span></div>
                   <div class="sy-timeline__body">17 / 18 / 19 → exit / opcje / opcje · first table: &lt; 18 → exit</div>
                 </li>
               </ol>
@@ -323,7 +319,7 @@
                 </span>
                 <small>v9c21</small>
               </figure>
-              <p class="sy-small sy-muted">Variant <span class="sy-case-normal">r2</span> · check run <span class="sy-tag sy-tag--sm">01a1340c</span>, case 7 · release <span class="sy-case-normal">9c21</span> · persona <span class="sy-mono">guest</span></p>
+              <p class="sy-small sy-muted">Variant <span class="sy-case-normal">r2</span> · check run <span class="sy-tag sy-tag--sm">01a1340c-3b97</span>, case 7 · release <span class="sy-case-normal">9c21</span> · persona <span class="sy-mono">guest</span></p>
             </div>
           </section>
 
@@ -339,7 +335,7 @@
                 <dt>Input from</dt><dd>field "Data urodzenia"</dd>
                 <dt>Portal part</dt><dd>Kalkulator app</dd>
                 <dt>Last changed</dt><dd><span class="sy-case-normal">9c21</span> · 16 Oct</dd>
-                <dt>Last tested</dt><dd>17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></dd>
+                <dt>Last tested</dt><dd>17 Oct · <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></dd>
                 <dt>In docs</dt><dd><a class="sy-tag sy-tag--sm" href="#">PROC-001</a></dd>
               </dl>
             </div>
@@ -370,9 +366,9 @@ leads to the exit page Nie możemy Cię ubezpieczyć; from 21 it leads to Kalkul
 | 1 | &lt; 21          | Nie możemy Cię ubezpieczyć (/kalkulator/odmowa)         | (none)  |
 | 2 | ≥ 21          | Kalkulator OC/AC — opcje (/kalkulator/kierowca, step 2) | (none)  |
 
-- Tested:   2026-10-17 · release 9c21 · check run 01a1340c · 20 → row 1, 21 → row 2, 22 → row 2: pass
+- Tested:   2026-10-17 · release 9c21 · check run 01a1340c-3b97 · 20 → row 1, 21 → row 2, 22 → row 2: pass
 - Changed:  release 9c21 (2026-10-16): threshold 18 → 21. Before: &lt; 18 → exit page; ≥ 18 → opcje
-- Evidence: check run 01a1340c, case 7: age 20 → Nie możemy Cię ubezpieczyć
+- Evidence: check run 01a1340c-3b97, case 7: age 20 → Nie możemy Cię ubezpieczyć
 - Status:   changed, not confirmed yet (needs a person)</pre>
         </div>
         <div class="sy-plate__foot">

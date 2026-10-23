@@ -120,7 +120,7 @@ function meta(d: Pages) {
   return `${s} · ${String(d.steps)} form step${d.steps === 1 ? '' : 's'}: ${String(d.steps_marked)} marked for probing, ${String(d.steps_unprobed)} not probed`;
 }
 
-/** Every page the scans recorded (the htmx Screens of a portal without a model), 25 a page. */
+/** Every page the scans recorded (the Screens of a portal without a model), 25 a page. */
 export function RecordedPages() {
   const portal = useParams().portal ?? '';
   const [params, setParams] = useSearchParams();

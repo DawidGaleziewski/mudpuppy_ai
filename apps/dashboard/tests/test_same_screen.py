@@ -12,7 +12,7 @@ import httpx2
 from mudpuppy_dashboard import queries_same_screen
 
 from .conftest import Store, insert, ts
-from .test_chat import ORIGIN, Service, text
+from .test_chat import ORIGIN, Service
 from .test_map import P, model, seed
 from .test_processes_pages import client
 
@@ -80,8 +80,8 @@ def test_pairs_nearest_tau_come_before_the_variants(empty_store: Store) -> None:
         ("st-a", "st-ab"),
     ]
     with client(empty_store) as c:
-        page = text(c.get(f"/same-screen?portal={P}").text)
-    assert "nearest the threshold τ 0.90" in page
+        page = c.get(f"/api/portals/{P}/same-screen").json()["page"]
+    assert page["tau"] == 0.9 and page["pair"]["b"]["state"] == "st-f2"
 
 
 def test_a_label_the_model_disagrees_with_comes_first_and_an_agreeing_one_drops(
@@ -92,62 +92,6 @@ def test_a_label_the_model_disagrees_with_comes_first_and_an_agreeing_one_drops(
     labelled(empty_store, "st-f1", "st-f1v", "distinct", "The error page is its own screen.")
     labelled(empty_store, "st-a", "st-ab", "near_duplicate")
     assert pairs(empty_store) == [("st-f1", "st-f1v", True)]
-
-
-def test_the_page_shows_the_pair_the_conflict_and_three_answers(empty_store: Store) -> None:
-    seed(empty_store)
-    model(empty_store)
-    labelled(empty_store, "st-f1", "st-f1v", "distinct", "The error page is its own screen.")
-    with client(empty_store) as c:
-        page = c.get(f"/same-screen?portal={P}")
-        other = c.get(f"/same-screen?portal={P}&a=st-a&b=st-ab").text
-        missing = c.get(f"/same-screen?portal={P}&a=st-a&b=nope")
-    with client(empty_store) as fresh:  # no portal cookie yet
-        none = fresh.get("/same-screen").text
-    flat = text(page.text)
-    assert page.status_code == 200 and "A label and the model disagree" in flat
-    assert "Automatic grouping says same screen" in flat and "Marek labelled them different" in flat
-    assert "The error page is its own screen." in flat and "1 of 2 · conflict" in flat
-    assert page.text.count('name="answer"') == 3 and page.text.count("sy-btn--primary") == 1
-    assert 'name="next_a" value="st-a"' in page.text
-    assert "disagree" not in other and "2 of 2" in text(other)
-    assert missing.status_code == 404
-    assert "No portal chosen" in none
-
-
-def test_an_answer_goes_to_the_chat_service_and_on_to_the_next_pair(empty_store: Store) -> None:
-    seed(empty_store)
-    model(empty_store)
-    service = Service()
-    service.routes[("POST", f"/portals/{P}/model/label")] = httpx2.Response(201, json={})
-    with client(empty_store, service) as c:
-        r = c.post(
-            f"/same-screen/{P}?portal={P}",
-            data={
-                "a": "st-a",
-                "b": "st-ab",
-                "answer": "same_data",
-                "why": "price only",
-                "next_a": "st-f1",
-                "next_b": "st-f1v",
-            },
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-        bad = c.post(
-            f"/same-screen/{P}?portal={P}",
-            data={"a": "st-a", "b": "st-ab", "answer": "maybe"},
-            headers=ORIGIN,
-            follow_redirects=False,
-        )
-        foreign = c.post(f"/same-screen/{P}", data={"a": "x"}, follow_redirects=False)
-    sent = json.loads(service.requests[-1].content)
-    assert sent == {"a": "st-a", "b": "st-ab", "answer": "same_data", "by": "Anna",
-                    "reason": "price only"}  # fmt: skip
-    assert r.status_code == 303 and "a=st-f1" in r.headers["location"]
-    assert "Saved" in r.headers["location"]
-    assert "a=st-a" in bad.headers["location"] and "Pick" in bad.headers["location"]
-    assert foreign.status_code == 403
 
 
 def answered(store: Store, rows: list[tuple[str, str, str, str | None]]) -> None:
@@ -169,9 +113,7 @@ def answered(store: Store, rows: list[tuple[str, str, str, str | None]]) -> None
     conn.close()
 
 
-def test_an_earlier_answer_stays_on_the_pair_and_in_the_screens_history(
-    empty_store: Store,
-) -> None:
+def test_an_earlier_answer_stays_on_the_pair(empty_store: Store) -> None:
     seed(empty_store)
     model(empty_store)
     answered(
@@ -182,12 +124,13 @@ def test_an_earlier_answer_stays_on_the_pair_and_in_the_screens_history(
         ],
     )
     with client(empty_store) as c:
-        pair = text(c.get(f"/same-screen?portal={P}&a=st-f1&b=st-f1v").text)
-        screen = text(c.get(f"/screens/SC-0003?portal={P}").text)
-    assert "Earlier answers 1 Marek : different screens" in pair
-    assert "The banner changes the purpose." in pair and "Anna's label and reason stay" in pair
-    assert "History · 2" in screen and "Same screen? answers · 2" in screen
-    assert screen.index("Anna : same screen") < screen.index("Marek : different screens")
+        pair = c.get(f"/api/portals/{P}/same-screen", params={"a": "st-f1", "b": "st-f1v"}).json()[
+            "page"
+        ]["pair"]
+    assert pair["label"]["by"] == "Anna"
+    assert [(e["by"], e["reason"]) for e in pair["earlier"]] == [
+        ("Marek", "The banner changes the purpose.")
+    ]
 
 
 def test_confirming_a_variant_finding_also_settles_its_pairs(empty_store: Store) -> None:
@@ -221,16 +164,18 @@ def test_confirming_a_variant_finding_also_settles_its_pairs(empty_store: Store)
         201, json={"decision": "cmd-9", "decided": [{"key": "H-0009", "status": "confirmed"}]}
     )
     service.routes[("POST", f"/portals/{P}/model/label")] = httpx2.Response(201, json={})
-    form = {"Content-Type": "application/x-www-form-urlencoded", **ORIGIN}
     with client(empty_store, service) as c:
-        page = c.get(f"/review?portal={P}&select=findings:dv").text
-        assert "Also settles · 1" in page and 'name="also" value="st-f1:st-f1v"' in page
         r = c.post(
-            f"/review/hypotheses/{P}",
-            content="keys=H-0009&action=confirm&reason=arms+of+one+form&also=st-f1%3Ast-f1v",
-            headers=form,
+            f"/api/portals/{P}/review/decide",
+            json={
+                "keys": ["H-0009"],
+                "action": "confirm",
+                "reason": "arms of one form",
+                "also": ["st-f1:st-f1v"],
+            },
+            headers=ORIGIN,
         )
-    assert "Also settled 1 of 1 Same screen? pairs." in text(r.text)
+    assert "Also settled 1 of 1 Same screen? pairs." in r.json()["message"]
     (label,) = [json.loads(q.content) for q in service.requests if q.url.path.endswith("/label")]
     assert label == {
         "a": "st-f1",

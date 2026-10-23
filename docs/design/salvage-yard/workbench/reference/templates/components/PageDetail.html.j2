@@ -1,0 +1,24 @@
+{# PageDetail — what happened on one page. Fills from the selection (click a page) and the event log. #}
+<div id="{{ cid }}-detail" class="sy-stack" style="--sy-gap: var(--sy-space-3)">
+{%- block live_detail %}
+  {% if vm.page %}
+  {% set p = vm.page %}
+  <div class="sy-askable sy-stack" style="--sy-gap: 6px">
+    <span class="sy-cluster" style="--sy-gap: 6px 10px"><b>{{ p.title }}</b><span class="sy-status" data-status="{{ p.status }}">{{ p.word }}</span></span>
+    <span class="sy-small">{{ p.what }}</span>
+  </div>
+  <dl class="sy-facts"><dt>Visited</dt><dd class="sy-mono sy-mono--sm">#{{ p.k }} · {{ p.at }}</dd>
+    <dt>Screen</dt><dd><a href="/screens/v2-07-screen-detail.html">Open the screen</a></dd></dl>
+  {% if live %}
+  <div class="sy-actions" style="--sy-gap: 6px">
+    <button class="sy-btn sy-btn--sm sy-btn--strong" type="button" data-ask="{{ vm.ask | tojson_attr }}">Ask about this</button>
+    {% if vm.troubleshoot %}<button class="sy-btn sy-btn--sm" type="button" hx-get="{{ vm.troubleshoot }}" hx-swap="none" hx-push-url="true">Troubleshoot</button>{% endif %}
+    {% if vm.can_mark %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" hx-post="/workbench/commands/propose"
+        hx-vals='{"command": "mark.add", "route": "{{ p.route }}", "kind": "skip"}' hx-swap="none">Skip next time…</button>{% endif %}
+  </div>
+  {% endif %}
+  {% else %}
+  <span class="sy-small sy-muted">No page yet. Pick one on the map when the scan has visited it.</span>
+  {% endif %}
+{%- endblock %}
+</div>

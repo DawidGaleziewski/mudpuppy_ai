@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../cx.js';
+import { Anchor } from './Anchor.js';
 
 export interface TagProps {
   /** The record id, in its real case (SCR-001, BR-021 r2, a scan id). */
@@ -17,9 +18,9 @@ export interface TagProps {
 export function Tag({ children, href, intent = false, size, title }: TagProps) {
   const className = cx('sy-tag', intent && 'sy-tag--intent', size === 'sm' && 'sy-tag--sm');
   return href ? (
-    <a className={className} href={href} title={title}>
+    <Anchor className={className} href={href} title={title}>
       {children}
-    </a>
+    </Anchor>
   ) : (
     <span className={className} title={title}>
       {children}

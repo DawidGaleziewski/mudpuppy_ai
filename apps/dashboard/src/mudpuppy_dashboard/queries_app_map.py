@@ -1,5 +1,5 @@
-"""The React console's map of the portal model (R-96, spec 053; designer screen v2-08): the htmx
-map's read model (`queries_model_map`) as typed JSON. The API places every node and draws every
+"""The React console's map of the portal model (R-96, spec 053; designer screen v2-08): the read
+model `queries_model_map` as typed JSON. The API places every node and draws every
 edge; the app only renders them. Link states come mapped by the one status map."""
 
 from __future__ import annotations

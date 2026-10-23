@@ -1,7 +1,6 @@
 """The React console's assistant drawer (R-96, spec 069; spec 022 M3): the portal's conversation
-as a timeline. Sending, the event stream, Stop, Reset and storing a credential stay the
-dashboard's `/chat/…` forwarders (`web/chat.py`), which the drawer calls as the htmx one does.
-No SQL here (G-15)."""
+as a timeline. Sending, the event stream, Stop, Reset and storing a credential go through the
+chat relay (`web/chat_relay.py`). No SQL here (G-15)."""
 
 from __future__ import annotations
 
@@ -10,9 +9,9 @@ from datetime import UTC, datetime
 from fastapi import APIRouter, HTTPException, Request
 
 from .. import chat_client, queries_app_assistant, queries_chat, queries_proposals
+from ..queries_app_timeline import timeline
 from .api_common import store
 from .deps import web_of
-from .views_chat import timeline
 
 router = APIRouter(prefix="/api/portals/{portal}/assistant")
 

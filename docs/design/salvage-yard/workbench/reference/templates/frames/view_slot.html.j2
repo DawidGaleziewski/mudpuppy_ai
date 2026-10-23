@@ -1,0 +1,25 @@
+{# A turn's view slot: the composing frame while the model writes the view (inline placements), the current view's
+   cards, or — once a newer view exists — one folded line with Expand (the snapshot no longer updates). #}
+{% if t.composing %}
+<section class="sy-genview sy-genview--card" data-gen-state="composing" aria-label="Composing a view">
+  <header class="sy-genview__head"><div class="sy-genview__title"><span class="sy-genstatus">Composing view</span></div></header>
+  <div class="sy-genview__body"><div class="sy-genskel" style="--sy-skel-h: 96px"><div class="sy-genskel__block">view</div></div></div>
+</section>
+{% elif t.view_id and sess.views.get(t.view_id) %}
+  {% set tv = sess.views[t.view_id] %}
+  {% set tslots = r.slots(tv)[0] if tv.id == sess.current else tv.slots_then %}
+  {% set inline = (tslots.card or []) + (tslots.conv or []) %}
+  {% if inline and tv.id == sess.current %}
+    {% for c in inline %}{{ r.component(tv, c, "card" if c in tslots.card else "conv") }}{% endfor %}
+  {% elif tv.id != sess.current %}
+  <div class="sy-cluster" style="--sy-gap: 6px 10px">
+    <span class="sy-genmark">generated</span><span class="sy-small">{{ r.summary(tv) }}</span>
+    {% if inline %}<button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-expanded="false" aria-controls="fold-{{ tv.tid }}" data-fold>Expand</button>{% endif %}
+  </div>
+  {% if inline %}
+  <div id="fold-{{ tv.tid }}" class="sy-stack" style="--sy-gap: 8px" hidden>
+    {% for c in inline %}{{ r.component(tv, c, "card" if c in tslots.card else "conv", live=False) }}{% endfor %}
+  </div>
+  {% endif %}
+  {% endif %}
+{% endif %}

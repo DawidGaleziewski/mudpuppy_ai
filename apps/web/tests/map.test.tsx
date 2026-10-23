@@ -123,7 +123,7 @@ describe('Screens map', () => {
     at('/app/portals/shop/screens/map', { [MAP]: map });
     const graph = await screen.findByRole('region', { name: 'Map of shop now' });
     expect(within(graph).getByRole('button', { name: /Kalkulator/ }).getAttribute('aria-pressed')).toBe('false');
-    expect(within(graph).getByRole('link', { name: /14 screens/ }).getAttribute('href')).toBe('?open=%2Foferta');
+    expect(within(graph).getByRole('link', { name: /14 screens/ }).getAttribute('href')).toBe('/app/portals/shop/screens/map?open=%2Foferta');
     expect(screen.getByText('2 active screens · 1 link · now')).toBeTruthy();
     expect(screen.getByRole('group', { name: 'Bundled links' }).textContent).toContain('3 links');
     expect(screen.getByRole('list', { name: 'Link states' })).toBeTruthy();

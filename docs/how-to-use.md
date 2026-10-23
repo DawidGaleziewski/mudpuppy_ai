@@ -32,9 +32,9 @@ chat is described in words.
 
 | Piece | What it is | Address |
 | --- | --- | --- |
-| Dashboard | The web app you use: home, processes, screens, docs, review, scans, settings, glossary. | http://127.0.0.1:8765 |
+| Console | The web app you use: home, processes, screens, docs, review, scans, settings, glossary. | http://127.0.0.1:8765/app/ |
 | Chat service | Runs the assistant and saves your changes. | 127.0.0.1:4310 (no page of its own) |
-| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the Chat page and the drawer |
+| Assistant | Guides you. It calls the **crawler** (scans the portal) and the **BA agent** (writes the documentation). | the drawer (**Ask the assistant** in the header) |
 | Reference portal | A fake Polish insurer for practice. | http://127.0.0.1:4010 |
 
 The assistant can not change the tool itself (agents, code, safety settings). If you ask, it
@@ -62,7 +62,8 @@ A portal that needs a logged-in user also needs the vault key; the first
 Use three terminals (the third only for practice), all from the repo root:
 
 ```bash
-# 1. dashboard: pick the environment whose data you want to see
+# 1. console: build it once, then pick the environment whose data you want to see
+pnpm --dir apps/web build
 cd apps/dashboard && uv run mudpuppy-dashboard --env sandbox
 #    changes you make are signed "unknown"; add MUDPUPPY_REVIEWER="Your Name" in front to sign them
 
@@ -73,7 +74,8 @@ MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start   # required: the environment to
 pnpm --dir apps/crawler reference-portal    # http://127.0.0.1:4010
 ```
 
-Open http://127.0.0.1:8765. If the header says **Assistant down**, start terminal 2 and reload.
+Open http://127.0.0.1:8765/app/. If the assistant says it is not running, start terminal 2 and
+reload.
 
 ## 4. Find your way around
 
@@ -143,8 +145,8 @@ through the chat service, so it has to be running.
 
 ## 6. The assistant
 
-The assistant has its own page, **Chat** (Home's **Open the chat**), and sits beside every other
-page in a drawer: press **Ask the assistant** or **Ctrl J**. The drawer has two contexts:
+The assistant sits beside every page in a drawer (it has no page of its own): press **Ask the
+assistant** or **Ctrl J**. The drawer has two contexts:
 
 - **This page** sends what you are looking at: the screen and its revision, the process, its
   process model and step, or the item selected in Review. You can say "this step" or "that
@@ -321,7 +323,7 @@ its status (**Active**, **Merged**, **Retired**: retired screens are kept), how 
 has and why they differ (Release, Another persona, Flaky error…), when it was last seen, how many
 of its actions were checked, its portal part and its process. Filter by status or by text.
 
-A screen's page (`/screens/SC-0001`) starts with what needs you on it, then its **Variants** side
+A screen's page (`/app/portals/<portal>/screens/SC-0001`) starts with what needs you on it, then its **Variants** side
 by side (r1 is the baseline; each later one says why it differs), its **Actions** with where each
 leads, and its **History** of changes, each with Before / after.
 
@@ -573,7 +575,7 @@ portal and `--env`):
 
 When something goes wrong, the chat shows a reference like `ERR-01M480P5EMJSW94233H14WHWZ4` with
 a **Copy** button. Ask the assistant what to do, or give the reference to a developer. A
-developer opens `/chat/errors/<reference>` in the dashboard to see where it happened. The
+developer opens `/app/errors/<reference>` in the console to see where it happened. The
 details never contain passwords. The log lines are in `data/logs/chat/<date>.jsonl` and are
 kept for 30 days.
 
@@ -623,7 +625,7 @@ them alone.
 
 | You see | What to do |
 | --- | --- |
-| **Assistant down** in the header, or "Assistant not running" | Start `MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start` (your environment), reload the page. Read-only pages keep working. |
+| "Assistant not running" in the drawer | Start `MUDPUPPY_ENV=sandbox pnpm --dir apps/chat start` (your environment), reload the page. Read-only pages keep working. |
 | "The assistant has used up its Claude usage limit. It resets …" | The Claude account behind the chat is out of usage. Wait until the time shown, then send again. |
 | Nothing recorded for 5 minutes | The assistant or the crawler may be stuck. Press **Stop**, then ask to resume the scan. |
 | The assistant seems confused | Press **Reset context**: fresh memory, same portal. |

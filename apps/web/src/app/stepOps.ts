@@ -1,7 +1,7 @@
-// The to-be editor's step operations (designer screen 05), the htmx editor's `processes.js` OPS as
-// pure functions: each takes a model's steps exactly as stored and returns the new steps, which
-// the page autosaves as the person's draft. A step the person changes or draws is "designed, not
-// observed": it loses its recorded state.
+// The to-be editor's step operations (designer screen 05) as pure functions: each takes a model's
+// steps exactly as stored and returns the new steps, which the page autosaves as the person's
+// draft. A step the person changes or draws is "designed, not observed": it loses its recorded
+// state.
 
 /** A step as the store keeps it (`process_model_revisions.steps`). */
 export interface RawStep {

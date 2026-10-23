@@ -223,19 +223,19 @@ def test_markdown_has_no_raw_html_and_rewrites_links(docs: Path) -> None:
     html = str(markdown_html(g.pages["alpha-long"], base="pages"))
     assert "<b>" not in html
     assert "&lt;b&gt;" in html
-    assert 'href="/glossary#alpha"' in html
-    assert 'href="/glossary/wiki/beta-concept"' in html
+    assert 'href="/app/glossary#alpha"' in html
+    assert 'href="/app/glossary/wiki/beta-concept"' in html
 
 
 @pytest.mark.parametrize(
     ("href", "base", "expected"),
     [
-        ("pages/frontier.md", "glossary", "/glossary/pages/frontier"),
-        ("../wiki/use-case.md", "glossary", "/glossary/wiki/use-case"),
-        ("traceability.md", "wiki", "/glossary/wiki/traceability"),
-        ("README.md", "wiki", "/glossary/wiki"),
-        ("../glossary/README.md#frontier", "wiki", "/glossary#frontier"),
-        ("evidence.md#kinds", "pages", "/glossary/pages/evidence#kinds"),
+        ("pages/frontier.md", "glossary", "/app/glossary/pages/frontier"),
+        ("../wiki/use-case.md", "glossary", "/app/glossary/wiki/use-case"),
+        ("traceability.md", "wiki", "/app/glossary/wiki/traceability"),
+        ("README.md", "wiki", "/app/glossary/wiki"),
+        ("../glossary/README.md#frontier", "wiki", "/app/glossary#frontier"),
+        ("evidence.md#kinds", "pages", "/app/glossary/pages/evidence#kinds"),
         ("https://www.iiba.org/", "wiki", "https://www.iiba.org/"),
         ("#local", "pages", "#local"),
     ],

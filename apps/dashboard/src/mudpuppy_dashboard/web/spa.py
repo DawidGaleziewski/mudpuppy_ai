@@ -23,6 +23,9 @@ NO_BUILD = (
 )
 
 
+IMMUTABLE = "public, max-age=31536000, immutable"
+
+
 def _inside(root: Path, rel: str) -> Path | None:
     """The file `rel` under `root`, refusing anything that leaves it."""
     target = (root / rel).resolve()
@@ -35,4 +38,9 @@ def app_file(request: Request, rest: str = "") -> Response:
     if not (dist / "index.html").is_file():
         return HTMLResponse(NO_BUILD, 404)
     file = _inside(dist, rest) if rest else None
-    return FileResponse(file or dist / "index.html")
+    if file is None:
+        # The page shell names the build's assets, so it is asked for again every time.
+        return FileResponse(dist / "index.html", headers={"Cache-Control": "no-cache"})
+    # A build's assets carry their content hash in the name: cached for good (R-100).
+    cache = IMMUTABLE if rest.startswith("assets/") else "no-cache"
+    return FileResponse(file, headers={"Cache-Control": cache})

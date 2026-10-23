@@ -29,7 +29,7 @@ describe('Recorded map', () => {
     expect(form.className).toContain('sy-node--deck');
     expect(within(form).getByText('Probe')).toBeTruthy();
     expect(within(form).getByText('+2 queued')).toBeTruthy();
-    expect(within(graph).getByRole('link', { name: /14 pages/ }).getAttribute('href')).toBe('?open=%2Foferta&view=path');
+    expect(within(graph).getByRole('link', { name: /14 pages/ }).getAttribute('href')).toBe('/app/portals/shop/screens/map?open=%2Foferta&view=path');
     expect(screen.getByText(/16 screens · 3 transitions · 2 queued · 1 mark for the next scan/)).toBeTruthy();
     // whole scan ids (D-9)
     // two scans that share every group but the last: the list shows each id whole (Q6)
@@ -98,11 +98,11 @@ describe('Recorded pages', () => {
   it('lists the recorded pages with their probes and pages', async () => {
     at('/app/portals/shop/screens/recorded', { '/api/portals/shop/screens/recorded': recordedPages });
     const table = await screen.findByRole('table', { name: 'Recorded pages of shop' });
-    expect(within(table).getByRole('link', { name: 'Wniosek' }).getAttribute('href')).toBe('/states/st-f1');
+    expect(within(table).getByRole('link', { name: 'Wniosek' }).getAttribute('href')).toBe('/app/states/st-f1');
     expect(within(table).getByText('Probe')).toBeTruthy();
     expect(within(table).getByRole('button', { name: 'Picture of Strona główna, enlarge' })).toBeTruthy();
     expect(screen.getByText('30 recorded pages · 1 form step: 1 marked for probing, 0 not probed')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'Next' }).getAttribute('href')).toBe('?page=2');
+    expect(screen.getByRole('link', { name: 'Next' }).getAttribute('href')).toBe('/app/portals/shop/screens/recorded?page=2');
     expect(screen.getByRole('link', { name: 'Recorded pages' }).getAttribute('aria-current')).toBe('page');
   });
 

@@ -1,7 +1,7 @@
 """The React console's Review page (R-96, spec 062; designer screens v2-04, v2-05, v2-16): the
 three tabs, every group of the inbox as rows, the part and age filters, a group's pages, and the
 selected item's detail. The rows and statuses come mapped (`status_out`); the app maps nothing.
-Built over the htmx page's own queries (`queries_review`, `queries_queue`), so both show the same.
+Built over the read models `queries_review` and `queries_queue`.
 """
 
 from __future__ import annotations
@@ -80,9 +80,8 @@ class Detail(BaseModel):
     """The selected item: its row, and what its kind adds."""
 
     row: ReviewRow
-    #: The detail and writes live in React; otherwise `htmx` opens the htmx Review on it.
-    in_react: bool
-    htmx: str
+    #: Its kind adds facts or a decision; False: the row is all there is (an edit conflict).
+    has_detail: bool
     text: str | None = None
     link: Option | None = None
     also: list[AlsoPair] = []
@@ -289,16 +288,14 @@ def _own_detail(n: Needs, portal: str, kind: str, it: Any) -> dict[str, Any]:
 def _detail(n: Needs, portal: str, kind: str, it: Any) -> Detail:
     conn = n.conn
     row = row_of(kind, it)
-    htmx = f"/review?portal={portal}&select={kind}:{row.id}"
     own = _own_detail(n, portal, kind, it)
     if own:
-        return Detail(row=row, in_react=True, htmx=htmx, **own)
+        return Detail(row=row, has_detail=True, **own)
     if kind in ("records", "assumptions"):
         cited = queries_review.cited_screens(conn, portal, it.key, it.rev)
         return Detail(
             row=row,
-            in_react=True,
-            htmx=htmx,
+            has_detail=True,
             rev=it.rev,
             revs=it.total,
             link=Option(
@@ -310,13 +307,12 @@ def _detail(n: Needs, portal: str, kind: str, it: Any) -> Detail:
         also = _also(conn, portal, it) if kind == "findings" else []
         return Detail(
             row=row,
-            in_react=True,
-            htmx=htmx,
+            has_detail=True,
             text=it.chip.text or None,
             link=_link(portal, kind, it),
             also=also,
         )
-    return Detail(row=row, in_react=False, htmx=htmx)
+    return Detail(row=row, has_detail=False)
 
 
 def _explained(conn: sqlite3.Connection, portal: str) -> list[ExplainedRow]:

@@ -13,7 +13,6 @@
   .mp-group > th { padding-top: var(--sy-space-4); }
   .mp-key { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr)); gap: var(--sy-space-2) var(--sy-space-5); }
   .mp-key > div { display: flex; flex-direction: column; gap: 2px; }
-  .mp-caption { caption-side: bottom; text-align: left; padding: var(--sy-space-3) 12px; }
 </style>
 </head>
 <body class="sy-ground">
@@ -110,7 +109,7 @@
               <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="failed">Broken</span><span class="sy-small sy-muted">since <span class="sy-case-normal">9c21</span></span></div></td>
               <td>
                 <div class="sy-stack" style="--sy-gap: 4px">
-                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></span>
                   <span class="sy-small">"00-950" accepted: ok · "00950" now accepted, was refused on <span class="sy-case-normal">5f08</span></span>
                   <span class="sy-status" data-status="failed">Fail</span>
                 </div>
@@ -129,7 +128,7 @@
               <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="needs">Changed · needs you</span><span class="sy-small sy-muted">threshold moved from 18 to 21 with release <span class="sy-case-normal">9c21</span></span></div></td>
               <td>
                 <div class="sy-stack" style="--sy-gap: 4px">
-                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></span>
                   <span class="sy-small">20 / 21 / 22 → exit / opcje / opcje</span>
                   <span class="sy-status" data-status="ok">Pass</span>
                 </div>
@@ -193,7 +192,7 @@
               <td><span class="sy-status" data-status="ok">Tested</span></td>
               <td>
                 <div class="sy-stack" style="--sy-gap: 4px">
-                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></span>
                   <span class="sy-small">OC → no field · OC + AC → "Wartość pojazdu" required</span>
                   <span class="sy-status" data-status="ok">Pass</span>
                 </div>
@@ -212,7 +211,7 @@
               <td><div class="sy-stack" style="--sy-gap: 4px"><span class="sy-status" data-status="ok">Confirmed</span><span class="sy-small sy-muted">you · 15 Oct</span></div></td>
               <td>
                 <div class="sy-stack" style="--sy-gap: 4px">
-                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c</span></span>
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">17 Oct · <span class="sy-tag sy-tag--sm">01a1340c-3b97</span></span>
                   <span class="sy-small">Empty → browser message "Zaznacz jedną z tych opcji."</span>
                   <span class="sy-status" data-status="ok">Pass</span>
                 </div>
@@ -230,14 +229,12 @@
           <h2 id="br24-h" class="sy-plate__title">BR-024 decision table</h2>
           <span class="sy-meta">Kalkulator OC/AC — wynik · the price shown</span>
         </div>
+        <dl id="br24-facts" class="sy-facts sy-facts--table">
+          <dt>Found</dt><dd class="sy-cluster" style="--sy-gap: 4px 8px"><span class="sy-status" data-status="inferred">Proposed</span><span>Identical visible inputs gave <b>612 zł</b> and <b>688 zł</b> on Kalkulator OC/AC — wynik.</span></dd>
+          <dt>Why "any"</dt><dd>No input on the screens explains the difference, so the one rule row reads "any" for each. Decided on data not visible from the UI.</dd>
+        </dl>
         <div class="sy-table-wrap sy-table-wrap--flush">
-          <table class="sy-table sy-table--decision" style="min-width: 600px" aria-labelledby="br24-h">
-            <caption class="mp-caption">
-              <span class="sy-stack" style="--sy-gap: 4px">
-                <span class="sy-cluster" style="--sy-gap: 6px 10px"><span class="sy-status" data-status="inferred">Proposed</span><span>Identical visible inputs gave <b>612 zł</b> and <b>688 zł</b> on Kalkulator OC/AC — wynik.</span></span>
-                <span class="sy-small sy-muted">No input on the screens explains the difference, so the one rule row reads "any" for each. Decided on data not visible from the UI.</span>
-              </span>
-            </caption>
+          <table class="sy-table sy-table--decision" style="min-width: 600px" aria-labelledby="br24-h" aria-describedby="br24-facts">
             <colgroup><col></colgroup>
             <colgroup span="3"></colgroup>
             <colgroup><col></colgroup>

@@ -1,8 +1,29 @@
 // The Salvage Yard design system for React (R-96): every component, one import.
 // Rules, the class each component owns and how to add one: skill `mudpuppy-react-ui`.
+export { Anchor, LinkProvider, type AnchorProps, type DrawLink } from './components/Anchor.js';
 export { AppShell, type AppShellProps, type NavGroup, type NavItem } from './components/AppShell.js';
 export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButtonProps } from './components/Button.js';
 export { Callout, type CalloutProps } from './components/Callout.js';
+export { RecordingDialog, type RecordingDialogProps } from './components/RecordingDialog.js';
+export { Prose, type ProseProps } from './components/Prose.js';
+export { SearchBox, type SearchBoxProps } from './components/SearchBox.js';
+export { GenFeedback, GenView, type GenFeedbackProps, type GenViewProps, type GenWhy } from './components/GenView.js';
+export { CommandCard, type CommandCardProps } from './components/CommandCard.js';
+export {
+  Film,
+  FilmItem,
+  LiveBar,
+  Mini,
+  Narration,
+  PathSwitch,
+  Sheet,
+  Suggestions,
+  WbLayout,
+  type FilmItemProps,
+  type NarrationLine,
+  type PathSwitchProps,
+} from './components/WbParts.js';
+export { Choice, Kbd, KeyBar, type ChoiceProps } from './components/Choice.js';
 export {
   ChatDivider,
   ChatLog,

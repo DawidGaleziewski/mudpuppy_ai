@@ -1,5 +1,5 @@
-"""The React console's Business rules (R-96, spec 065): the same groups, table, tests and history
-as the htmx pages, statuses mapped, the rule in the export, and Reword through the chat service
+"""The React console's Business rules (R-96, spec 065): the groups, table, tests and history,
+statuses mapped, the rule in the export, and Reword through the chat service
 (mocked), signed with the reviewer."""
 
 from __future__ import annotations
@@ -29,7 +29,7 @@ def test_the_list_groups_rules_by_what_needs_a_person(empty_store: Store) -> Non
     assert broken["shown_key"] == "H-0003" and broken["status"]["shape"] == "failed"
     assert (broken["passed"], broken["failed"], broken["screen_key"]) == (1, 1, "SC-0001")
     assert {"value": "tested", "label": "Tested 1"} in body["statuses"]
-    assert body["export"]["zip"] == f"/rules/export.zip?portal={P}"
+    assert body["export"]["zip"] == f"/api/portals/{P}/rules/export.zip"
     only = client(empty_store).get(f"{API}?status=tested").json()
     assert only["status"] == "tested" and [g["status"]["word"] for g in only["groups"]] == [
         "Tested"
@@ -51,7 +51,7 @@ def test_a_rule_has_its_table_tests_and_history(empty_store: Store) -> None:
     person = r["history"][0]
     assert person["actor"] == "Anna" and person["by_person"] and person["mark"] == "failed"
     assert not r["history"][1]["by_person"]
-    assert r["files"][0]["value"] == f"/rules/export/H-0003.md?portal={P}"
+    assert r["files"][0]["value"] == f"/api/portals/{P}/rules/export/H-0003.md"
     assert not r["changed"] and not r["uncited"]
     assert c.get(f"{API}/H-0404").status_code == 404
 

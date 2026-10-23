@@ -1,5 +1,5 @@
 """How the console writes a duration, a timestamp, a short id, JSON and an action's locator and
-link, for the htmx templates' filters and the React console's API alike (specs 054, 055)."""
+link, for the console's API (specs 054, 055)."""
 
 from __future__ import annotations
 

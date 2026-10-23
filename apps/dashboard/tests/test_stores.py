@@ -49,59 +49,46 @@ def test_lists_eval_workspaces_newest_first_after_the_main_stores(
         "eval:pf-eval-proving-ground-shop-XyZ789:sandbox",
     ]
     assert listed[1].label.startswith("eval · proving-ground-bank · ")
-    with make_client(empty_store) as c:
-        html = c.get("/").text
-    menu = html.split('aria-label="Switch data store"')[1].split("</ul>")[0]
-    assert "eval workspace" in menu
-    assert menu.index("proving-ground-bank") < menu.index("proving-ground-shop")
 
 
-def test_store_menu_lists_the_stores_holding_the_portal(
+def test_the_picker_lists_the_stores_holding_the_portal(
     empty_store: Store, eval_root: Path
 ) -> None:
     """R-71 (d): with a portal chosen, only stores with its runs (and the open one) are listed."""
     with make_client(empty_store) as c:
-        c.cookies.set("pf_portal", "proving-ground-bank")
-        html = c.get("/").text
-    menu = html.split('aria-label="Switch data store"')[1].split("</ul>")[0]
-    assert "store=eval%3Apf-eval-proving-ground-bank-AbC123%3Asandbox" in menu
-    assert "proving-ground-shop" not in menu
-    # The open store (no bank runs) stays listed, marked current, so the menu never hides it.
-    assert menu.count("<li>") == 2 and 'aria-current="true">test' in menu
+        every = c.get("/api/stores").json()
+        bank = c.get("/api/stores", params={"portal": "proving-ground-bank"}).json()
+    assert every["stores"][0]["key"] == "main:test"
+    assert len(every["stores"]) == 3 and every["note"] is None
+    # The open store (no bank runs) stays listed first, so the menu never hides it.
+    assert [s["key"] for s in bank["stores"]] == [
+        "main:test",
+        "eval:pf-eval-proving-ground-bank-AbC123:sandbox",
+    ]
+    assert bank["stores"][1]["workspace"] == "pf-eval-proving-ground-bank-AbC123"
 
 
-def test_portal_switch_lands_on_a_store_with_its_data(
-    empty_store: Store, eval_root: Path, tmp_path: Path
-) -> None:
-    """R-71 (d): the main store has no shop runs, so the shop link opens the shop's eval store."""
-    portals = tmp_path / "portals"  # its own config, not the repo's portals/
-    (portals / "proving-ground-shop").mkdir(parents=True)
-    (portals / "proving-ground-shop" / "portal.yaml").write_text("id: proving-ground-shop\n")
-    with make_client(empty_store, portals_dir=portals) as c:
-        html = c.get("/").text
-    menu = html.split('aria-label="Switch portal"')[1].split("</ul>")[0]
-    assert "store=eval%3Apf-eval-proving-ground-shop-XyZ789%3Asandbox" in menu
-
-
-def test_opens_an_eval_store_and_keeps_it_on_links(empty_store: Store, eval_root: Path) -> None:
+def test_every_api_address_reads_the_store_asked_for(empty_store: Store, eval_root: Path) -> None:
     key = "eval:pf-eval-proving-ground-bank-AbC123:sandbox"
     with make_client(empty_store) as c:
-        page = c.get("/", params={"store": key})
-        run = c.get(f"/runs/{BANK_RUN}", params={"store": key})
-    assert "Reading the eval workspace" in page.text
-    assert "pf-eval-proving-ground-bank-AbC123" in page.text
-    assert "store=eval%3Apf-eval-proving-ground-bank-AbC123%3Asandbox" in page.text
-    assert run.status_code == 200
+        picker = c.get("/api/stores", params={"store": key}).json()
+        scans = c.get("/api/portals/proving-ground-bank/scans", params={"store": key}).json()
+        main = c.get("/api/portals/proving-ground-bank/scans").json()
+    assert picker["current"]["key"] == key and picker["current"]["kind"] == "eval"
+    assert BANK_RUN in str(scans) and BANK_RUN not in str(main)
 
 
 def test_a_vanished_or_forged_key_falls_back_to_the_default_store(
     empty_store: Store, eval_root: Path
 ) -> None:
     with make_client(empty_store) as c:
-        gone = c.get("/", params={"store": "eval:pf-eval-proving-ground-bank-Gone00:sandbox"})
-        forged = c.get("/", params={"store": "eval:../../etc:passwd"})
-    assert "That eval workspace is gone" in gone.text
-    assert "That eval workspace is gone" in forged.text
+        gone = c.get(
+            "/api/stores", params={"store": "eval:pf-eval-proving-ground-bank-Gone00:sandbox"}
+        )
+        forged = c.get("/api/stores", params={"store": "eval:../../etc:passwd"})
+    for r in (gone.json(), forged.json()):
+        assert r["current"]["key"] == "main:test"
+        assert r["note"] == "That eval workspace is gone; showing the default store."
 
 
 def test_serves_evidence_from_an_eval_workspace(empty_store: Store, eval_root: Path) -> None:
@@ -120,14 +107,3 @@ def test_stores_with_portal_names_only_stores_holding_its_runs(
     listed = stores.list_stores(empty_store.data_dir, eval_root)
     found = stores.stores_with_portal(listed, "proving-ground-bank")
     assert [s.key for s in found] == ["eval:pf-eval-proving-ground-bank-AbC123:sandbox"]
-
-
-def test_an_empty_portal_names_the_stores_that_hold_it(empty_store: Store, eval_root: Path) -> None:
-    with make_client(empty_store) as c:
-        here = c.get("/docs/proving-ground-bank")
-        nowhere = c.get("/docs/never-scanned")
-    assert here.status_code == 200
-    assert "Nothing recorded for proving-ground-bank in this store" in here.text
-    assert "store=eval%3Apf-eval-proving-ground-bank-AbC123%3Asandbox" in here.text
-    assert "proving-ground-shop" not in here.text.split("<main")[1]
-    assert nowhere.status_code == 404

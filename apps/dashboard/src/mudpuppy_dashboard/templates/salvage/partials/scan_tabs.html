@@ -1,7 +1,0 @@
-{#- The views of Scans (screen 10): scans of the portal, by process, and calls outside any scan.
-    The map moved to Screens (v2-08); a scan's path is its view One scan's path. -#}
-<nav class="sy-tabs" aria-label="Scan views">
-  <a class="sy-tab" href="{{ c.url('/scans') }}"{% if scan_tab == "scans" %} aria-current="page"{% endif %}>Scans{% if scan_total is defined and scan_total is not none %} <span class="sy-count sy-count--muted">{{ scan_total }}</span>{% endif %}</a>
-  <a class="sy-tab" href="{{ c.url('/scans/by-process') }}"{% if scan_tab == "by-process" %} aria-current="page"{% endif %}>By process</a>
-  <a class="sy-tab" href="{{ c.url('/activity') }}"{% if scan_tab == "activity" %} aria-current="page"{% endif %}>Server activity</a>
-</nav>

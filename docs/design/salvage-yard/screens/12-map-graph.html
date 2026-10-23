@@ -47,7 +47,7 @@
         <div class="sy-pagehead__row">
           <div class="sy-stack" style="--sy-gap: 4px">
             <h1 class="sy-h1">Map</h1>
-            <p class="sy-meta">reference-insurer · 17 pages from 3 scans · 113 still queued · last scan <span class="sy-tag sy-tag--sm">01a110d5</span> stopped at <span class="sy-route">/kontakt</span></p>
+            <p class="sy-meta">reference-insurer · 17 pages from 3 scans · 113 still queued · last scan <span class="sy-tag sy-tag--sm">01a110d5-2028</span> stopped at <span class="sy-route">/kontakt</span></p>
           </div>
           <aside class="sy-callout sy-callout--drawn" aria-label="About this data" style="max-width: 400px">
             <span class="sy-callout__title">New: map runs</span>
@@ -65,7 +65,7 @@
       <!-- Toolbar: what the graph shows. Filters change the overlay, never the data. -->
       <form class="mp-map-tools" aria-label="Map filters">
         <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Scans</span>
-          <select class="sy-select sy-select--md" style="min-width: 220px"><option>All 3 scans (merged)</option><option>01a110d5 · stopped</option><option>01a10eb9 · stopped</option><option>01a1083f · completed</option></select></label>
+          <select class="sy-select sy-select--md" style="min-width: 220px"><option>All 3 scans (merged)</option><option>01a110d5-2028 · stopped</option><option>01a10eb9-70f2 · stopped</option><option>01a1083f-5472 · completed</option></select></label>
         <label class="sy-stack" style="--sy-gap: 4px"><span class="sy-label">Persona</span>
           <select class="sy-select sy-select--md" style="min-width: 140px"><option>guest</option></select></label>
         <fieldset>
@@ -104,7 +104,7 @@
                 <path class="sy-edge" d="M202 390 C202 420 279 420 279 448"/>
                 <!-- /kontakt: the crawler failed on the next action -->
                 <path class="sy-edge sy-edge--failed" d="M435 236 C435 264 485 262 485 290"/>
-                <text class="sy-edge-label sy-edge-label--failed" x="440" y="266" text-anchor="end">✕ 01a110d5</text>
+                <text class="sy-edge-label sy-edge-label--failed" x="440" y="266" text-anchor="end">✕ 01a110d5-2028</text>
                 <!-- /logowanie → /moje-polisy: needs a credential -->
                 <path class="sy-edge sy-edge--blocked" d="M615 236 C615 264 625 262 625 290"/>
                 <!-- next scan: replay path to the Start here mark, drawn beside the observed edges (blueprint) -->
@@ -113,44 +113,38 @@
                 <path class="sy-edge sy-edge--planned" d="M126 343 H144"/>
               </svg>
 
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 270px; top: 0; height: 96px"
-                aria-label="/ · Ubezpieczenia dla Ciebie · observed · 12 queued">
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 270px; top: 0; height: 96px">
                 <span class="sy-node__route">/</span>
                 <span class="sy-node__title">Ubezpieczenia dla Ciebie</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+12 queued</span></span>
               </button>
 
-              <button class="sy-node sy-node--deck" type="button" aria-pressed="false" style="left: 540px; top: 0; height: 96px"
-                aria-label="10 more pages, collapsed: /ubezpieczenia/dom, /ubezpieczenia/podroze, /faq, /slowniczek and 6 more · 51 queued">
+              <button class="sy-node sy-node--deck" type="button" aria-pressed="false" style="left: 540px; top: 0; height: 96px">
                 <span class="sy-node__route">+10 pages</span>
                 <span class="sy-node__title">/ubezpieczenia/dom, /podroze, /faq, …</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+51 queued</span></span>
-              </button>
+              <span class="sy-sr-only">, collapsed: /ubezpieczenia/dom, /ubezpieczenia/podroze, /faq, /slowniczek and 6 more</span></button>
 
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 0; top: 140px; height: 96px"
-                aria-label="/ubezpieczenia/samochod · Samochód · observed · 9 queued">
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 0; top: 140px; height: 96px">
                 <span class="sy-node__route">/ubezpieczenia/ samochod</span>
                 <span class="sy-node__title">Samochód</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+9 queued</span></span>
               </button>
 
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 180px; top: 140px; height: 96px"
-                aria-label="/porownanie · observed · 38 queued · marked Focus">
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 180px; top: 140px; height: 96px">
                 <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Focus</span></span>
                 <span class="sy-node__route">/porownanie</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+38 queued</span></span>
               </button>
 
-              <button class="sy-node" type="button" data-state="failed" aria-pressed="false" style="left: 360px; top: 140px; height: 96px"
-                aria-label="/kontakt · scan 01a110d5 failed here · marked Retry">
+              <button class="sy-node" type="button" data-state="failed" aria-pressed="false" style="left: 360px; top: 140px; height: 96px">
                 <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Retry</span></span>
                 <span class="sy-node__route">/kontakt</span>
-                <span class="sy-node__title">last page of 01a110d5</span>
+                <span class="sy-node__title">last page of <span class="sy-case-normal">01a110d5-2028</span></span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="failed">Failed</span><span class="sy-chip sy-chip--fail">step 171</span></span>
               </button>
 
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 540px; top: 140px; height: 96px"
-                aria-label="/logowanie · observed · 3 queued · marked Skip">
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 540px; top: 140px; height: 96px">
                 <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Skip</span></span>
                 <span class="sy-node__route">/logowanie</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip sy-chip--dashed">+3 queued</span></span>
@@ -159,48 +153,41 @@
               <!-- One route, three states: the React form's steps on the same URL -->
               <div class="sy-node-group" style="left: 0; top: 280px" role="group" aria-label="/kalkulator/kierowca: 3 steps on one URL">
                 <span class="sy-node-group__label"><span>/kalkulator/kierowca</span><span>3 steps · 1 URL</span></span>
-                <button class="sy-node" type="button" aria-pressed="false" style="--sy-node-w: 116px; height: 80px"
-                  aria-label="Step 1 · Kalkulator OC/AC — dane kierowcy · observed in 3 scans · 2 extra states">
+                <button class="sy-node" type="button" aria-pressed="false" style="--sy-node-w: 116px; height: 80px">
                   <span class="sy-node__route">step 1</span>
                   <span class="sy-node__title">dane kierowcy</span>
                   <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip">+2</span></span>
-                </button>
-                <button class="sy-node" type="button" aria-pressed="true" style="--sy-node-w: 116px; height: 80px"
-                  aria-label="Step 2 · Kalkulator OC/AC — opcje · observed · 2 extra states · next step not reached · marked Start here and Probe · selected">
+                <span class="sy-sr-only">, Kalkulator OC/AC, 2 extra states, observed in 3 scans</span></button>
+                <button class="sy-node" type="button" aria-pressed="true" style="--sy-node-w: 116px; height: 80px">
                   <span class="sy-node__marks"><span class="sy-tag sy-tag--intent sy-tag--sm">Start · Probe</span></span>
                   <span class="sy-node__route">step 2</span>
                   <span class="sy-node__title">opcje</span>
                   <span class="sy-node__meta"><span class="sy-status" data-status="ok">OK</span><span class="sy-chip">+2</span></span>
-                </button>
-                <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="--sy-node-w: 116px; height: 80px"
-                  aria-label="Step 3 · not reached yet">
+                <span class="sy-sr-only">, Kalkulator OC/AC, 2 extra states, next step not reached</span></button>
+                <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="--sy-node-w: 116px; height: 80px">
                   <span class="sy-node__route">step 3</span>
                   <span class="sy-node__title">not reached</span>
                   <span class="sy-node__meta"><span class="sy-status" data-status="unobserved">Gap</span></span>
                 </button>
               </div>
 
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 60px; top: 448px; --sy-node-w: 130px; height: 84px"
-                aria-label="Validation state of step 2 · required option empty · browser message Zaznacz jedną z tych opcji · same URL">
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 60px; top: 448px; --sy-node-w: 130px; height: 84px">
                 <span class="sy-node__route">validation</span>
                 <span class="sy-node__title">browser message</span>
                 <span class="sy-node__meta"><span class="sy-chip">same URL</span></span>
-              </button>
-              <button class="sy-node" type="button" aria-pressed="false" style="left: 214px; top: 448px; --sy-node-w: 130px; height: 84px"
-                aria-label="Technical state of step 2 · error page after HTTP 500 · simulated">
+              <span class="sy-sr-only">, of step 2: required option empty, message Zaznacz jedną z tych opcji</span></button>
+              <button class="sy-node" type="button" aria-pressed="false" style="left: 214px; top: 448px; --sy-node-w: 130px; height: 84px">
                 <span class="sy-node__route">technical</span>
                 <span class="sy-node__title">error page</span>
                 <span class="sy-node__meta"><span class="sy-chip">500 · simulated</span></span>
-              </button>
+              <span class="sy-sr-only">, of step 2: error page after HTTP 500</span></button>
 
-              <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="left: 420px; top: 290px; --sy-node-w: 130px; height: 80px"
-                aria-label="Not reached: the action after /kontakt failed">
+              <button class="sy-node" type="button" data-state="unobserved" aria-pressed="false" style="left: 420px; top: 290px; --sy-node-w: 130px; height: 80px"><span class="sy-sr-only">Not reached: </span>
                 <span class="sy-node__route">?</span>
                 <span class="sy-node__title">after the failed action</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="unobserved">Gap</span></span>
               </button>
-              <button class="sy-node" type="button" data-state="blocked" aria-pressed="false" style="left: 560px; top: 290px; --sy-node-w: 130px; height: 80px"
-                aria-label="/moje-polisy · blocked: needs a credential">
+              <button class="sy-node" type="button" data-state="blocked" aria-pressed="false" style="left: 560px; top: 290px; --sy-node-w: 130px; height: 80px">
                 <span class="sy-node__route">/moje-polisy</span>
                 <span class="sy-node__title">needs a credential</span>
                 <span class="sy-node__meta"><span class="sy-status" data-status="skipped">Blocked</span></span>
@@ -232,7 +219,7 @@
               <dl class="sy-facts">
                 <dt>Screen</dt><dd>Kalkulator OC/AC — opcje</dd>
                 <dt>Route</dt><dd><span class="sy-route">/kalkulator/kierowca</span> (same URL as step 1)</dd>
-                <dt>Seen in</dt><dd><span class="sy-tags"><span class="sy-tag sy-tag--sm">01a1083f</span><span class="sy-tag sy-tag--sm">01a10eb9</span><span class="sy-tag sy-tag--sm">01a110d5</span></span></dd>
+                <dt>Seen in</dt><dd><span class="sy-tags"><span class="sy-tag sy-tag--sm">01a1083f-5472</span><span class="sy-tag sy-tag--sm">01a10eb9-70f2</span><span class="sy-tag sy-tag--sm">01a110d5-2028</span></span></dd>
                 <dt>Process</dt><dd><a href="05-process-edit.html">Oblicz składkę OC/AC</a></dd>
               </dl>
               <div class="sy-stack" style="--sy-gap: 6px">

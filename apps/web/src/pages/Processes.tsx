@@ -210,7 +210,7 @@ export function Processes() {
         meta={`Cut ${portal} into processes you can document, redesign and migrate one at a time.`}
         actions={
           <Cluster>
-            <LinkButton href="/chat">Ask the assistant to regroup</LinkButton>
+            <LinkButton href="?assistant=open">Ask the assistant to regroup</LinkButton>
           </Cluster>
         }
       />

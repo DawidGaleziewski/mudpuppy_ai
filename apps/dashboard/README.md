@@ -1,164 +1,98 @@
-# apps/dashboard — the MudPuppy dashboard
+# apps/dashboard — the MudPuppy console's server
 
-A local, **read-only** operator dashboard over the crawler's SQLite store
-(`data/db/<env>.sqlite`). It shows every portal's runs, how they ended and why, and for each run
-the states, actions (with safety class), frontier, forms, network call shapes, robots.txt policies
-and the decision log, with confidence and evidence on every record. Open pages update live while
-the crawler writes. The **Docs** tab shows the BA agent's documentation of each portal (the SRS
-view) and lets a reviewer confirm, reject or comment on it. The **Glossary** tab explains
-MudPuppy's terms, and `[?]` marks next to labels show a term's definition on hover or keyboard
-focus.
+A local, **read-only** server over the crawler's SQLite store (`data/db/<env>.sqlite`). It
+serves the MudPuppy console, a React single-page app built from `apps/web`, at `/app/`, and the
+JSON API the console reads under `/api`: every portal's scans and how they ended, the recorded
+screens with their evidence, the portal model (processes, screens, map, rules, changes), Review,
+the BA agent's documentation, Settings, the glossary and the Workbench. Every write the console
+offers goes through the local chat service; the dashboard never writes the store.
 
-Spec: [`specs/003-dashboard-ui/`](../../specs/003-dashboard-ui/) (R-12); Docs tab and review
-[`specs/004-ba-documentation/`](../../specs/004-ba-documentation/) (R-15); glossary and BA wiki
-[`specs/006-glossary-ba-wiki/`](../../specs/006-glossary-ba-wiki/) (R-22).
+Since R-100 (spec 071) the console is React only: the dashboard has no pages of its own, and every
+older address (`/states/<id>`, `/docs/<portal>/<key>`, `/runs/<id>`, …) answers a permanent
+redirect to its page under `/app/`, so evidence links, exports and bookmarks keep working.
+
+Specs: [`003-dashboard-ui`](../../specs/003-dashboard-ui/) (R-12),
+[`004-ba-documentation`](../../specs/004-ba-documentation/) (R-15),
+[`006-glossary-ba-wiki`](../../specs/006-glossary-ba-wiki/) (R-22),
+[`050`–`070`](../../specs/) (R-96, the React console),
+[`071-r100-react-spa`](../../specs/071-r100-react-spa/) (R-100).
 
 ## Run
 
 ```bash
+pnpm --dir apps/web build            # the console, into apps/web/dist
 cd apps/dashboard
 uv sync
-uv run mudpuppy-dashboard            # http://127.0.0.1:8765, environment "production"
-uv run mudpuppy-dashboard --dev      # reloads the server and open pages on code/template edits
+uv run mudpuppy-dashboard            # http://127.0.0.1:8765/app/
+uv run mudpuppy-dashboard --dev      # reloads the server on code edits (pnpm --dir apps/web dev for the UI)
 uv run mudpuppy-dashboard --env scratch --port 9000 --data-dir /path/to/data
 ```
 
 Settings can also come from the environment: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`,
 `MUDPUPPY_PORT`, `MUDPUPPY_DEV`. The data dir defaults to the repo's `data/` (the nearest
-ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment; switch in
-the top bar (`?env=` on any URL).
+ancestor holding `data/migrations`). Every `data/db/*.sqlite` file is an environment, and every
+`pnpm eval` workspace a store too: the console's header switches between them (`?store=` on any
+address, kept on every link and API call).
 
-## MudPuppy 2.0 pages (spec 039)
+## Writes go through the chat service
 
-For a portal with a portal model, the navigation is grouped: **Home** (what changed and what needs
-you), **Changes** (findings per model version, with release lanes and Before / after) and
-**Review** (Findings, Rules, Removals, Processes, Same screen?, Explained automatically,
-Decided); under **Portal model**: Processes, Screens (list, a screen's variants, actions and
-History, and the Map with views Now, Since previous release and One scan's path), Rules (decision
-tables, boundary tests, the DMN / Markdown / CSV export) and Docs; under **Machine**: Scans and
-Settings (thresholds, the classifier, Hints). The pages read the store; every decision (confirm,
-reject, a Same screen? answer, split or merge of a proposal) goes through the chat service
-(`MUDPUPPY_CHAT_URL`). The designer's reference screens are `docs/design/salvage-yard/screens/v2-*`.
-
-## Docs tab and review
-
-`/docs` lists every portal with documentation records; `/docs/<portal>` shows them by SRS section
-(capabilities, screens, processes, requirements, rules, data items, glossary, questions, follow-ups)
-with diagrams, and each record page shows its revisions, evidence (linked to the runs it came
-from) and reviews. The run page's Docs tab lists the records citing that run.
-
-Review actions and process changes are signed "unknown" unless a reviewer name is set:
+Decisions (confirm, reject, a Same screen? answer, a process edit, a mark, a scan to start) are
+sent to the local chat service (`pnpm --dir apps/chat start`, default `http://127.0.0.1:4310`,
+override with `MUDPUPPY_CHAT_URL`), signed with the reviewer's name:
 
 ```bash
 MUDPUPPY_REVIEWER="Your Name" uv run mudpuppy-dashboard --env sandbox
 ```
 
-Confirm, reject (a reason is required) and comment act on a record's latest revision. The
-dashboard does not write them itself: `POST /docs/<portal>/<key>/reviews` runs
+The browser never calls that service: the assistant and the Workbench reach it through the
+dashboard's relay (`/chat/conversations`, its messages, the event stream `…/events` with
+`Last-Event-ID`, credentials, cancel, reset). Credential values go to the service's vault and are
+never shown. If the service is not running, the console says so and shows the start command.
+Requests from another origin are refused.
+
+A record's review (confirm, reject with a reason, comment) runs
 `pnpm --dir <crawler_dir> docs:review --env <env>` (`MUDPUPPY_CRAWLER_DIR`, default
 `apps/crawler`) with the review as JSON on stdin, so the TypeScript status engine stays the only
-writer (constitution 1.4.0). A stale revision returns 409, a missing reason 422; requests from
-another origin are refused.
-
-To hand the documentation to another team, export it from `apps/crawler`:
-`pnpm docs:export <portal> --env <env> [--confirmed-only]` writes Markdown chapters with Mermaid
-diagrams, a traceability matrix, `records.json` and `images/` to
-`data/exports/<portal>-<env>-srs/`.
-
-## Chat (spec 010, R-30)
-
-`/chat` is the guided chat with the orchestrator, with the five workflow steps (scan, map, narrow,
-document, amend) beside it. History and steps are read from the store (read-only) and update
-live; sending and streaming go through the local chat service (`pnpm --dir apps/chat start`,
-default `http://127.0.0.1:4310`, override with `MUDPUPPY_CHAT_URL`). The browser never calls
-that service: the dashboard proxies `POST /chat/conversations`, `POST /chat/conversations/<id>/messages`
-and the SSE stream `GET /chat/conversations/<id>/events` (forwarding `Last-Event-ID`). If the
-service is not running the page says so and shows the start command.
-
-Beside the chat: a **credentials** form (a password field per `ref:NAME` in the portal's personas,
-read from `personas/<portal>/*.yaml`; values go to the service, are cleared and never shown) and
-the **process scope** checklist (mapped states with thumbnails, start/end, notes; `POST
-/chat/conversations/<id>/scope`). Every `ERR-` reference links to `/chat/errors/<ref>` (the service's
-error log). State pages carry a **TO-BE amendments** section (add, list, withdraw), and
-`/amendments/superseded?portal=&show=superseded|dismissed|both` reviews amendments a newer
-recording made stale (re-apply or dismiss). These forms post JSON to `/chat/...` routes that
-forward to the service; the dashboard still never writes the store.
+writer (constitution 1.4.0). To hand the documentation to another team, export it from
+`apps/crawler`: `pnpm docs:export <portal> --env <env> [--confirmed-only]`.
 
 ## Screenshots and wireframes (spec 008)
 
-Each recorded state has a page at `/states/<id>` (titles in a run's States table link to it, with a
-thumbnail): the screenshot as first recorded, a **show elements** toggle that outlines every
-element the layout placed, a Wireframe tab with SVG and Excalidraw downloads, and the records that
-cite the state. A record page's **Screens** panel shows each cited state with that record's screen
-regions outlined and numbered, and a legend that names regions not visible on the screenshot.
-
-Images come from `GET /evidence/<sha256>.<png|svg|excalidraw>`, which serves only those three
-kinds by content address (never snapshots, layouts or paths), with an immutable cache header.
-The dashboard never draws a wireframe or computes element keys: it serves the files the crawler
-wrote and matches cited keys against the keys stored in each layout.
+Images come from `GET /evidence/<sha256>.<png|svg|excalidraw>`, which serves only those kinds by
+content address (never snapshots, layouts or paths), with an immutable cache header. The dashboard
+never draws a wireframe or computes element keys: it serves the files the crawler wrote and
+matches cited keys against the keys stored in each layout.
 
 ## Glossary and BA wiki
 
-The glossary source is `docs/glossary/glossary.yaml` (long pages in `docs/glossary/pages/`, BA wiki
-pages in `docs/wiki/`); `MUDPUPPY_DOCS_DIR` points elsewhere. The dashboard serves it at
-`/glossary`, `/glossary/pages/<slug>`, `/glossary/wiki` and `/glossary/wiki/<slug>`, and templates
-mark labels with `{{ m.term("<id>", "Label") }}` (tooltip) or `{{ m.intro("<id>") }}` (one line
-under a heading). After editing the source:
+The glossary source is `docs/glossary/glossary.yaml` (long pages in `docs/glossary/pages/`, BA
+wiki pages in `docs/wiki/`); `MUDPUPPY_DOCS_DIR` points elsewhere. The API serves it at
+`/api/glossary` (the console's `/app/glossary`). After editing the source:
 
 ```bash
 uv run mudpuppy-glossary --write   # validate and regenerate docs/glossary/README.md
 uv run mudpuppy-glossary           # validate only; fails if README.md is out of date
 ```
 
-A broken source never breaks the dashboard: labels render without `[?]` and `/glossary` shows the
-problems. `tests/test_glossary_templates.py` fails when a template uses a term the glossary lacks.
+A broken source never breaks the dashboard: the glossary page lists the problems.
 
 ## Test
 
 ```bash
-uv run pytest                                   # 100+ tests, fixture stores built from data/migrations
-uv run ruff check . && uv run ruff format --check .
+uv run ruff check && uv run pytest -n auto -m 'not perf and not serial' && uv run pytest -m 'perf or serial'
+mudpuppy-dashboard-smoke --base http://127.0.0.1:8765   # a running dashboard answers
 ```
 
 ## Guarantees
 
 - **Read-only.** The store is opened `file:…?mode=ro` with `PRAGMA query_only = ON`; the process
   cannot write even through a bug, and a missing store is reported, never created.
-  `tests/test_readonly.py` hashes the store before and after hitting every route. The one
-  exception is a review action, which runs the crawler's `docs:review` command as a subprocess
-  (see Docs tab and review); `tests/test_review.py` checks that the store changes by exactly the
-  review and status rows.
+  `tests/test_readonly.py` hashes the store before and after reading every API address.
 - **Local only.** Binds `127.0.0.1`; the config snapshot shows operator contact data.
 - **Schema drift fails loudly.** `models.py` mirrors every table; `tests/test_models_schema.py`
   compares fields and enums against a store built from `data/migrations/*.up.sql`.
 
-## How live updates work
-
-`GET /events` is one Server-Sent Events stream per page (FastAPI `EventSourceResponse`). It polls
-`PRAGMA data_version` every second on its own read-only connection and sends `store-changed` when
-another connection (the crawler) has committed. Every region on a page that shows store data is a
-**live region**: it re-fetches its own fragment on `store-changed`, keeping its filters. The first
-event, `hello`, carries a per-process `boot_id`; with `--dev`, a changed `boot_id` after a restart
-reloads the page. If the stream drops, a banner says the view may be stale until it reconnects.
-
 ## Layout
 
-```text
-src/mudpuppy_dashboard/
-  settings.py   db.py (read-only connection)   models.py (read models)
-  queries.py    (pure SQL → models, keyset pagination)
-  live.py       (SSE watcher)   app.py (routes)   __main__.py (CLI)
-  glossary.py   (load, validate, render the glossary and wiki)   glossary_cli.py
-  templates/    pages + partials/ (one partial per live region; macros.html holds status labels)
-  static/       css/tokens.css (the only literal values), css/app.css, js/live.js,
-                vendor/ (htmx 4 + hx-sse, pinned, see vendor/README.md), fonts/ (JetBrains Mono)
-tests/          fixture stores in conftest.py
-```
-
-## Changing the UI
-
-UI work follows the project design system: skill `revamp-dashboard`
-(`.claude/skills/revamp-dashboard/`), in particular `references/mudpuppy-console.md` for this
-product's status labels, accent mapping and the live-region pattern. The `frontend-dev` agent
-(`.claude/agents/frontend-dev.md`) owns UI changes. New colours, sizes or spacing go in
-`static/css/tokens.css` only; `tests/test_tokens.py` fails on literals in `app.css`.
+Where each router and read model lives: [`LAYOUT.md`](LAYOUT.md). The console itself and its
+design system: [`apps/web`](../web/) (skills `mudpuppy-react-ui` and `mudpuppy-salvage-ui`).

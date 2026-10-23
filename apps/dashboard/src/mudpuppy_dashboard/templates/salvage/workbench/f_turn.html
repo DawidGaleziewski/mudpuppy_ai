@@ -1,7 +1,0 @@
-{#- A turn's parts as the store has them now (spec 043 F-16): the page fills its containers by id. -#}
-{% import "salvage/workbench/log.html" as wblog with context %}
-{%- set n = rt.turn.n -%}
-<div id="turn-t{{ n }}-text">{% for a in rt.turn.answer %}<p>{{ a }}</p>{% endfor %}</div>
-<div id="turn-t{{ n }}-views">{{ wblog.views(rt, portal, none) }}</div>
-<div id="turn-t{{ n }}-cmds">{{ wblog.commands(rt) }}</div>
-<div id="turn-t{{ n }}-story">{{ wblog.story(rt) }}</div>

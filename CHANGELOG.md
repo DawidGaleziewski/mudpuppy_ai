@@ -5,6 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **R-100: the console is a 100% React single-page app** (spec 071, v2.7.0, 2026-10-23). Moving
+  between pages no longer reloads the app: every link goes through React Router (30–120 ms a
+  click, no page load), and the built files are cached for good. Every page the htmx dashboard
+  still had is in React: a recording (a dialog over its Screen page, with who sees what and two
+  personas side by side), Same screen?, Plan next scan and Recover, + New portal, an error
+  reference, Access, Server activity, Search, Scans by process, the glossary and wiki, the
+  documentation export and the Workbench; a new portal's Home shows Get started, and the
+  assistant lives only in the drawer (designer answers Q10, Q11). The header's Data store menu
+  opens an eval workspace and keeps it on every page; As of, the stray-server warning and a
+  scan's hooks came along. Every old address (`/states/…`, `/docs/…`, `/runs/…`, `/chat`, …)
+  redirects to its React page, so evidence links, exports and bookmarks keep working.
+
+### Removed
+- **R-100: the htmx dashboard** (spec 071, v2.7.0, 2026-10-23): its pages, fragments, form
+  posts, templates, static files, Jinja and their tests. The dashboard is now the JSON API, the
+  chat relay, the evidence files and the console at `/app/`. Leftovers in R-102.
+
 ### Added
 - **R-96 step 21: the assistant on Home, the scan line and page actions** (spec 070, v2.6.20,
   2026-10-23). Home has the Assistant beside Changes by process: suggestions and a message box

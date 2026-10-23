@@ -4,12 +4,12 @@
 - One root pnpm workspace with one root `pnpm-lock.yaml` (constitution 2.1.0): run `pnpm install` at the repo root, never inside an app. Only `apps/proving-ground` keeps its own workspace.
 
 ## Running the apps
-- Dashboard: `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` → http://127.0.0.1:8765.
-- React console (R-96, replacing the htmx pages): `pnpm --dir apps/web build`, then the dashboard
+- Console: a React single-page app (`apps/web`, R-100: the only UI) over the dashboard's JSON API.
+  `pnpm --dir apps/web build`, then `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard`
   serves it at http://127.0.0.1:8765/app/; `pnpm --dir apps/web dev` (5173) and
-  `pnpm --dir apps/web storybook` (6006) while building. All UI work there follows skill
+  `pnpm --dir apps/web storybook` (6006) while building. All UI work follows skill
   `mudpuppy-react-ui`.
-- Chat service (the dashboard's Chat page needs it): `MUDPUPPY_ENV=local-dev pnpm --dir apps/chat start` → 127.0.0.1:4310. `local-dev` is the owner's local test store (2026-10-22): the `portals/*-local` copies of the local test portals declare it, and `.mcp.json` starts Claude Code's `mudpuppy` servers on it; `sandbox` stays for the originals, the gates and the tests. Env: `MUDPUPPY_ENV` (required, no default: an environment a portal declares, spec 030 R-61), `MUDPUPPY_CHAT_PORT`. It uses the user's Claude Code login and starts its own `mudpuppy` MCP servers (with Chromium) per conversation.
+- Chat service (the console's assistant needs it): `MUDPUPPY_ENV=local-dev pnpm --dir apps/chat start` → 127.0.0.1:4310. `local-dev` is the owner's local test store (2026-10-22): the `portals/*-local` copies of the local test portals declare it, and `.mcp.json` starts Claude Code's `mudpuppy` servers on it; `sandbox` stays for the originals, the gates and the tests. Env: `MUDPUPPY_ENV` (required, no default: an environment a portal declares, spec 030 R-61), `MUDPUPPY_CHAT_PORT`. It uses the user's Claude Code login and starts its own `mudpuppy` MCP servers (with Chromium) per conversation.
 - After running the real chat service, stop it and check for orphaned `mudpuppy` servers and Chromium processes.
 - BA-facing walkthrough: `docs/how-to-use.md`.
 

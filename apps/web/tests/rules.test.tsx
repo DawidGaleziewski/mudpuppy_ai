@@ -39,7 +39,7 @@ const list = (over: Record<string, unknown> = {}) => ({
   statuses: [{ value: 'broken', label: 'Broken 1' }],
   status: null,
   groups: [{ status: broken, rules: [row] }],
-  export: { zip: '/rules/export.zip?portal=shop', csv: '/rules/export/rules.csv?portal=shop' },
+  export: { zip: '/api/portals/shop/rules/export.zip', csv: '/api/portals/shop/rules/export/rules.csv' },
   writes: true,
   ...over,
 });
@@ -54,7 +54,7 @@ const one = (over: Record<string, unknown> = {}) => ({
   wordings: [],
   tests: [{ inputs: ['age = 17'], expect: 'SC-0002 ok', got: 'SC-0002 ok', verdict: { shape: 'ok', word: 'Pass' } }],
   history: [{ status: { shape: 'failed', word: 'Refuted' }, actor: 'Anna', reason: 'Wrong threshold.', at: '2026-10-17T11:00:00Z', undo: false, by_person: true, mark: 'failed' }],
-  files: [{ value: '/rules/export/BR-009.md?portal=shop', label: 'Markdown' }],
+  files: [{ value: '/api/portals/shop/rules/export/BR-009.md', label: 'Markdown' }],
   writes: true,
   changed: false,
   uncited: false,

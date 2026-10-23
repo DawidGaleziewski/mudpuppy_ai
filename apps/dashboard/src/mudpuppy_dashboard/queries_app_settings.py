@@ -1,8 +1,8 @@
 """The React console's Settings (R-96, spec 068; screen 11): a portal's environments as the chat
 service reads them, the stored credentials (names only), the Workbench's use, personas, crawl
-rules, hints and budgets, screen identity and the data store. Built from the htmx page's own
-readers (`queries_settings`, `queries_identity`, `db.store_info`); the router passes what it read
-from the chat service."""
+rules, hints and budgets, screen identity and the data store. Built from the readers
+`queries_settings`, `queries_identity` and `db.store_info`; the router passes what it read from
+the chat service."""
 
 from __future__ import annotations
 

@@ -101,7 +101,7 @@ All of them are linked to the outcome evidence.
 
 - **Checkpoints everywhere.** Every recorded state stores its recipe. A run can start at any state by **replaying** the recipe instead of exploring.
 - **Replay is checked.** Each intermediate fingerprint must match. A mismatch stops the run with "Replay diverged at step N", showing the expected and seen states, and becomes a reconciliation item.
-- **Resume a stopped run:** a new run that replays to the last good checkpoint before the failure. It carries over the stopped run's frontier and is linked as "continues 01a110d5".
+- **Resume a stopped run:** a new run that replays to the last good checkpoint before the failure. It carries over the stopped run's frontier and is linked as "continues 01a110d5-2028".
 - **Retry this path (drill-down):** a focused run that replays to the failing node and re-runs the failing action, with an optional variation (wait longer, don't submit, other inputs, skip the action). Attempts are listed per path. The path is **solved** when an attempt passes; from there you can continue the frontier.
 - **Failure classes decide the defaults:**
   - **crawler error** (selector not found, driver crash): retry with a longer wait;

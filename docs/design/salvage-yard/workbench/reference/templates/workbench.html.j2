@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+{# No history snapshots: conversation text never goes to localStorage; Back re-requests the URL. #}
+<meta name="htmx-config" content='{"historyCacheSize": 0, "refreshOnHistoryMiss": true}'>
+<title>MudPuppy · Workbench (beta)</title>
+<link rel="icon" href="/design-system/tag-icon.svg" type="image/svg+xml">
+{# One source for styles: the package's design system, served as-is. #}
+<link rel="stylesheet" href="/design-system/css/tokens.css">
+<link rel="stylesheet" href="/design-system/css/fonts.css">
+<link rel="stylesheet" href="/design-system/css/salvage.css">
+<link rel="stylesheet" href="/design-system/css/genui.css">
+<script src="/static/vendor/htmx-2.0.4.min.js"></script>
+<script src="/static/vendor/htmx-ext-sse-2.2.3.js"></script>
+<script src="/static/sy-livemap.js" type="module"></script>
+<script src="/static/wb.js" defer></script>
+</head>
+{# CSRF: every htmx request carries the session token; the server checks it on POST. #}
+<body class="sy-ground" hx-headers='{"X-CSRF-Token": "{{ csrf }}"}'>
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="/workbench"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span><span class="sy-small">reference-insurer</span></div>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label">As of</span><span class="sy-small">{{ "Now" if as_of == "now" else as_of }}</span></div>
+    <span class="sy-header__spacer"></span>
+    <span class="sy-status" data-status="ok">Assistant up</span>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="/screens/v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="/workbench" aria-current="page">Workbench <span class="sy-chip sy-chip--dashed">beta</span></a>
+      <a class="sy-nav__item" href="/screens/v2-02-changes.html">Changes</a>
+      <a class="sy-nav__item" href="/screens/v2-04-review.html">Review</a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="/screens/v2-09-processes.html">Processes</a>
+      <a class="sy-nav__item" href="/screens/v2-06-screens.html">Screens</a>
+      <a class="sy-nav__item" href="/screens/v2-11-rules.html">Rules</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="/screens/10-scans.html">Scans</a>
+      <div class="sy-nav__foot">reference app · store: memory · writes go through commands</div>
+    </nav>
+    <main id="main" class="sy-main">
+      <div class="sy-wb__head">
+        <div class="sy-stack" style="--sy-gap: 4px">
+          <h1 class="sy-h1">Workbench</h1>
+          <p class="sy-meta">Beta · the assistant composes this screen for what you're doing · reference-insurer · sandbox</p>
+        </div>
+        {% include "frames/pathswitch.html.j2" %}
+        {% include "frames/demo.html.j2" %}
+      </div>
+      {% if as_of != "now" %}
+      <div class="sy-callout sy-callout--intent"><span class="sy-callout__title">The Workbench works on now</span>
+        <span class="sy-small">You're looking at {{ as_of }}. Writes are off. <a href="/workbench?as_of=now">Back to now</a></span></div>
+      {% endif %}
+      {% include "layouts/" ~ layout ~ ".html.j2" %}
+      {% include "frames/live.html.j2" %}
+      {# The ONE polite live region on the page: view opened and milestones ("Scan stopped at /kontakt, step 171"),
+         never every event. The conversation log is role=log; live cards inside it are aria-live=off. #}
+      <div id="wb-announce" class="sy-sr-only" aria-live="polite"></div>
+      <span id="wb-last-at" hidden></span>
+      <template id="wb-stale-tpl">
+        <div class="sy-genview__notice" data-stale-notice><span class="sy-status" data-status="stopped">Paused</span>
+          <span>Live updates paused at <span data-at></span> · <span class="sy-genstatus">Reconnecting</span></span></div>
+      </template>
+    </main>
+  </div>
+</div>
+</body>
+</html>

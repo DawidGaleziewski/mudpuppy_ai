@@ -21,6 +21,7 @@ import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
+import { GetStarted } from './GetStarted';
 import { HomeAssistant } from './HomeAssistant';
 
 type Item = PortalHomeData['needs']['top'][number];
@@ -68,7 +69,7 @@ function LastScan({ scan }: { scan: PortalHomeData['last_scan'] }) {
           />
         </Stack>
       ) : (
-        <Callout>No scan yet. Start one from the chat.</Callout>
+        <Callout>No scan yet. Ask the assistant to start one.</Callout>
       )}
     </Plate>
   );
@@ -101,25 +102,26 @@ function Releases({ lanes }: { lanes: PortalHomeData['lanes'] }) {
   );
 }
 
+function NeedsYou({ h }: { h: PortalHomeData }) {
+  return (
+    <Plate title="Needs you" variant="intent" flush={h.needs.top.length > 0} actions={<Count>{h.needs.total}</Count>}>
+      {h.needs.top.length === 0 ? (
+        <Callout>Nothing waits for you on this portal.</Callout>
+      ) : (
+        <Rows label="What needs you">
+          {h.needs.top.map((it) => (
+            <NeedsRow key={`${it.kind}-${it.id}`} item={it} />
+          ))}
+        </Rows>
+      )}
+    </Plate>
+  );
+}
+
 function Home({ h }: { h: PortalHomeData }) {
   return (
     <Stack>
-      <Plate
-        title="Needs you"
-        variant="intent"
-        flush={h.needs.top.length > 0}
-        actions={<Count>{h.needs.total}</Count>}
-      >
-        {h.needs.top.length === 0 ? (
-          <Callout>Nothing waits for you on this portal.</Callout>
-        ) : (
-          <Rows label="What needs you">
-            {h.needs.top.map((it) => (
-              <NeedsRow key={`${it.kind}-${it.id}`} item={it} />
-            ))}
-          </Rows>
-        )}
-      </Plate>
+      {h.last_scan === null ? <GetStarted portal={h.portal} /> : <NeedsYou h={h} />}
       <Grid min="18rem">
         <LastScan scan={h.last_scan} />
         <Plate title="The model">

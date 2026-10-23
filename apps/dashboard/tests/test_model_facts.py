@@ -2,8 +2,9 @@
 
 from __future__ import annotations
 
+import json
+
 from .conftest import Store, insert, ts
-from .test_chat import text
 from .test_processes_pages import P, client, seed
 
 
@@ -84,21 +85,19 @@ def test_the_process_page_shows_triggers_outcomes_and_how_far_it_was_explored(
     seed(empty_store)
     seed_model(empty_store)
     with client(empty_store) as c:
-        body = c.get(f"/processes/PRC-001?portal={P}").text
-    flat = text(body)
-    assert "In the portal model" in flat
-    assert ">SC-0001<" in body and "link|Samochód" in body
+        facts = c.get(f"/api/portals/{P}/processes/PRC-001").json()["facts"]
+    flat = json.dumps(facts, ensure_ascii=False)
+    assert "SC-0001" in flat and "link|Samochód" in flat
     assert "1 completed" in flat and "1 incomplete" in flat
     assert "A URL opened on the first screen (deep link)" in flat
-    assert 'data-status="ok">Thorough' in body and "no counterexamples" in flat
+    assert facts["explored"]["word"] == "Thorough" and "no counterexamples" in flat
     # Paths (v2-10, T079): the walked screens of each instance, grouped
-    assert "2 paths · 2 cases" in flat
-    assert '<a class="sy-path__step sy-case-normal" href="/screens/SC-0001' in body
-    assert body.index(">Home</a>") < body.index(">Car</a>")
+    assert len(facts["paths"]) == 2
+    assert flat.index('"Home"') < flat.index('"Car"')
 
 
 def test_without_a_model_the_section_is_left_out(empty_store: Store) -> None:
     seed(empty_store)
     with client(empty_store) as c:
-        body = c.get(f"/processes/PRC-001?portal={P}").text
-    assert "In the portal model" not in text(body)
+        body = c.get(f"/api/portals/{P}/processes/PRC-001").json()
+    assert body["facts"] is None

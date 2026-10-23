@@ -3,7 +3,7 @@ import { Button, ChatDivider, Cluster, Confirm, Field, Input, Message, ProposalC
 import { chatCall, type AssistantConversation, type AssistantItem, type AssistantPage, type LiveLine } from './api-assistant';
 import { ShownStatus } from './ShownStatus';
 
-/** A failure with its ERR reference, which the htmx error page looks up. */
+/** A failure with its ERR reference, which the error page looks up. */
 export function Failure({ text, reference }: { text: string; reference: string | null | undefined }) {
   return (
     <Message who="System">
@@ -13,7 +13,7 @@ export function Failure({ text, reference }: { text: string; reference: string |
           <Text small muted>
             reference
           </Text>
-          <Text mono small href={`/chat/errors/${encodeURIComponent(reference)}`}>
+          <Text mono small href={`/app/errors/${encodeURIComponent(reference)}`}>
             {reference}
           </Text>
         </Cluster>

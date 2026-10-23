@@ -11,7 +11,7 @@
 <style>
   /* Before / after: two recorded pages side by side; the changed region is the same size on both sides so the pages line up. */
   .mp-region { position: relative; display: flex; align-items: center; min-height: 40px; padding: 8px 12px; }
-  .mp-slot { min-height: 40px; padding: 8px 12px; justify-content: center; }      /* on .sy-state: the empty region */
+  .mp-gap { position: relative; height: 2px; margin: 6px 0 10px; }                /* mock only: where the line mark sits */
   .mp-seg > button { flex: none; }
 </style>
 </head>
@@ -72,7 +72,7 @@
   <div class="sy-split" style="align-items: flex-end; --sy-gap: 12px 24px">
     <div class="sy-stack" style="--sy-gap: 4px">
       <h2 id="finding-h" class="sy-h2 sy-case-normal">Banner "Oferta specjalna" on 6 of 11 visits</h2>
-      <p class="sy-meta">Found by check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct · same release (<span class="sy-case-normal">9c21</span>) and persona (guest) on every visit</p>
+      <p class="sy-meta">Found by check run <span class="sy-tag sy-tag--sm">01a1340c-3b97</span> · 17 Oct · same release (<span class="sy-case-normal">9c21</span>) and persona (guest) on every visit</p>
     </div>
     <div class="sy-cluster" style="--sy-gap: 8px 14px">
       <div class="sy-seg mp-seg" role="group" aria-label="How to compare">
@@ -89,14 +89,14 @@
         <span id="before-h">Without banner</span>
         <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 10px"><span class="sy-chip">variant r2</span><span class="sy-mono sy-mono--sm sy-muted">5 of 11 visits</span></span>
       </header>
-      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c#14 · <time datetime="2026-10-17T10:14Z">17 Oct 10:14Z</time> · ab_calc = A</span></p>
-      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c#14, without the banner">
+      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c-3b97#14 · <time datetime="2026-10-17T10:14Z">17 Oct 10:14Z</time> · ab_calc = A</span></p>
+      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c-3b97#14, without the banner; a dashed line marks where it appears on the other visit">
         <u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
         <div class="sy-cluster" style="--sy-gap: 2px 12px">
           <span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Oblicz składkę</span><span class="sy-shot__link">Kontakt</span><span class="sy-shot__link">FAQ</span><span class="sy-shot__link">Słowniczek</span><span class="sy-shot__link">Zaloguj się</span>
         </div>
         <span class="sy-shot__title">Twoja składka</span>
-        <div class="sy-state mp-slot"><span class="sy-small">Empty here: no banner on this visit</span></div>
+        <div class="mp-gap"><span class="sy-mark sy-mark--overlay sy-mark--gone" data-shape="line" aria-hidden="true" style="left: 0; top: 0; width: 100%"><span class="sy-mark__label">Not here</span></span></div>
         <b>OC 612 zł / rok</b>
         <div class="sy-cluster" style="--sy-gap: 6px 18px"><span class="sy-shot__link"><b>Kup online</b></span><span class="sy-shot__link">Wróć</span></div>
         <small>Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. Wszystkie dane są fikcyjne. · v9c21</small>
@@ -108,8 +108,8 @@
         <span id="after-h">With banner</span>
         <span class="sy-cluster sy-case-normal" style="--sy-gap: 6px 10px"><span class="sy-chip">variant r3</span><span class="sy-mono sy-mono--sm sy-muted">6 of 11 visits</span></span>
       </header>
-      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c#15 · <time datetime="2026-10-17T10:15Z">17 Oct 10:15Z</time> · ab_calc = B</span></p>
-      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c#15, with the banner marked as changed">
+      <p class="sy-cluster sy-mono sy-mono--sm sy-muted" style="--sy-gap: 4px 10px"><span class="sy-status" data-status="ok">Observed</span><span>visit 01a1340c-3b97#15 · <time datetime="2026-10-17T10:15Z">17 Oct 10:15Z</time> · ab_calc = B</span></p>
+      <figure class="sy-shot" aria-label="Recorded page Kalkulator OC/AC — wynik, visit 01a1340c-3b97#15, with the banner marked as changed">
         <u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
         <div class="sy-cluster" style="--sy-gap: 2px 12px">
           <span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Porównanie</span><span class="sy-shot__link">Oblicz składkę</span><span class="sy-shot__link">Kontakt</span><span class="sy-shot__link">FAQ</span><span class="sy-shot__link">Słowniczek</span><span class="sy-shot__link">Zaloguj się</span>
@@ -126,8 +126,8 @@
     </section>
   </div>
   <div class="sy-stack" style="--sy-gap: 4px">
-    <p class="sy-legend" aria-hidden="true"><span>▣ Changed</span><span>┄ same place</span></p>
-    <p class="sy-small sy-muted">"Changed" marks the region that differs. The dashed box is the same place on the other page. The rest of the page is the same.</p>
+    <p class="sy-legend" aria-hidden="true"><span>▣ Changed</span><span>┄ Not here: the same place on the other page</span></p>
+    <p class="sy-small sy-muted">"Changed" marks the region that differs. "Not here" marks the same place on the other page: a dashed line where the banner was inserted (a dashed box for things that float). The rest of the page is the same.</p>
   </div>
 </section>
 
@@ -166,7 +166,7 @@
           <li class="sy-split"><span class="sy-small">10× with ab_calc = A → no banner, 10 / 10</span><span class="sy-status" data-status="ok">Pass</span></li>
           <li class="sy-split"><span class="sy-small">10× with ab_calc = B → banner, 10 / 10</span><span class="sy-status" data-status="ok">Pass</span></li>
         </ul>
-        <p class="sy-small sy-muted">Proposed by check run <span class="sy-tag sy-tag--sm">01a1340c</span> · 17 Oct. Not decided until you confirm.</p>
+        <p class="sy-small sy-muted">Proposed by check run <span class="sy-tag sy-tag--sm">01a1340c-3b97</span> · 17 Oct. Not decided until you confirm.</p>
       </div>
     </section>
 

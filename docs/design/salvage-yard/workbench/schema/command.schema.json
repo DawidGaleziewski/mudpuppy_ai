@@ -17,7 +17,8 @@
         "scan.resume",
         "scan.stop",
         "path.attempt",
-        "mark.add"
+        "mark.add",
+        "persona.add"
       ]
     },
     "args": {
@@ -65,9 +66,7 @@
                 "$ref": "#/$defs/route"
               },
               "persona": {
-                "enum": [
-                  "guest"
-                ]
+                "$ref": "#/$defs/personaName"
               },
               "limit_steps": {
                 "type": "integer",
@@ -213,6 +212,103 @@
           }
         }
       }
+    },
+    {
+      "if": {
+        "properties": {
+          "command": {
+            "const": "persona.add"
+          }
+        },
+        "required": [
+          "command"
+        ]
+      },
+      "then": {
+        "properties": {
+          "args": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "name"
+            ],
+            "properties": {
+              "name": {
+                "$ref": "#/$defs/personaName"
+              },
+              "about": {
+                "allOf": [
+                  {
+                    "$ref": "#/$defs/plainText"
+                  }
+                ],
+                "maxLength": 140
+              },
+              "credential": {
+                "oneOf": [
+                  {
+                    "const": "none"
+                  },
+                  {
+                    "$ref": "#/$defs/vaultRef"
+                  }
+                ],
+                "description": "none = browses as a guest. Otherwise a vault reference that already exists."
+              },
+              "test_data": {
+                "type": "array",
+                "maxItems": 20,
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "field",
+                    "value"
+                  ],
+                  "properties": {
+                    "field": {
+                      "type": "object",
+                      "additionalProperties": false,
+                      "required": [
+                        "route",
+                        "label"
+                      ],
+                      "properties": {
+                        "route": {
+                          "$ref": "#/$defs/route"
+                        },
+                        "state": {
+                          "type": "integer",
+                          "minimum": 1,
+                          "maximum": 50
+                        },
+                        "label": {
+                          "allOf": [
+                            {
+                              "$ref": "#/$defs/plainText"
+                            }
+                          ],
+                          "maxLength": 80
+                        }
+                      },
+                      "description": "A field as recorded on a form: route (+ same-URL step) and its label."
+                    },
+                    "value": {
+                      "allOf": [
+                        {
+                          "$ref": "#/$defs/plainText"
+                        }
+                      ],
+                      "maxLength": 200
+                    }
+                  }
+                },
+                "description": "Test data for forms. Never real customer data, never secrets."
+              }
+            }
+          }
+        }
+      }
     }
   ],
   "$defs": {
@@ -262,6 +358,16 @@
       "type": "string",
       "pattern": "^[^<>{}]*$",
       "description": "Plain words. No markup, no template syntax."
+    },
+    "personaName": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]{1,23}$",
+      "description": "A persona of the portal, lower case: guest, client, premium. The server resolves it (unknown → id_not_found)."
+    },
+    "vaultRef": {
+      "type": "string",
+      "pattern": "^[A-Z][A-Z0-9_]{1,47}$",
+      "description": "A credential's name in the vault, e.g. CLIENT_LOGIN. Never a value: values go to the vault through its own dialog."
     }
   }
 }

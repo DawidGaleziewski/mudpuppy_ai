@@ -5,6 +5,7 @@ import { useReviewKeys } from '../app/useReviewKeys';
 import { changeHref } from '../app/api-changes';
 import { reviewHref, reviewKey, useReview, type ReviewPage, type ReviewView } from '../app/api-review';
 import { ruleHref } from '../app/api-rules';
+import { sameScreenHref } from '../app/api-same-screen';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -27,8 +28,8 @@ function TabNav({ page }: { page: ReviewPage }) {
     count: counts[tab],
     current: page.tab === tab,
   }));
-  // Same screen? (v2-14) is its own page, one pair at a time; still on htmx.
-  if (page.same_screen_pairs) items.push({ href: `/same-screen?portal=${encodeURIComponent(page.portal)}`, label: 'Same screen?', count: page.same_screen_pairs, current: false });
+  // Same screen? (v2-14) is its own page, one pair at a time.
+  if (page.same_screen_pairs) items.push({ href: sameScreenHref(page.portal), label: 'Same screen?', count: page.same_screen_pairs, current: false });
   return <ViewNav label="Review views" items={items} />;
 }
 

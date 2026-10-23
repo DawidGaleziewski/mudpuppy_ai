@@ -1,0 +1,18 @@
+{# Phase 3 focus mode: the stage takes the room; the conversation folds into a command bar under it.
+   The log stays in the page (hidden, preserved) so leaving focus mode keeps it. #}
+{% set last = (sess.turns | rejectattr("role", "equalto", "user") | list | last) if sess.turns else None %}
+<div class="sy-wb sy-wb--focus" id="wb-layout" data-phase="{{ sess.phase }}"{% if oob %} hx-swap-oob="outerHTML"{% endif %}>
+  <div class="sy-wb__stage" id="wb-stage" role="region" aria-label="Stage">
+    {% for c in slots.stage %}{{ r.component(view, c, "stage") }}{% endfor %}
+    <div class="sy-cmdbar__reply" id="wb-reply" aria-label="Latest reply">
+      {% if last %}{{ r.turn(last) }}{% else %}<p class="sy-small sy-muted">Replies show here.</p>{% endif %}
+      <a class="sy-small" href="/workbench?focus=0">Show the conversation ({{ sess.turns | length }} messages)</a>
+    </div>
+    <div class="sy-cmdbar" aria-label="Command bar">{% include "frames/composer.html.j2" %}</div>
+  </div>
+  <aside class="sy-wb__aside" id="wb-aside" aria-label="Side column">
+    {% for c in slots.aside %}{{ r.component(view, c, "aside") }}{% endfor %}
+  </aside>
+  <div hidden><div class="sy-chat__log" id="wb-log" role="log" aria-label="Conversation" hx-preserve="true">
+    {% for t in sess.turns %}{{ r.turn(t) }}{% endfor %}</div></div>
+</div>

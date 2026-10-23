@@ -1,7 +1,7 @@
 """The React console's What changed (R-96, spec 064; designer screen v2-02): the range, its
 release lanes, the counts and filters, the changes grouped by process then screen and the
-explanations' legend. Built over the htmx page's own read models (`queries_changes`,
-`queries_releases`), so both show the same; statuses come mapped (`status_out`)."""
+explanations' legend. Built over the read models `queries_changes` and `queries_releases`;
+statuses come mapped (`status_out`)."""
 
 from __future__ import annotations
 
@@ -278,7 +278,7 @@ STATUSES = ("open", "explained", "waiting_test")
 
 
 def changes_page(conn: sqlite3.Connection, portal: str, q: ChangesQuery) -> ChangesPage:
-    """The page for `q`: the same range, filters and groups as the htmx What changed."""
+    """The page for `q`: its range, filters and groups."""
     seq = int(q.from_seq) if q.from_seq and q.from_seq.isdigit() else None  # "": previous release
     start, how = qc.range_from(conn, portal, seq, q.from_date or None, q.from_scan or None)
     v = qc.changes_view(

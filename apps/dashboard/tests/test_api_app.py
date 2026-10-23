@@ -98,3 +98,6 @@ def test_the_app_serves_files_and_falls_back_to_index(empty_store: Store, tmp_pa
         assert c.get("/app/portals/shop/scans").text == "<div id=root></div>"
         # a path that leaves the build is never served (the app's index instead)
         assert c.get("/app/..%2F..%2F..%2Fetc%2Fpasswd").text == "<div id=root></div>"
+        # R-100: hashed assets are cached for good, the page shell is asked for every time
+        assert "immutable" in c.get("/app/assets/app.js").headers["cache-control"]
+        assert c.get("/app/portals/shop").headers["cache-control"] == "no-cache"

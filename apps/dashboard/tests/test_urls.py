@@ -74,8 +74,10 @@ def test_state_page_shows_entry_urls_hops_and_parameters(liveinsurer_store: Stor
     conn.commit()
     conn.close()
     with make_client(liveinsurer_store) as c:
-        html = c.get(f"/states/{state[0]}").text
-    assert "Reached under" in html
-    assert "https://liveinsurer.test/oc?wariant=pelny&amp;sid=AB12" in html
-    assert "http 301" in html
-    assert ">wariant</td>" in html and "pelny" in html
+        page = c.get(f"/api/states/{state[0]}").json()["page"]
+    (entry,) = page["urls"]
+    assert entry["url"] == "https://liveinsurer.test/oc?wariant=pelny&sid=AB12"
+    assert [(h["kind"], h["status"]) for h in entry["hops"]][-1] == ("http", 301)
+    assert {"name": "wariant", "where": "query", "values": ["pelny"]} in [
+        {k: p[k] for k in ("name", "where", "values")} for p in page["params"]
+    ]

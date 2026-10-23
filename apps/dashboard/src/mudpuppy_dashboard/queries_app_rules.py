@@ -1,7 +1,7 @@
 """The React console's Business rules (R-96, spec 065; designer screens v2-11 and v2-12): the
 portal's decision rules grouped by status, what needs a person first, and one rule as a decision
-table with its wording, boundary tests and history. Built over the htmx pages' own read model
-(`queries_rules`), so both show the same; statuses come mapped (`status_out`)."""
+table with its wording, boundary tests and history. Built over the read model `queries_rules`;
+statuses come mapped (`status_out`)."""
 
 from __future__ import annotations
 
@@ -14,7 +14,7 @@ from . import queries_rules as qr
 from .queries_app import StatusOut, status_out
 from .queries_app_review_detail import Option
 
-#: Actors that are the system (as the htmx rule page has them); any other actor is a person,
+#: Actors that are the system; any other actor is a person,
 #: whose reason is shown as a note.
 SYSTEM_ACTORS = ("miner", "reconciler", "crawler", "ba-agent")
 
@@ -39,7 +39,7 @@ class RuleGroup(BaseModel):
 
 
 class Export(BaseModel):
-    """The rules export's links (owner answer OV-5), on the htmx export routes."""
+    """The rules export's links (owner answer OV-5)."""
 
     zip: str
     csv: str
@@ -132,8 +132,8 @@ class RuleExport(BaseModel):
 
 
 def exports(portal: str) -> Export:
-    p = quote(portal, safe="")
-    return Export(zip=f"/rules/export.zip?portal={p}", csv=f"/rules/export/rules.csv?portal={p}")
+    base = f"/api/portals/{quote(portal, safe='')}/rules"
+    return Export(zip=f"{base}/export.zip", csv=f"{base}/export/rules.csv")
 
 
 def _row(r: qr.RuleRow) -> RuleRow:
@@ -206,11 +206,11 @@ def _event(e: qr.RuleEvent) -> Event:
 
 
 def _files(portal: str, shown: str) -> list[Option]:
-    p = quote(portal, safe="")
+    base = f"/api/portals/{quote(portal, safe='')}/rules/export"
     key = quote(shown, safe="")
     return [
-        Option(value=f"/rules/export/{key}.md?portal={p}", label="Markdown"),
-        Option(value=f"/rules/export/{key}.dmn?portal={p}", label="DMN"),
+        Option(value=f"{base}/{key}.md", label="Markdown"),
+        Option(value=f"{base}/{key}.dmn", label="DMN"),
         Option(value=exports(portal).zip, label="All rules (zip)"),
     ]
 

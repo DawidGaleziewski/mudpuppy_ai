@@ -17,7 +17,6 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from markdown_it import MarkdownIt
-from markupsafe import Markup
 
 from . import db
 from .settings import Settings
@@ -119,7 +118,7 @@ _DATA_LINK = re.compile(r'href="(?P<file>openapi\.yaml|process\.json)"')
 _HEADING = re.compile(r"<(?P<close>/?)h(?P<n>[1-6])")
 
 
-def render(md: str, tab_url: str, image_url: str, file_url: str) -> Markup:
+def render(md: str, tab_url: str, image_url: str, file_url: str) -> str:
     """One file as HTML: links to the other files become tab links, images and data files come
     from the dashboard. `tab_url`, `image_url` and `file_url` take `{file}` / `{name}`."""
     html = _ANCHOR.sub(lambda m: f'<a id="{m["id"]}"></a>', _MD.render(md))
@@ -142,4 +141,4 @@ def render(md: str, tab_url: str, image_url: str, file_url: str) -> Markup:
     html = html.replace("</table>", "</table></div>")
     # Code (shapes, samples, pseudo-code) scrolls inside its own box too.
     html = html.replace("<pre>", '<div class="sy-table-wrap"><pre>')
-    return Markup(html.replace("</pre>", "</pre></div>"))
+    return html.replace("</pre>", "</pre></div>")

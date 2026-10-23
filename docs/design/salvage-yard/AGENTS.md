@@ -19,6 +19,11 @@ bracket statuses like `[ OK ]`, or the `mudpuppy://console` wordmark.
   `docs/16-genui-components.md` + `design-system/genui-components.html`, engineering and ADR `docs/17-genui-architecture.md`,
   screens `wb-01`…`wb-10`, contract `workbench/schema/` (regenerate with `workbench/tools/gen_wb_schema.py`, never edit the JSON),
   reference app `workbench/reference/`, requirements `docs/07-requirements.md` §G (FE-W ids).
+- Open questions answered (pictures, wide dialog, variants, graph zoom bar and height, record ids, full scan ids and their short
+  form, chips on the selected nav item, accessible names, the recorded map's edges): `docs/18-design-answers/`, demos in `design-system/components.html#c-21`.
+- The React console's 13 questions (phase bar, map opening, persona card, before / after, timeline, table facts, drawer, disabled
+  segment, recordings, chat page, scan line, A2UI): `docs/19-console-answers/`, demos in `components.html#c-22` and
+  `genui-components.html#g-persona`; the A2UI catalog in `workbench/a2ui/` (generated with the contract).
 - Migration plan: `docs/08-migration-guide.md` (track 1 re-skin first, then track 2 redesign).
 
 ## How to work

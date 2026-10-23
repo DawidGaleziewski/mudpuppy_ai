@@ -15,7 +15,7 @@ from mudpuppy_dashboard.app import create_app
 from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, ts
-from .test_chat import CONV, ORIGIN, Service, seed_conversation, seed_message, text
+from .test_chat import CONV, Service, seed_conversation, seed_message
 from .test_chat_forms import seed_amendment, seed_run, seed_state
 
 
@@ -111,45 +111,3 @@ def test_read_model_marks_a_moved_head_stale_and_keeps_the_base_text(empty_store
     assert views["p-moved"].stale is True and views["p-moved"].head_rev == 2
     assert views["p-new"].is_new and views["p-new"].key == "AMD-001"
     assert views["p-gone"].undone is False
-
-
-def test_cards_sit_in_time_order_with_their_actions(empty_store: Store) -> None:
-    store = seeded(empty_store)
-    with client(store, Service()) as c:
-        page = c.get("/chat")
-    assert page.status_code == 200
-    body = page.text
-    flat = text(body)
-    assert flat.index("Make AMD-001 clearer") < flat.index("Proposal p-open")
-    open_card = body[body.index('id="proposal-p-open"') : body.index('id="proposal-p-moved"')]
-    assert "Apply as r2" in open_card and "disabled" not in open_card
-    assert "first wording" in open_card and "clearer wording" in open_card
-    assert 'data-proposal="/chat/portals/liveinsurer/proposals/p-open/apply"' in open_card
-    moved = body[body.index('id="proposal-p-moved"') : body.index('id="proposal-p-new"')]
-    assert "disabled" in moved and "Out of date" in moved and "is at r2 now" in text(moved)
-    applied = body[body.index('id="proposal-p-new"') : body.index('id="proposal-p-gone"')]
-    assert "Applied as r1" in applied and "Undo (withdraws AMD-001)" in applied
-    assert "by Anna" in text(applied)
-    gone = body[body.index('id="proposal-p-gone"') :]
-    assert "Discarded" in gone and "data-proposal" not in gone.split("</div>\n</div>")[0]
-
-
-def test_decision_forwards_signed_and_refuses_other_verbs_and_origins(empty_store: Store) -> None:
-    store = seeded(empty_store)
-    service = Service()
-    service.routes[("POST", "/portals/liveinsurer/proposals/p-open/apply")] = httpx2.Response(
-        200, json={"proposal": {"status": "applied"}}
-    )
-    service.routes[("POST", "/portals/liveinsurer/proposals/p-moved/apply")] = httpx2.Response(
-        409, json={"code": "STALE_PROPOSAL", "message": "The amendment changed."}
-    )
-    with client(store, service) as c:
-        ok = c.post("/chat/portals/liveinsurer/proposals/p-open/apply", headers=ORIGIN)
-        stale = c.post("/chat/portals/liveinsurer/proposals/p-moved/apply", headers=ORIGIN)
-        bad = c.post("/chat/portals/liveinsurer/proposals/p-open/delete", headers=ORIGIN)
-        foreign = c.post("/chat/portals/liveinsurer/proposals/p-open/apply")
-    assert ok.status_code == 200
-    sent = [r for r in service.requests if r.url.path.endswith("/p-open/apply")]
-    assert json.loads(sent[0].content) == {"author": "Anna"}
-    assert stale.status_code == 409 and stale.json()["message"] == "The amendment changed."
-    assert bad.status_code == 422 and foreign.status_code == 403

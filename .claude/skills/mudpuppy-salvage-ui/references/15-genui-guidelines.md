@@ -46,10 +46,10 @@ Dashed blueprint means the assistant chose or wrote it. Solid means it was obser
 | Send (composer, command bar) | Chalk edge, never marker | `.sy-btn--strong` | Send |
 | A finished or stopped live card, after a newer card arrived | Folded to its one-line summary + Expand | `.sy-genview--card` + `aria-expanded` on Expand | LIVE MAP `generated` □ STOPPED · 171 / 400 steps · 17 pages · 113 queued · Expand |
 | The write is running | Solid cyan edge, running status | `.sy-cmd[data-cmd-state="running"]` | ■ Running |
-| The write is done | Solid green edge, ok status | `.sy-cmd[data-cmd-state="done"]` | ■ Done · Resumed as scan 01a110e7 |
+| The write is done | Solid green edge, ok status | `.sy-cmd[data-cmd-state="done"]` | ■ Done · Resumed as scan 01a110e7-2068 |
 | The write failed | Solid red edge, failed status | `.sy-cmd[data-cmd-state="failed"]` | ✕ Failed · ERR-… · nothing changed |
 | The write was undone (marks only) | Solid line, ash title | `.sy-cmd[data-cmd-state="undone"]` | □ Undone · mark removed |
-| The person cancelled, or the proposal no longer applies | Folded to one muted head line | `.sy-cmd[data-cmd-state="cancelled"]`, `[data-cmd-state="expired"]` | Cancelled · nothing changed / No longer applies: 01a110d5 was resumed from Scans |
+| The person cancelled, or the proposal no longer applies | Folded to one muted head line | `.sy-cmd[data-cmd-state="cancelled"]`, `[data-cmd-state="expired"]` | Cancelled · nothing changed / No longer applies: 01a110d5-2028 was resumed from Scans |
 | A view is being composed | Dashed blueprint frame, skeleton blocks at final size, caret | `.sy-genview[data-gen-state="composing"]`, `.sy-genskel`, `.sy-genstatus` | Composing view_ |
 | The live stream dropped | Dashed ash frame, notice strip, data stays readable; status "Not live" (dashed grey), meter neutral, last page "Last seen here" | `.sy-genview[data-gen-state="stale"]` + `.sy-genview__notice` + `data-status="unobserved"` | Live updates paused at 10:57:05Z · Reconnecting_ |
 | Where the crawler is now | 2px cyan edge + running status "Crawler here" | `.sy-node[data-state="here"]`, `.sy-film__item[data-state="here"]` | /kalkulator/kierowca ■ CRAWLER HERE |
@@ -130,7 +130,7 @@ The model never chooses layout. The server places each component from its catalo
 - **Compact inside the conversation.** Cards use `.sy-genview--card`; full views use the stage. A view never stretches the
   conversation column wider.
 - **Old live cards fold.** Once a live card's scan has stopped or finished and a newer card arrives below it, the older card
-  folds to its one-line summary ("Scan 01a110d5 · 171 / 400 steps · 17 pages · 113 queued · stopped at /kontakt") with an
+  folds to its one-line summary ("Scan 01a110d5-2028 · 171 / 400 steps · 17 pages · 113 queued · stopped at /kontakt") with an
   **Expand** button (`aria-expanded`, `aria-controls` the card body). A running card never folds; folding never moves focus,
   never removes the card or its id, and Expand restores it in place until the person folds it again.
 - **Long conversations trim from the top.** When earlier messages are trimmed, the log starts with a
@@ -148,7 +148,7 @@ Routes and ids as stored. Polish portal text exactly as captured, in quotes.
 
 - **Past tense, what happened.** Start with the verb: Opened, Followed, Filled, Recorded, Queued, Stopped.
 - **One line per page** (or per milestone). Never one per event.
-- **Cite every line.** Each line ends with at least one `.sy-cite` linking to its event (`01a110d5#102` → "step 102", title "Event 01a110d5#102").
+- **Cite every line.** Each line ends with at least one `.sy-cite` linking to its event (`01a110d5-2028-7000-8f3e-5c1a9b27d460#102` → "step 102", title "Event 01a110d5-2028#102").
 - **Numbers only from events.** Every number in a line must appear in a cited event. The server checks; a failing line is
   replaced by the templated line for that event.
 - **No speculation.** If the cause is unknown, say what was observed, say that the cause is unknown, and point to where to look.
@@ -186,7 +186,7 @@ Good: "Why did it stop here?" · "Troubleshoot with me" · "Skip /logowanie this
 - **Title** = the command label, verb first: "Resume from last checkpoint", "Run an attempt", "Add a mark".
 - **Body** says what will change, what will not, where it runs, and whether it can be undone, as facts (`.sy-facts`), then
   the assistant's one-sentence reason.
-- **After:** say the result in one line with ids. Done: "Resumed as scan 01a110e7, continues 01a110d5." Failed: "Couldn't
+- **After:** say the result in one line with ids. Done: "Resumed as scan 01a110e7-2068, continues 01a110d5-2028." Failed: "Couldn't
   resume: ERR-… Nothing changed. Try again or troubleshoot." Undone (marks only): "Mark removed."
 
 Example (fixture):
@@ -194,7 +194,7 @@ Example (fixture):
 | Fact (in this order) | Words |
 |---|---|
 | Title | Resume from last checkpoint |
-| Starts | a new scan that continues 01a110d5 |
+| Starts | a new scan that continues 01a110d5-2028 |
 | From | /porownanie · step 140, last good checkpoint |
 | Kept | 17 pages, 113 queued links |
 | Where | sandbox |
@@ -203,14 +203,14 @@ Example (fixture):
 | Reason | The page loaded but the form's button never appeared. |
 
 Cancelled: the card folds to one muted line, "Cancelled · nothing changed". Expired (10 min, or its preconditions changed):
-"No longer applies: 01a110d5 was resumed from Scans".
+"No longer applies: 01a110d5-2028 was resumed from Scans".
 
 ### 4.5 Errors, fallbacks and empty states
 
 | Situation | What the person sees | Words |
 |---|---|---|
 | Spec invalid, or no view fits | The chat answer alone. Nothing else. | — (logged with the drop reason) |
-| One component dropped (unknown id, not allowed on this path) | The rest of the view + a notice in it | "One part of this view isn't available: the page isn't in scan 01a110d5." |
+| One component dropped (unknown id, not allowed on this path) | The rest of the view + a notice in it | "One part of this view isn't available: the page isn't in scan 01a110d5-2028." |
 | The model is down | Composer line; the live map keeps updating; header status Assistant down | "Assistant unavailable. The live map still updates." |
 | The stream dropped | Stale frame + notice (not a live region); status "Not live", last page "Last seen here"; data stays | "Live updates paused at 10:57:05Z · Reconnecting_"; the notice goes on reconnect |
 | The model opens a `render_view` call | A composing frame where the view will go (in the assistant's message for inline cards, on the stage in split and focus); text is never held for it | "Composing view_" |
@@ -247,7 +247,7 @@ exclamation marks · emoji · sparkle icons. Say **generated**, not "AI-generate
 - The assistant proposes the path and says why next to the switch (`data-source="assistant"`).
 - The person can switch at any time. Their choice wins (`data-source="you"`) until they ask for something new.
 - Switching swaps the stage, never the conversation. The path is in the URL
-  (`/workbench?path=mapping&scan=01a110d5&sel=/kalkulator/kierowca:2`), so a view can be linked and reloaded.
+  (`/workbench?path=mapping&scan=01a110d5-2028-7000-8f3e-5c1a9b27d460&sel=/kalkulator/kierowca:2`), so a view can be linked and reloaded.
 - A path change is announced once ("Troubleshoot view opened").
 - In phase 1 the switch shows only Chat and Mapping.
 
@@ -335,8 +335,8 @@ Single-letter keys (A, F) work only when focus is not in a text field and follow
   "Live map, generated". The visible `.sy-genmark` is then `aria-hidden="true"` so the word isn't read twice. Miniatures are `aria-hidden` (the route text next to them
   carries the name). Nodes read "4 · /kalkulator/kierowca · Crawler here".
 - **Live-region policy: one region, milestones only.** Each page has one polite `role="status"` region. It says exactly:
-  "Live map opened" · "Troubleshoot view opened" · "Explain view opened" · "Scan 01a110d5 started" · "Scan stopped at
-  /kontakt, step 171" · "Resumed as scan 01a110e7" · "Attempt 3 passed" / "Attempt 2 failed" · "Scan finished: 42 pages" ·
+  "Live map opened" · "Troubleshoot view opened" · "Explain view opened" · "Scan 01a110d5-2028 started" · "Scan stopped at
+  /kontakt, step 171" · "Resumed as scan 01a110e7-2068" · "Attempt 3 passed" / "Attempt 2 failed" · "Scan finished: 42 pages" ·
   "Live updates paused" / "Live updates back". Never each event, never the meter. A failed command uses `role="alert"`.
 - **The log is already live.** The conversation log is `role="log"` (implicitly polite), so content that updates inside it,
   narration lists and live cards, carries `aria-live="off"`. The live bar, the meter, the stale notice and the As-of banner are

@@ -1,0 +1,39 @@
+{# Command card (genui.css .sy-cmd). Nothing runs before Confirm, which needs the one-time token rendered here.
+   States arrive over the stream (out of band, by id): proposed → running → done | failed; cancelled and expired
+   collapse to one line; Undo sits on the done card (mark.add). #}
+{% set S = {"proposed": ("Confirm", "needs", "Waiting for you"), "running": ("Running", "running", "Running"),
+            "done": ("Done", "ok", "Done"), "failed": ("Failed", "failed", "Failed"),
+            "cancelled": ("Cancelled", "stopped", "Cancelled"), "expired": ("Expired", "stopped", "Expired"),
+            "undone": ("Undone", "stopped", "Undone")}[cmd.state] %}
+<div class="sy-cmd" id="cmd-{{ cmd.id }}" data-cmd-state="{{ cmd.state }}" role="group" aria-labelledby="cmd-{{ cmd.id }}-t"
+     {% if oob %}hx-swap-oob="outerHTML"{% endif %}>
+  {% if cmd.state in ("cancelled", "expired") %}
+  <div class="sy-cmd__head"><span class="sy-cmd__title" id="cmd-{{ cmd.id }}-t">{{ S[0] }} · nothing changed</span>
+    <span class="sy-small sy-muted">{{ cmd.label }}</span></div>
+  {% else %}
+  <div class="sy-cmd__head"><span class="sy-cmd__title" id="cmd-{{ cmd.id }}-t">{{ S[0] }}: {{ cmd.label }}</span>
+    <span class="sy-status" data-status="{{ S[1] }}">{{ S[2] }}</span></div>
+  <div class="sy-cmd__body">
+    <span>{{ cmd.effects }}</span>
+    <dl class="sy-facts">
+      {% for k, v in cmd.display_args %}<dt>{{ k }}</dt><dd>{{ v }}</dd>{% endfor %}
+      <dt>Afterwards</dt><dd>{{ cmd.meta.stop }}</dd>
+    </dl>
+    {% if cmd.reason %}<span class="sy-small sy-muted">{% if cmd.source == "assistant" %}Why: {% endif %}{{ cmd.reason }}</span>{% endif %}
+    {% if cmd.state in ("done", "undone") and cmd.result %}<span class="sy-small">{{ cmd.result_text }}</span>{% endif %}
+    {% if cmd.error %}<span class="sy-small">{{ cmd.error }}</span>{% endif %}
+  </div>
+  {% if cmd.state == "proposed" or (cmd.state == "done" and cmd.undoable) %}
+  <div class="sy-cmd__foot">
+    {% if cmd.state == "proposed" %}
+    <button class="sy-btn sy-btn--sm sy-btn--primary" type="button" hx-post="/workbench/commands/{{ cmd.id }}/confirm"
+            hx-vals='{"token": "{{ cmd.token }}"}' hx-headers='{"Idempotency-Key": "{{ cmd.id }}"}'
+            hx-swap="none" hx-disabled-elt="this">{{ cmd.confirm_label }}</button>
+    <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" hx-post="/workbench/commands/{{ cmd.id }}/cancel" hx-swap="none">Cancel</button>
+    {% else %}
+    <button class="sy-btn sy-btn--sm" type="button" hx-post="/workbench/commands/{{ cmd.id }}/undo" hx-swap="none">Undo</button>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% endif %}
+</div>

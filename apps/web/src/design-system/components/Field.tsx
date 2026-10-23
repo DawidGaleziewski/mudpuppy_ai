@@ -5,6 +5,7 @@ import {
   type InputHTMLAttributes,
   type ReactElement,
   type ReactNode,
+  type Ref,
   type SelectHTMLAttributes,
   type TextareaHTMLAttributes,
 } from 'react';
@@ -53,8 +54,8 @@ export function Field({ label, help, error, children }: FieldProps) {
   );
 }
 
-/** A text input. `drawn`: a proposed value (blueprint). */
-export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement>) {
+/** A text input; `ref` reaches the element (a page's key moves the focus to it). */
+export function Input({ className, ...rest }: InputHTMLAttributes<HTMLInputElement> & { ref?: Ref<HTMLInputElement> }) {
   return <input {...rest} className={cx('sy-input', className)} />;
 }
 
@@ -82,13 +83,15 @@ export function Fieldset({ legend, children }: { legend: ReactNode; children: Re
 
 export interface CheckProps extends Omit<InputHTMLAttributes<HTMLInputElement>, 'type'> {
   label: ReactNode;
+  /** One of a group (same `name`): a radio button instead of a checkbox. */
+  radio?: boolean;
 }
 
-/** A checkbox with its label. */
-export function Check({ label, className, ...rest }: CheckProps) {
+/** A checkbox (or, with `radio`, a radio button) with its label. */
+export function Check({ label, className, radio = false, ...rest }: CheckProps) {
   return (
     <label className={cx('sy-check', className)}>
-      <input {...rest} type="checkbox" /> {label}
+      <input {...rest} type={radio ? 'radio' : 'checkbox'} /> {label}
     </label>
   );
 }

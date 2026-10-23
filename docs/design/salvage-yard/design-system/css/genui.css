@@ -294,6 +294,23 @@
   .sy-cmd[data-cmd-state="cancelled"] > .sy-cmd__head, .sy-cmd[data-cmd-state="expired"] > .sy-cmd__head { border-bottom: 0; }
   .sy-cmd[data-cmd-state="cancelled"] .sy-cmd__title, .sy-cmd[data-cmd-state="expired"] .sy-cmd__title { color: var(--sy-text-muted); }
 
+  /* ===== 2.2 · A command card you can edit before confirming (R-95: Add a persona) ===== */
+  /* Some writes carry values the person owns (a persona's name, its test data). The assistant drafts them; the
+     person corrects them in the card; Confirm sends what the card shows. Secrets never appear here: a credential is
+     picked by its vault reference, or stored through the vault dialog (outside the conversation).
+     <section class="sy-cmd" data-cmd-state="proposed"> head · <form class="sy-cmd__body sy-cmd__form"> fields ·
+       <table class="sy-cmd__data"> test data </table> </form> · foot (Confirm = submit) </section> */
+  .sy-cmd__form { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr)); gap: 10px 12px; align-items: start; }
+  .sy-cmd__form > .sy-cmd__wide { grid-column: 1 / -1; }
+  .sy-cmd__form .sy-field__label { font-size: var(--sy-fs-micro); }
+  .sy-cmd__data { width: 100%; border-collapse: collapse; font-size: var(--sy-fs-xs); }
+  .sy-cmd__data th, .sy-cmd__data td { padding: 4px 6px 4px 0; text-align: left; vertical-align: middle; border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-cmd__data th[scope="col"] { font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 500; color: var(--sy-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .sy-cmd__data th[scope="row"] { font-weight: 400; width: 45%; }
+  .sy-cmd__data .sy-input { width: 100%; }
+  /* What the assistant drafted vs what you changed: a changed field gets the person's manila edge. */
+  .sy-cmd__form [data-edited] { box-shadow: inset 3px 0 0 var(--sy-tag); padding-left: 10px; }
+
   /* ===== Assistant activity line ========================================= */
   /* "Composing view_", "Reading 6 events_": in the conversation, mono, blueprint, caret. */
   .sy-genstatus { display: inline-flex; align-items: center; gap: 6px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-tobe); }

@@ -27,13 +27,8 @@ class Settings(BaseSettings):
     host: str = "127.0.0.1"
     port: int = 8765
     dev: bool = False
-    # How often the live stream checks the store for commits, and how often it pings.
-    poll_interval_s: float = 1.0
-    keepalive_s: float = 15.0
     # Items per page on every paged list (R-71: 25, owner 2026-10-17).
     page_size: int = 25
-    # Ends each event stream after this many seconds; None in normal use (tests set it).
-    sse_max_s: float | None = None
     # The name signed on review actions and process changes (spec 004 US3). "unknown" by default
     # so nobody has to set it each start (owner 2026-10-18); None turns those actions off.
     reviewer: str | None = "unknown"
@@ -43,9 +38,9 @@ class Settings(BaseSettings):
     # The local chat service (apps/chat, spec 010), called server-side only.
     chat_url: str = "http://127.0.0.1:4310"
     chat_timeout_s: float = 10.0
-    # The Workbench beta (spec 043 D-4, designer 14-workbench.md § 9.3): off hides the tab and
-    # sends /workbench Home ("The Workbench is paused"); `workbench_model` off keeps the live views
-    # and disables the composer; `workbench_commands` off pauses the command cards.
+    # The Workbench beta (spec 043 D-4, designer 14-workbench.md § 9.3): off hides it from the nav
+    # and its API answers 404; `workbench_model` off keeps the live views and disables the
+    # composer; `workbench_commands` off pauses the command cards.
     workbench: bool = False
     workbench_model: bool = True
     workbench_commands: bool = True
@@ -56,10 +51,10 @@ class Settings(BaseSettings):
     web_dist: Path = Field(default_factory=lambda: find_data_dir().parent / "apps" / "web" / "dist")
     # Persona YAML files, read to list the `ref:NAME` credentials a persona needs (spec 010 T020).
     personas_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "personas")
-    # Portal configs (`<id>/portal.yaml`), listed in the header's portal dropdown (spec 011).
+    # Portal configs (`<id>/portal.yaml`), listed on the Portals page (spec 011).
     portals_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "portals")
     # Glossary, its long pages and the BA wiki (spec 006): authored content, read-only here.
     docs_dir: Path = Field(default_factory=lambda: find_data_dir().parent / "docs")
-    # Where `pnpm eval` leaves its workspaces (`pf-eval-<portal>-*`), listed in the store picker
-    # (spec 019 US5); None turns the listing off.
+    # Where `pnpm eval` leaves its workspaces (`pf-eval-<portal>-*`): `?store=eval:…` opens one
+    # (spec 019 US5); None turns that off.
     eval_root: Path | None = Field(default_factory=lambda: Path(tempfile.gettempdir()))

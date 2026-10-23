@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
-import { useParams } from 'react-router';
+import { useParams, useSearchParams } from 'react-router';
+import { RecordingView } from '../app/Recording';
 import { isScanTab, scanTabHref as tabHref, type ScanTab } from '../app/scanLinks';
 import { ActionsSection, DecisionsSection, FrontierSection } from './ScanFiltered';
 import { DocsSection, FormsSection, NetworkSection, RobotsSection, StatesSection } from './ScanLists';
 import { ProcessSection } from './ScanProcess';
 import { TraceSection } from './ScanTrace';
-import { Callout, Facts, PageHead, Plate, ScanId, Stack, Text, ViewNav } from '../design-system';
+import { Callout, Facts, PageHead, Plate, ScanId, Stack, Table, Text, ViewNav } from '../design-system';
 import { useScanHead, type ScanHead } from '../app/api-scan';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -31,6 +32,27 @@ function Section({ scan, tab }: { scan: string; tab: string }) {
   return <View scan={scan} />;
 }
 
+/** The portal hooks that ran in the scan (spec 023 US2.3): where, how often, with which outcomes. */
+function Hooks({ hooks }: { hooks: NonNullable<ScanHead['hooks']> }) {
+  return (
+    <Plate title={`Portal hooks · ${String(hooks.length)}`} flush>
+      <Table
+        caption="Portal hooks that ran in this scan"
+        dense
+        flush
+        rows={hooks}
+        rowKey={(h) => `${h.point}:${h.fn}`}
+        columns={[
+          { header: 'Hook', rowHeader: true, cell: (h) => <Text mono small>{`${h.point} · ${h.fn}`}</Text> },
+          { header: 'Runs', numeric: true, cell: (h) => h.runs },
+          { header: 'Outcomes', cell: (h) => Object.entries(h.outcomes).map(([k, n]) => `${String(n)} ${k}`).join(' · ') },
+          { header: 'Pages patched', numeric: true, cell: (h) => h.pages_patched },
+        ]}
+      />
+    </Plate>
+  );
+}
+
 function Head({ h, tab }: { h: ScanHead; tab: string }) {
   return (
     <Stack>
@@ -48,6 +70,7 @@ function Head({ h, tab }: { h: ScanHead; tab: string }) {
           />
         </Stack>
       </Plate>
+      {h.hooks && h.hooks.length > 0 && <Hooks hooks={h.hooks} />}
       <ViewNav
         label="Scan sections"
         items={h.tabs.map((t) => ({
@@ -61,12 +84,21 @@ function Head({ h, tab }: { h: ScanHead; tab: string }) {
   );
 }
 
-/** One scan (the htmx `/runs/{id}`): its summary, its sections, and the Graph tab with its restarts. */
+/** One scan: its summary, its sections, and the Graph tab with its restarts. */
 export function Scan() {
   const { scan = '', tab: given = 'graph' } = useParams();
   const tab = isScanTab(given) ? given : 'graph';
   const q = useScanHead(scan);
   const portal = q.data?.portal;
+  // a recording no screen holds yet opens over its scan (designer Q10)
+  const [params, setParams] = useSearchParams();
+  const recording = params.get('recording');
+  const close = () =>
+    setParams((p) => {
+      p.delete('recording');
+      p.delete('hl');
+      return p;
+    });
   return (
     <Shell current="scans" portal={portal} context={q.data ? { type: 'scan', id: scan, label: `Scan of ${q.data.portal} as ${q.data.persona}` } : null}>
       <PageHead
@@ -92,6 +124,7 @@ export function Scan() {
           <Stack>
             <Head h={h} tab={tab} />
             <Section scan={h.id} tab={tab} />
+            {recording && <RecordingView key={recording} state={recording} hl={params.get('hl')} onClose={close} />}
           </Stack>
         )}
       </QueryState>

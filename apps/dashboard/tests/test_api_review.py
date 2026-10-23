@@ -38,7 +38,7 @@ def test_needs_you_lists_the_groups_with_mapped_rows_and_the_first_item_selected
     assert removals["decides"] is True
     assert next(g for g in body["groups"] if g["kind"] == "processes")["decides"] is False
     assert {o["value"] for o in body["empty_kinds"]} >= {"records", "suites"}
-    assert body["selected"]["row"]["kind"] == "findings" and body["selected"]["in_react"] is True
+    assert body["selected"]["row"]["kind"] == "findings" and body["selected"]["has_detail"] is True
     assert body["selected"]["link"]["label"] == "Before / after"
     assert body["selected"]["link"]["value"].startswith(f"/app/portals/{P}/changes/")
     assert body["neighbours"]["index"] == 1 and body["neighbours"]["total"] == 2
@@ -136,7 +136,7 @@ def test_a_record_review_runs_docs_review(
             f"{api}/records/NOPE-001", json={"action": "confirm", "rev": 1}, headers=ORIGIN
         )
     assert (
-        record["in_react"] is True
+        record["has_detail"] is True
         and record["link"]["value"] == f"/app/portals/{PORTAL}/docs/{key}"
     )
     assert ok.json()["message"] == f"Recorded confirm on {key} revision {rev}."

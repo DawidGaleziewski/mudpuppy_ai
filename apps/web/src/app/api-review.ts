@@ -56,9 +56,8 @@ export interface AlsoPair {
 
 export interface ReviewDetail {
   row: ReviewRow;
-  /** Its detail and writes are in React; otherwise `htmx` opens the htmx Review on it. */
-  in_react: boolean;
-  htmx: string;
+  /** Its kind adds facts or a decision; false: the row is all there is (an edit conflict). */
+  has_detail: boolean;
   text: string | null;
   link: Option | null;
   also: AlsoPair[];

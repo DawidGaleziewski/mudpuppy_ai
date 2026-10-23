@@ -13,7 +13,7 @@ from .queries_app import StatusOut, status_out
 
 
 class RecordedPage(BaseModel):
-    #: The recorded state (the htmx screen page's address).
+    #: The recorded state.
     state: str
     title: str
     route: str

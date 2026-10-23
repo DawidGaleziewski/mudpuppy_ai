@@ -8,9 +8,8 @@ import type { UiAction } from './events.js';
 
 const PREFIX = 'mcp__mudpuppy-chat__';
 
-/** Dashboard paths the assistant may open: the portal sections and record pages, nothing else. */
-const OPENABLE =
-  /^\/(?:states|runs|docs|screens|processes|review|scans|search|amendments|portals)(?:[/?#][^\s]*)?$/;
+/** Console pages the assistant may open (R-100: the React console under `/app/`), nothing else. */
+const OPENABLE = /^\/app\/(?:portals|states|scans|search|glossary)(?:[/?#][^\s]*)?$/;
 
 const str = (v: unknown): string | null =>
   typeof v === 'string' && v.trim() !== '' ? v.trim() : null;

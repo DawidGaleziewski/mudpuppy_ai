@@ -38,13 +38,11 @@ def test_a_difference_names_who_sees_it_and_links_side_by_side(
     with access_client(empty_store, personas_dir) as c:
         body = c.get(f"{api}?show=differences&select=differences:sc-account|menu").json()
     d = body["selected"]
-    assert d["in_react"] is True and d["difference"]["element"] == "menu"
+    assert d["has_detail"] is True and d["difference"]["element"] == "menu"
     sides = {s["label"]: s["personas"] for s in d["difference"]["sides"]}
     assert sides["Seen by"] == [{"value": "b2b", "label": "no attributes"}]
     assert {"value": "basic", "label": "tariff: basic"} in sides["Not seen by"]
-    assert (
-        d["difference"]["compare"]["value"] == "/states/st-acc-2?side=access&left=b2b&right=basic"
-    )
+    assert d["difference"]["compare"]["value"] == "/app/states/st-acc-2?left=b2b&right=basic"
 
 
 def test_an_amendment_to_reanchor_and_its_writes(liveinsurer: Store) -> None:  # noqa: F811

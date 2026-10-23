@@ -72,5 +72,6 @@ export const useProcesses = (portal: string, archived: boolean, page: number) =>
 export const processHref = (portal: string, key: string, model?: string) =>
   `/app/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}${model ? `?model=${encodeURIComponent(model)}` : ''}`;
 
-/** A process's documentation export (an htmx page with downloads, not moved to the console). */
-export const htmxExportHref = (key: string) => `/processes/${encodeURIComponent(key)}/export`;
+/** A process's documentation export: the export's files as tabs, and the folder as a zip. */
+export const exportHref = (portal: string, key: string) =>
+  `/app/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}/documentation`;

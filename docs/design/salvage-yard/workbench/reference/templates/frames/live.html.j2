@@ -1,0 +1,6 @@
+{# One stream per conversation, on a stable element outside the swapped layout: it survives path switches and view
+   changes. Every message is a batch of out-of-band swaps (words lane + data lane, in order), so the sinks swap nothing. #}
+<div id="wb-live" hidden hx-ext="sse" sse-connect="{{ r.stream_url() }}">
+  <div sse-swap="frag" hx-swap="none"></div>
+  <div sse-swap="heartbeat" hx-swap="none"></div>
+</div>

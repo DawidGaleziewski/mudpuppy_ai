@@ -1,7 +1,6 @@
-"""The React console's Trace and Process sections of a scan (R-96, spec 056): the htmx `/runs/{id}`
-tabs `trace` and `process` as typed JSON over `queries`, `queries_docs` and `queries_trace`.
-Statuses come mapped, durations written as the htmx page writes them, JSON as text, every event's
-detail as facts (`queries_app_trace_events`). Read-only."""
+"""The React console's Trace and Process sections of a scan (R-96, spec 056) as typed JSON over
+`queries`, `queries_docs` and `queries_trace`. Statuses come mapped, durations written by
+`formats`, JSON as text, every event's detail as facts (`queries_app_trace_events`). Read-only."""
 
 from __future__ import annotations
 

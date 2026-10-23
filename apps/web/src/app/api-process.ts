@@ -82,7 +82,7 @@ export interface Editor {
   as_is: string[];
 }
 
-/** A documentation record's page (htmx Docs until it moves). */
+/** A documentation record's page. */
 export const docHref = (portal: string, key: string) => `/app/portals/${encodeURIComponent(portal)}/docs/${encodeURIComponent(key)}`;
 
 export const processKey =(portal: string, key: string) => ['portals', portal, 'processes', key] as const;

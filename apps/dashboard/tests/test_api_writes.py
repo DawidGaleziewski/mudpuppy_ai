@@ -1,5 +1,5 @@
 """The React console's writes (R-96, spec 054): marks, Probe, Skip and restarts go to the chat
-service (mocked here) with the htmx routes' bodies; another origin, no reviewer, an unknown
+service (mocked here); another origin, no reviewer, an unknown
 target and a refusal each answer `{ok: false, message}`."""
 
 from __future__ import annotations
@@ -98,7 +98,7 @@ def test_skip_and_restarts_of_a_scan(empty_store: Store) -> None:
         )
         bad = c.post("/api/scans/run-1/restart", json={"run_type": "focused"}, headers=ORIGIN)
     assert skip.json()["ok"] is True and not_failed.status_code == 422
-    assert resume.json()["href"] == "/chat?conversation=conv-1"
+    assert resume.json()["href"] == "/app/portals/liveinsurer?assistant=open"
     assert retry.json()["ok"] is True and bad.status_code == 422
     texts = [body["text"] for _, path, body in chat.calls if path.endswith("/messages")]
     assert '"run_type": "continue"' in texts[0] and '"parent_run_id": "run-1"' in texts[0]

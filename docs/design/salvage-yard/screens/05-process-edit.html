@@ -67,8 +67,8 @@
       <!-- Variant switch -->
       <div class="sy-cluster">
         <div class="sy-seg" role="group" aria-label="Variant">
-          <button type="button" aria-pressed="false" data-variant="A" style="flex: 1 1 auto">A · As-is r1 · observed</button>
-          <button type="button" aria-pressed="true" data-variant="B" style="flex: 1 1 auto">B · To-be r1 · draft open</button>
+          <button type="button" aria-pressed="false" data-variant="A" style="flex: 1 1 auto">A · As-is <span class="sy-case-normal">r1</span> · observed</button>
+          <button type="button" aria-pressed="true" data-variant="B" style="flex: 1 1 auto">B · To-be <span class="sy-case-normal">r1</span> · draft open</button>
         </div>
         <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">+ Variant</button>
       </div>
@@ -85,7 +85,7 @@
             </p>
             <div class="sy-actions">
               <button class="sy-btn sy-btn--md sy-btn--quiet" type="button">Discard draft</button>
-              <button class="sy-btn sy-btn--primary" type="button">Save as B r2</button>
+              <button class="sy-btn sy-btn--primary" type="button"><span>Save as B <span class="sy-case-normal">r2</span></span></button>
             </div>
           </div>
         </div>
@@ -145,7 +145,7 @@
           <!-- A: as-is. Ghosted reference while B is open; the observed flow when A is picked. -->
           <section class="sy-plate" aria-labelledby="a-h">
             <div class="sy-plate__head">
-              <h2 id="a-h" class="sy-plate__title">A · As-is r1</h2>
+              <h2 id="a-h" class="sy-plate__title">A · As-is <span class="sy-case-normal">r1</span></h2>
               <span class="sy-meta" data-only="B">For reference (ghosted)</span>
               <span class="sy-status" data-status="ok" data-only="A" hidden>Observed flow</span>
             </div>
@@ -161,11 +161,11 @@
                 <li aria-hidden="true">→</li>
                 <li class="sy-callout">
                   <span class="sy-status" data-status="needs">End not reached</span>
-                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">Scan <span class="sy-tag sy-tag--sm">01a110d5</span> interrupted, 113 pages queued</span>
+                  <span class="sy-cluster sy-small" style="--sy-gap: 6px">Scan <span class="sy-tag sy-tag--sm">01a110d5-2028</span> interrupted, 113 pages queued</span>
                 </li>
               </ol>
               <div class="sy-cluster sy-meta" data-only="A" hidden>
-                <span class="sy-cluster" style="--sy-gap: 6px">Observed by scans <span class="sy-tag sy-tag--sm">01a1083f</span> <span class="sy-tag sy-tag--sm">01a10eb9</span> and <span class="sy-tag sy-tag--sm">01a110d5</span></span>
+                <span class="sy-cluster" style="--sy-gap: 6px">Observed by scans <span class="sy-tag sy-tag--sm">01a1083f-5472</span> <span class="sy-tag sy-tag--sm">01a10eb9-70f2</span> and <span class="sy-tag sy-tag--sm">01a110d5-2028</span></span>
                 <span>Read-only: change it by rescanning, or branch a new variant from it.</span>
                 <a class="sy-btn sy-btn--sm" href="10-scans.html">Resume scan to reach the end</a>
               </div>

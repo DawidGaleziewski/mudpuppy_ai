@@ -1,7 +1,7 @@
 """The React console's Processes list (R-96, spec 057; designer screen 04) and its writes: a new
 process from screens, Restore an archived one, and Accept, Dismiss, Split or Merge a suggestion.
-Every write is the chat call the htmx forwarder sends (contracts/processes-api.md), signed with
-the reviewer, and answers `{ok, message, href}`. No SQL here (G-15)."""
+Every write is a chat service call (contracts/processes-api.md), signed with the reviewer, and
+answers `{ok, message, href}`. No SQL here (G-15)."""
 
 from __future__ import annotations
 

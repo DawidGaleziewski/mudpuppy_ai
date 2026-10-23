@@ -1,6 +1,5 @@
-"""The values of a process's Compare (screen 06) and History (screen 07), shared by the htmx router
-(`web/processes.py`) and the React console's API (`queries_app_process_compare.py`), G-13.
-Read-only."""
+"""The values of a process's Compare (screen 06) and History (screen 07), for the console's API
+(`queries_app_process_compare.py`). Read-only."""
 
 from __future__ import annotations
 

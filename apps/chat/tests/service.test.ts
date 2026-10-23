@@ -96,7 +96,7 @@ describe('ChatService', () => {
     const t = setup();
     const id = await newConversation(t);
     t.service.inject(id, [
-      { type: 'ui_action', action: 'open', path: '/screens' },
+      { type: 'ui_action', action: 'open', path: '/app/portals/liveinsurer/screens' },
       {
         type: 'ui_action',
         action: 'credential',

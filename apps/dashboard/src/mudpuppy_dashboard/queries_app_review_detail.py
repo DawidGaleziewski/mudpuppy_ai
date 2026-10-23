@@ -1,8 +1,7 @@
 """The detail of the Review kinds spec 063 moves to React (R-96): an unexplained difference (who
 sees what, read-only), an amendment to re-anchor (why it lost its place, where it was, the screens
 to put it on), an assistant proposal (what it changes, before and after) and a probe suite (its
-variants and steps, to edit). The facts the htmx partials show (`partials/review_difference.html`,
-`review_reanchor.html`, `proposal.html`, `review_suite.html`), with statuses mapped."""
+variants and steps, to edit), with statuses mapped."""
 
 from __future__ import annotations
 
@@ -12,7 +11,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from . import queries_chat, suite_form
-from .queries_app import StatusOut, status_out
+from .queries_app import StatusOut, state_href, status_out
 
 
 class Option(BaseModel):
@@ -137,7 +136,7 @@ def difference(d: Any, attrs: dict[str, str]) -> DifferenceDetail:
     if d.element:
         e = d.element
         seen, unseen = e.seen_by[0], e.not_seen_by[0]
-        href = f"/states/{state_of.get(seen, '')}?side=access&left={seen}&right={unseen}"
+        href = state_href(state_of.get(seen, ""), left=seen, right=unseen)
         return DifferenceDetail(
             element=e.key,
             sides=[who("Seen by", e.seen_by), who("Not seen by", e.not_seen_by)],
@@ -151,7 +150,7 @@ def difference(d: Any, attrs: dict[str, str]) -> DifferenceDetail:
             who("Reached by", [v.persona_id for v in s.variants]),
             who("Not reached by", s.not_reached),
         ],
-        compare=Option(value=f"/states/{first}?side=access", label="Open the screen's Access tab")
+        compare=Option(value=state_href(first), label="Open the screen's Access")
         if first
         else None,
         advice=REACH_ADVICE,
@@ -174,7 +173,7 @@ def reanchor(conn: sqlite3.Connection, a: Any) -> ReanchorDetail:
         attachment=a.attachment_name,
         why=WHY.get(a.superseded_reason or "", "A newer scan changed what it was anchored to."),
         why_detail=a.superseded_detail,
-        was_on=Option(value=f"/states/{sid}", label=a.anchor_route_template or "the screen")
+        was_on=Option(value=state_href(sid), label=a.anchor_route_template or "the screen")
         if sid
         else None,
         element=element,

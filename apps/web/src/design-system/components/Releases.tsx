@@ -1,4 +1,5 @@
 import { useId, type CSSProperties } from 'react';
+import { Anchor } from './Anchor.js';
 import { shortScanId } from './ScanId.js';
 
 /** One release of a portal part, placed in percent of the track (the server computes it). */
@@ -70,13 +71,29 @@ function Span({ s, lane }: { s: ReleaseSpan; lane: string }) {
   const title = `${s.name} · ${s.start} – ${s.end}`;
   const name = <span className="sy-case-normal sy-truncate">{s.name}</span>;
   return s.href ? (
-    <a className={spanClass(s)} href={s.href} style={style} title={title} aria-label={`Changes from release ${s.name} of ${lane}`}>
+    <Anchor className={spanClass(s)} href={s.href} style={style} title={title} aria-label={`Changes from release ${s.name} of ${lane}`}>
       {name}
-    </a>
+    </Anchor>
   ) : (
     <span className={spanClass(s)} style={style} title={title}>
       {name}
     </span>
+  );
+}
+
+function ScanMark({ s }: { s: ReleaseScan }) {
+  const look = {
+    className: s.check ? 'sy-releases__scan sy-releases__scan--check' : 'sy-releases__scan',
+    style: { left: `${String(s.left)}%` },
+    'aria-label': `${s.check ? 'Check run' : 'AI scan'} ${s.id}, ${s.at}, ${s.status}`,
+  };
+  const name = <span className="sy-case-normal">{shortScanId(s.id)}</span>;
+  return s.href ? (
+    <Anchor {...look} href={s.href}>
+      {name}
+    </Anchor>
+  ) : (
+    <span {...look}>{name}</span>
   );
 }
 
@@ -132,15 +149,7 @@ export function Releases(props: ReleasesProps) {
           </span>
           <div className="sy-releases__track">
             {scans.map((s) => (
-              <a
-                key={s.id}
-                className={s.check ? 'sy-releases__scan sy-releases__scan--check' : 'sy-releases__scan'}
-                href={s.href}
-                style={{ left: `${String(s.left)}%` }}
-                aria-label={`${s.check ? 'Check run' : 'AI scan'} ${s.id}, ${s.at}, ${s.status}`}
-              >
-                <span className="sy-case-normal">{shortScanId(s.id)}</span>
-              </a>
+              <ScanMark key={s.id} s={s} />
             ))}
           </div>
         </div>

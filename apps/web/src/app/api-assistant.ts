@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { getJson, type StatusOut } from './api';
+import { useGo } from './RouterAnchor';
 
 export interface AssistantItem {
   id: string;
@@ -31,7 +32,6 @@ export interface AssistantPage {
   start_hint: string | null;
   conversation: AssistantConversation | null;
   items: AssistantItem[];
-  full_page: string;
   /** The conversation's run in one line; none before it starts one. */
   scan: { status: StatusOut; what: string; scan: string; href: string; running: boolean; quiet: StatusOut | null } | null;
 }
@@ -52,7 +52,7 @@ export const useAssistant = (portal: string, enabled: boolean) =>
     queryKey: assistantKey(portal),
     queryFn: () => getJson<AssistantPage>(`/api/portals/${encodeURIComponent(portal)}/assistant`),
     enabled,
-    // The scan line follows a running run (the htmx region polled every 3 s).
+    // The scan line follows a running run (every 3 s while it runs).
     refetchInterval: (q) => (q.state.data?.scan?.running ? 3000 : false),
   });
 
@@ -81,7 +81,7 @@ interface Tool {
   parent?: string;
 }
 
-/** "What is happening now" from the open tool calls (the htmx drawer's words). */
+/** "What is happening now" from the open tool calls. */
 function describe(busy: boolean, tools: Map<string, Tool>): string {
   if (!busy) return '';
   if (tools.size === 0) return 'Thinking…';
@@ -104,7 +104,7 @@ export function pageOf(d: Record<string, unknown>): string | null {
   const path = str(d.path);
   if (d.action === 'open' && path.startsWith('/') && !path.startsWith('//')) return path;
   const state = str(d.stateId);
-  if (d.action === 'highlight' && state) return `/states/${encodeURIComponent(state)}?hl=${encodeURIComponent(str(d.elementKey))}`;
+  if (d.action === 'highlight' && state) return `/app/states/${encodeURIComponent(state)}?hl=${encodeURIComponent(str(d.elementKey))}`;
   return null;
 }
 
@@ -127,6 +127,7 @@ export function useChatStream(portal: string, conversation: AssistantConversatio
   const [live, setLive] = useState<LiveLine[]>([]);
   const [now, setNow] = useState('');
   const tools = useRef(new Map<string, Tool>());
+  const go = useGo();
   const refresh = useCallback(() => void client.invalidateQueries({ queryKey: assistantKey(portal) }), [client, portal]);
   const add = useCallback((line: LiveLine) => setLive((l) => [...l, line]), []);
   const settle = useCallback(
@@ -164,7 +165,7 @@ export function useChatStream(portal: string, conversation: AssistantConversatio
     on('notice', (d) => add({ kind: 'notice', text: str(d.text) }));
     on('ui_action', (d) => {
       const to = pageOf(d);
-      if (to) window.location.assign(to);
+      if (to) go(to);
     });
     on('idle', () => {
       settle(false);
@@ -178,6 +179,6 @@ export function useChatStream(portal: string, conversation: AssistantConversatio
       }
     };
     return () => source.close();
-  }, [conversation, serviceUp, settle, add, refresh]);
+  }, [conversation, serviceUp, settle, add, refresh, go]);
   return { busy, live, now, setBusy: settle, add, refresh };
 }

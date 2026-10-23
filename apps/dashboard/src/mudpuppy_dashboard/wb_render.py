@@ -77,7 +77,6 @@ class Ctx:
     portal: str
     env: str
     viewer: str | None
-    url: Any  # Ctx.url of the dashboard: (path, **params) -> str
     tokens: dict[str, str] = field(default_factory=dict)  # proposed command id -> its token
     scans: dict[str, ScanLive | None] = field(default_factory=dict)  # full scan id -> scan (cache)
     bound: list[str] = field(default_factory=list)  # run ids the conversation binds
@@ -188,7 +187,7 @@ def _lead(cards: list[Card], view: WbView, turn: WbTurn, rc: Ctx) -> None:
         failure=f.failure,
         status=f.status,
         why=why_of(view, turn, first.scan),
-        feedback=Feedback(rc.url(f"/workbench/views/{view.id}/feedback"), value, reasons),
+        feedback=Feedback(f"/api/workbench/views/{view.id}/feedback", value, reasons),
     )
 
 
@@ -306,7 +305,7 @@ def _persona_choice(rc: Ctx) -> dict[str, Any]:
     """A Start card's "As" choice (spec 044 FR-001…FR-003): the portal's personas, the newest
     scan's selected first, else `guest`, else the first; none → a link to add one instead."""
     if not rc.personas:
-        return {"ask_persona": True, "no_persona_url": rc.url(f"/portals/{rc.portal}/settings")}
+        return {"ask_persona": True, "no_persona_url": f"/app/portals/{rc.portal}/settings"}
     newest = queries_wb.newest_persona(rc.conn, rc.portal)
     first = next((p for p in (newest, "guest") if p in rc.personas), rc.personas[0])
     return {"ask_persona": True, "personas": rc.personas, "persona": first}
@@ -328,12 +327,14 @@ def _result(cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
         return "", ()
     if cmd.command == "scan.stop":
         return f"Stopped scan {queries_wb_scan.short_id(run)}.", ()
-    return f"Started scan {queries_wb_scan.short_id(run)}.", (("Open in Scans", f"/runs/{run}"),)
+    return f"Started scan {queries_wb_scan.short_id(run)}.", (
+        ("Open in Scans", f"/app/scans/{run}"),
+    )
 
 
 def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> CommandCard:
     result, links = _result(cmd)
-    base = f"/workbench/commands/{cmd.id}"
+    base = f"/api/workbench/commands/{cmd.id}"
     return CommandCard(
         dom_id=f"cmd-{cmd.id}",
         title=LABELS.get(cmd.command, cmd.command),
@@ -341,11 +342,11 @@ def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> Com
         facts=facts,
         reason=cmd.reason,
         proposed_by=cmd.source,
-        confirm_url=rc.url(f"{base}/confirm"),
-        cancel_url=rc.url(f"{base}/cancel"),
+        confirm_url=f"{base}/confirm",
+        cancel_url=f"{base}/cancel",
         token=rc.tokens.get(cmd.id),
         result=result,
-        result_links=tuple((label, rc.url(href)) for label, href in links),
+        result_links=links,
         error=str(cmd.result.get("message", "The command failed.")).rstrip(".") + ".",
         error_ref=cmd.error_ref,
         running_word=RUNNING.get(cmd.command, "Running…"),

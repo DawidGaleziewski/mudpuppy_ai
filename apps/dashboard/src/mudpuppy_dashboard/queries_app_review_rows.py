@@ -1,6 +1,5 @@
-"""One row of the React Review inbox per kind (R-96, spec 062): the facts the htmx rows show
-(`templates/salvage/partials/review_inbox.html`), with statuses mapped, and each group's empty
-state. Used by `queries_app_review`."""
+"""One row of the React Review inbox per kind (R-96, spec 062): the facts a row shows, with
+statuses mapped, and each group's empty state. Used by `queries_app_review`."""
 
 from __future__ import annotations
 
@@ -12,7 +11,7 @@ from pydantic import BaseModel
 from .queries_app import Chip, StatusOut, status_out
 from .queries_queue import QueueItem
 
-# A group's empty state, as the htmx page words it.
+# A group's empty state.
 EMPTY = {
     "findings": "No finding waits. A change of the portal model that no rule explains lands"
     " here, with its Before / after.",

@@ -1,4 +1,5 @@
 import { useRef, type KeyboardEvent, type ReactNode } from 'react';
+import { Anchor } from './Anchor.js';
 import { Count } from './Count.js';
 
 export interface TabItem {
@@ -86,7 +87,7 @@ export function ViewNav({ label, items }: ViewNavProps) {
   return (
     <nav className="sy-tabs" aria-label={label}>
       {items.map((v) => (
-        <a key={v.href} className="sy-tab" href={v.href} aria-current={v.current ? 'page' : undefined}>
+        <Anchor key={v.href} className="sy-tab" href={v.href} aria-current={v.current ? 'page' : undefined}>
           {v.label}
           {v.count !== undefined && (
             <>
@@ -94,7 +95,7 @@ export function ViewNav({ label, items }: ViewNavProps) {
               <Count muted>{v.count}</Count>
             </>
           )}
-        </a>
+        </Anchor>
       ))}
     </nav>
   );

@@ -1,6 +1,6 @@
 """The React console's recorded map (R-96, spec 054; design screen 12): Screens ▸ Map's view One
-scan's path, and the map of a portal without a model. The htmx map's read models
-(`queries_map`, `queries_map_node`) as typed JSON: the API places every node, picks every edge's
+scan's path, and the map of a portal without a model. The read models `queries_map` and
+`queries_map_node` as typed JSON: the API places every node, picks every edge's
 state and sends every word; the app only renders them. Scan ids are whole (D-9)."""
 
 from __future__ import annotations
@@ -42,7 +42,7 @@ class RecordedNode(BaseModel):
     chips: list[Chip]
     #: An open Probe mark on one of its form steps.
     marked: bool
-    #: Its first state, the htmx screen page's address; None for a family.
+    #: Its first recorded state; None for a family.
     first_state: str | None
     states: int
     near: list[str]
@@ -113,7 +113,7 @@ NODE_LEGEND = [
 
 
 def _chips(n: qm.MapNode, layers: frozenset[str]) -> list[Chip]:
-    """The chips the htmx map draws on a node, for the layers shown."""
+    """The chips on a node, for the layers shown."""
     out = []
     if n.kind == "screen" and len(n.states) > 1 and "states" in layers:
         out.append(Chip(word=f"{len(n.states)} states", variant=None))
@@ -239,7 +239,7 @@ class RecordedNodeDetail(BaseModel):
     screen_id: str
     route: str
     title: str
-    #: The htmx screen page's state; None when the screen has no state.
+    #: Its first recorded state; None when the screen has no state.
     first_state: str | None
     states: list[StateOut]
     scans: list[ScanChoiceOut]

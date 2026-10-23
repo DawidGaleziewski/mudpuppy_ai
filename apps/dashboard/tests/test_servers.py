@@ -42,22 +42,19 @@ def test_stray_warnings_name_environment_and_checkout(tmp_path: Path) -> None:
     ]
 
 
-def test_header_names_the_environment_and_agreeing_servers_say_nothing(
+def test_the_api_names_the_environment_and_agreeing_servers_say_nothing(
     empty_store: Store,
 ) -> None:
     portals = empty_store.data_dir.parent / "portals"
     register(empty_store.data_dir, os.getpid(), empty_store.env, portals.parent)
     with make_client(empty_store, portals_dir=portals) as c:
-        html = c.get("/").text
-    assert 'id="header-env"' in html
-    assert f'<span class="sy-mono">{empty_store.env}</span>' in html
-    assert 'id="stray-servers"' not in html
+        body = c.get("/api/portals").json()
+    assert body["environment"] == empty_store.env and body["warnings"] == []
 
 
-def test_a_server_on_another_environment_is_named_on_every_page(empty_store: Store) -> None:
+def test_a_server_on_another_environment_is_named(empty_store: Store) -> None:
     portals = empty_store.data_dir.parent / "portals"
     register(empty_store.data_dir, os.getpid(), "production", portals.parent)
     with make_client(empty_store, portals_dir=portals) as c:
-        html = c.get("/").text
-    assert 'id="stray-servers"' in html
-    assert "serves environment &#34;production&#34;; this page shows &#34;test&#34;" in html
+        (warning,) = c.get("/api/portals").json()["warnings"]
+    assert 'serves environment "production"; this page shows "test"' in warning

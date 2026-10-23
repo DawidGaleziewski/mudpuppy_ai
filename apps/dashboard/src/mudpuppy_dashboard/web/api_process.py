@@ -9,9 +9,16 @@ from contextlib import contextmanager
 from typing import Annotated
 
 from fastapi import APIRouter, HTTPException, Query, Request
+from fastapi.responses import Response
 from pydantic import BaseModel
 
-from .. import queries_app_process, queries_app_process_compare, queries_processes
+from .. import (
+    change_spec,
+    process_views,
+    queries_app_process,
+    queries_app_process_compare,
+    queries_processes,
+)
 from .api_common import known_portal, store
 from .deps import web_of
 
@@ -72,6 +79,21 @@ def compare(
     """Screen 06: the step diff of two models and their change spec."""
     with _view(request, portal, key, q.env) as (conn, view, who):
         return queries_app_process_compare.compare(conn, view, (q.left, q.right), who)
+
+
+@router.get("/processes/{key}/spec.md", response_model=None)
+def spec_export(
+    request: Request, portal: str, key: str, q: Annotated[CompareQuery, Query()]
+) -> Response:
+    """Export spec (FE-P03): the Markdown of what Compare shows, as a download."""
+    with _view(request, portal, key, q.env) as (conn, view, who):
+        v = process_views.compare_values(conn, view, q.left, q.right, who)
+    body = change_spec.to_markdown(view.process.name, v["sections"])
+    return Response(
+        body,
+        media_type="text/markdown; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{key}-change-spec.md"'},
+    )
 
 
 @router.get("/processes/{key}/history")

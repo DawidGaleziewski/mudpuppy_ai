@@ -1,5 +1,4 @@
-// The to-be editor's step operations (spec 059), ported from the htmx editor: pure functions over
-// the steps as stored.
+// The to-be editor's step operations (spec 059): pure functions over the steps as stored.
 import { describe, expect, it } from 'vitest';
 import { stepOps, type RawStep } from '../src/app/stepOps';
 

@@ -63,7 +63,7 @@ export interface DiagramProps {
   source: string;
   /** What the diagram shows, above it. */
   caption: string;
-  /** Where Mermaid is served (the dashboard's vendored copy). */
+  /** Where Mermaid is served (the console's vendored copy, `public/vendor/`). */
   script?: string;
 }
 
@@ -71,7 +71,7 @@ export interface DiagramProps {
  * A Mermaid diagram (a process map) drawn in the Salvage Yard tokens. Mermaid loads only when a
  * diagram is shown; until it is drawn, and if it cannot be, the source is shown as text.
  */
-export function Diagram({ source, caption, script = '/static/vendor/mermaid.min.js' }: DiagramProps) {
+export function Diagram({ source, caption, script = '/app/vendor/mermaid.min.js' }: DiagramProps) {
   const id = `diagram-${useId().replace(/[^a-zA-Z0-9]/g, '')}`;
   const [svg, setSvg] = useState<string | null>(null);
   useEffect(() => {

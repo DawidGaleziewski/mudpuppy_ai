@@ -1,5 +1,5 @@
-"""The React console's What changed and Before / after (R-96, spec 064): the same range, groups
-and explanations as the htmx page, statuses mapped, the release lanes, and one change with its
+"""The React console's What changed and Before / after (R-96, spec 064): the range, groups and
+explanations, statuses mapped, the release lanes, and one change with its
 sides, changed region, what differs and the changes that need you around it."""
 
 from __future__ import annotations

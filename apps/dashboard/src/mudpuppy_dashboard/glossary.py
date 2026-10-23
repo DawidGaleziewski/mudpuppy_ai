@@ -14,7 +14,6 @@ from typing import Any, Literal
 
 import yaml
 from markdown_it import MarkdownIt
-from markupsafe import Markup
 from pydantic import BaseModel, ConfigDict, ValidationError, field_validator
 
 ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -330,7 +329,7 @@ Base = Literal["glossary", "pages", "wiki"]
 
 
 def dashboard_href(href: str, base: Base) -> str:
-    """Map a repository-relative Markdown link, written from folder `base`, to its route."""
+    """Map a repository-relative Markdown link, written from folder `base`, to its console page."""
     if "://" in href or href.startswith(("/", "#", "mailto:")):
         return href
     path, _, anchor = href.partition("#")
@@ -341,20 +340,21 @@ def dashboard_href(href: str, base: Base) -> str:
     folder = parts[-2] if len(parts) > 1 else base
     tail = f"#{anchor}" if anchor else ""
     if folder == "wiki":
-        return ("/glossary/wiki" if name == "README" else f"/glossary/wiki/{name}") + tail
+        return ("/app/glossary/wiki" if name == "README" else f"/app/glossary/wiki/{name}") + tail
     if name == "README":
-        return "/glossary" + tail
-    return f"/glossary/pages/{name}{tail}"
+        return "/app/glossary" + tail
+    return f"/app/glossary/pages/{name}{tail}"
 
 
-def markdown_html(text: str, base: Base = "glossary") -> Markup:
+def markdown_html(text: str, base: Base = "glossary") -> str:
+    """The text as HTML for the console. Safe to show as markup: the parser has raw HTML
+    disabled, so only generated tags reach the page."""
     tokens = _MD.parse(text)
     for tok in tokens:
         for child in tok.children or ():
             if child.type == "link_open":
                 child.attrSet("href", dashboard_href(str(child.attrGet("href") or ""), base))
-    # Safe to mark up: the parser has raw HTML disabled, so only generated tags reach the page.
-    return Markup(_MD.renderer.render(tokens, _MD.options, {}))
+    return str(_MD.renderer.render(tokens, _MD.options, {}))
 
 
 # ---- README (repository view) -----------------------------------------------------------------

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, Callout, Cluster, Field, Input, Plate, Split, Stack, SubHead, Table, Text, Textarea } from '../design-system';
 import { reviewHref, reviewWrites, undoAsk, type ReviewDetail as Detail, type ReviewPage } from '../app/api-review';
+import { sameScreenHref } from '../app/api-same-screen';
 import type { Ask } from '../app/ConfirmedWrite';
 import { Difference, Proposal, Reanchor } from './ReviewItems';
 import { RowFacts } from './ReviewRows';
@@ -14,14 +15,14 @@ function Off() {
   );
 }
 
-function Also({ d }: { d: Detail }) {
+function Also({ portal, d }: { portal: string; d: Detail }) {
   return (
     <Stack>
       <SubHead>{`Also settles · ${String(d.also.length)}`}</SubHead>
       <Table
         caption="Same screen? pairs a confirm also settles"
         columns={[
-          { header: 'Linked item · now', cell: (p) => <Text href={`/same-screen?a=${p.a}&b=${p.b}`}>{`Same screen?${p.conflict ? ' · conflict' : ''} ${p.label}`}</Text>, rowHeader: true },
+          { header: 'Linked item · now', cell: (p) => <Text href={sameScreenHref(portal, { a: p.a, b: p.b })}>{`Same screen?${p.conflict ? ' · conflict' : ''} ${p.label}`}</Text>, rowHeader: true },
           { header: 'When you confirm', cell: (p) => `Answered "Same screen" with your reason${p.answered_by ? `, shown next to ${p.answered_by}'s` : ''}.` },
         ]}
         rows={d.also}
@@ -79,7 +80,7 @@ function QueueDetail({ page, d, ask }: { page: ReviewPage; d: Detail; ask: (a: A
         {[d.row.hint, d.row.at].filter(Boolean).join(' · ')}
       </Text>
       {d.link && <Text href={d.link.value}>{d.link.label}</Text>}
-      {d.also.length > 0 && <Also d={d} />}
+      {d.also.length > 0 && <Also portal={page.portal} d={d} />}
       {decidable && (page.decides ? <Decide portal={page.portal} d={d} reasons={page.reasons[d.row.kind] ?? []} ask={ask} /> : <Off />)}
       {!decidable && d.row.kind === 'findings' && (
         <Text small muted block>
@@ -143,7 +144,7 @@ function RecordDetail({ page, d, ask }: { page: ReviewPage; d: Detail; ask: (a: 
         <Stack>
           {d.cited.map((s) => (
             <Stack key={s.state}>
-              <Text href={`/states/${encodeURIComponent(s.state)}`}>{s.title}</Text>
+              <Text href={`/app/states/${encodeURIComponent(s.state)}`}>{s.title}</Text>
               <Text route>{s.route}</Text>
             </Stack>
           ))}
@@ -194,16 +195,10 @@ export function ReviewDetail({ page, ask }: { page: ReviewPage; ask: (a: Ask) =>
   );
 }
 
-/** The selected item's own part: by its kind, else the way to the htmx Review. */
+/** The selected item's own part, by its kind; an edit conflict has none beyond its row. */
 function Body({ page, d, ask }: { page: ReviewPage; d: Detail; ask: (a: Ask) => void }) {
   const writes = { portal: page.portal, decides: page.decides, ask };
-  if (!d.in_react) {
-    return (
-      <Callout>
-        Its detail and decision are on the htmx Review for now. <Text href={d.htmx}>Open it there</Text>
-      </Callout>
-    );
-  }
+  if (!d.has_detail) return <Callout>Nothing more is recorded for this item.</Callout>;
   if (d.difference) return <Difference d={d.difference} />;
   const own = ownPart(d, writes);
   if (own) return page.decides ? own : <Stack>{own}<Off /></Stack>;

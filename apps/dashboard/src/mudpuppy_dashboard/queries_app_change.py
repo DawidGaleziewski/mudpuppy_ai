@@ -1,7 +1,7 @@
 """The React console's Before / after (R-96, spec 064; designer screen v2-03, 12-v2-ux § 6): one
 change's two recorded pages with the changed region, what differs between their contexts, the
 explanation with its tests, where it shows, and Previous / Next among the changes that need you.
-Built over the htmx page's read model (`queries_change_detail`)."""
+Built over the read model `queries_change_detail`."""
 
 from __future__ import annotations
 
@@ -92,7 +92,8 @@ def evidence(ref: str | None) -> str | None:
     return f"/evidence/{ref}" if ref else None
 
 
-def _side(s: Side, has: bool) -> SideOut:
+def side_out(s: Side, has: bool) -> SideOut:
+    """One recorded side of a comparison (Before / after, Same screen?)."""
     pic = s.picture
     return SideOut(
         label=s.label,
@@ -145,8 +146,8 @@ def change_page(
         screen_title=c.screen_title,
         screen_route=c.screen_route,
         process=Option(value=d.process[0], label=d.process[1]) if d.process else None,
-        before=_side(d.before, d.marked_side == "before"),
-        after=_side(d.after, d.marked_side == "after"),
+        before=side_out(d.before, d.marked_side == "before"),
+        after=side_out(d.after, d.marked_side == "after"),
         region=_region(data_dir, d),
         differs=[
             Differ(label=x.label, before=x.before, after=x.after, differs=x.differs)

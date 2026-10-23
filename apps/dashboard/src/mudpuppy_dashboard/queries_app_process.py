@@ -1,6 +1,6 @@
-"""The React console's one process (R-96, spec 058; designer screens 05, v2-10): the htmx page's
-read models (`queries_processes`, `queries_process_doc`, `queries_model_facts`) as typed JSON,
-without the to-be draft editor (the next step). Statuses come mapped; pictures as URLs.
+"""The React console's one process (R-96, spec 058; designer screens 05, v2-10): the read models
+`queries_processes`, `queries_process_doc` and `queries_model_facts` as typed JSON (the to-be
+draft editor is `queries_app_process_editor`). Statuses come mapped; pictures as URLs.
 Read-only."""
 
 from __future__ import annotations
@@ -57,7 +57,7 @@ class StepOut(BaseModel):
     n: int
     title: str
     route: str | None
-    #: The recorded state (the htmx screen page); None for a designed step.
+    #: The recorded state; None for a designed step.
     state: str | None
     observed: bool
     #: The steps of the parent model it is built from (their titles and routes).

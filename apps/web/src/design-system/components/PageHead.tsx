@@ -1,4 +1,5 @@
 import { Fragment, type ReactNode } from 'react';
+import { Anchor } from './Anchor.js';
 
 export interface Crumb {
   label: ReactNode;
@@ -24,7 +25,7 @@ export function PageHead({ title, crumbs, meta, actions }: PageHeadProps) {
           {crumbs.map((c, i) => (
             <Fragment key={i}>
               {i > 0 && ' / '}
-              {c.href ? <a href={c.href}>{c.label}</a> : c.label}
+              {c.href ? <Anchor href={c.href}>{c.label}</Anchor> : c.label}
             </Fragment>
           ))}
         </nav>

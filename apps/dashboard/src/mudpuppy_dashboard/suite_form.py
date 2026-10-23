@@ -73,7 +73,7 @@ def suite_calls(
 
 def form_of(body: dict[str, Any]) -> Form:
     """The React console's suite edit (JSON: `variants` with `keep`, `expect` and `steps`, and
-    `new`) as the htmx form's fields, so both go through `edited_trace` the same way."""
+    `new`) as the form fields `edited_trace` reads."""
     form: Form = {}
     variants = [v for v in body.get("variants", []) if isinstance(v, dict)]
     form["variants"] = [str(len(variants))]

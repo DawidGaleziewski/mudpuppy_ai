@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
 import { cx } from '../cx.js';
+import { Anchor } from './Anchor.js';
 
 /** The look props (documented on `TextProps`), each with the class it adds. */
 const LOOKS = {
@@ -54,9 +55,9 @@ export function Text({ children, block, strong, href, lang, ...looks }: TextProp
     );
   if (href !== undefined)
     return (
-      <a className={className} href={href} lang={language}>
+      <Anchor className={className} href={href} lang={language}>
         {children}
-      </a>
+      </Anchor>
     );
   const Inline = strong ? 'strong' : 'span';
   return (

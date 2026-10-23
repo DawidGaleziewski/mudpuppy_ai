@@ -8,7 +8,6 @@ from dataclasses import asdict
 
 from mudpuppy_dashboard import queries_run_groups as q
 
-from .conftest import Store, insert, make_client
 from .paths import REPO_ROOT
 
 CASES = json.loads(
@@ -26,36 +25,3 @@ def test_matches_the_shared_case() -> None:
         )
     )
     assert asdict(got) == CASES["expected"]
-
-
-def test_page_lists_processes_unassigned_and_proposed(empty_store: Store) -> None:
-    conn = empty_store.connect()
-    for run in ("r-a", "r-b", "r-c"):
-        insert(conn, "runs", id=run)
-    for n, route in enumerate(("/a", "/b", "/c", "/d")):
-        insert(
-            conn,
-            "states",
-            id=f"s{n}",
-            fingerprint=f"f{n}",
-            first_seen_run="r-a",
-            route_template=route,
-        )
-    for run, states in {"r-a": ["s0", "s1"], "r-b": ["s2", "s3"], "r-c": ["s2", "s3"]}.items():
-        for s in states:
-            insert(conn, "state_observations", run_id=run, state_id=s)
-    conn.commit()
-    conn.close()
-    with make_client(empty_store) as c:
-        c.cookies.set("pf_portal", "liveinsurer")
-        html = c.get("/scans/by-process").text
-    assert "Scans by process" in html and 'aria-current="page">By process' in html
-    assert "In no process" in html and "Look like one process" in html
-    assert html.count('href="/runs/r-b"') == 2  # unassigned and in the proposed group
-    assert 'href="/runs/r-a"' in html
-
-
-def test_page_without_a_portal_asks_for_one(empty_store: Store) -> None:
-    with make_client(empty_store) as c:
-        html = c.get("/scans/by-process").text
-    assert "Pick a portal in the header" in html

@@ -48,14 +48,14 @@ Something "on top" is one step lighter. There are no drop shadows anywhere.
 | The main thing to do on this view | `.sy-btn--primary` (marker fill) | SEND, SAVE AS B R2, EXPORT SPEC |
 | The main action inside a card, when the page already has a primary | `.sy-btn--strong` (chalk edge) | "Apply as r2" in a proposal |
 | It worked, or it's settled | inspected: `data-status="ok"` | "■ OK", "■ OBSERVED", "■ SAVED" |
-| It's happening now | coolant: `data-status="running"` (pulses) | scan 01a110d5 running |
+| It's happening now | coolant: `data-status="running"` (pulses) | scan 01a110d5-2028 running |
 | This variant is live somewhere | coolant: `data-status="live"` | "■ LIVE · SANDBOX" |
 | It stopped, or hasn't started | ash, hollow square: `stopped`, `todo`, `skipped` | "□ STOPPED 171 / 400" |
 | It's waiting or wasn't seen | ash, dashed corners: `queued`, `unobserved` | "113 queued", "not observed" |
 | It's a proposal or drawing, not real yet | blueprint, dashed: `draft`, `inferred`, `.sy-drawn`, `.sy-proposal` | "4 processes, drafted · INFERRED · NOT SAVED" |
 | It broke | failure, cross: `data-status="failed"`, `.sy-state--failure` | "✕ FAILED", "Assistant down" |
 | This deletes or revokes something | `.sy-btn--danger` + confirm dialog | "Revoke staging" |
-| It's a record you can follow | manila tag `.sy-tag` | `SCR-001`, `01a110d5` |
+| It's a record you can follow | manila tag `.sy-tag` | `SCR-001`, `01a110d5-2028` |
 | A person wrote this | manila + typewriter `.sy-note` | "Test note, rename this button to Save." |
 | This part is tagged for migration | `.sy-tag--intent` (marker tag) | "TAGGED FOR MIGRATION" |
 | Selected (not focused) | 2px chalk weld: `aria-selected`, `aria-current`, `.sy-selected` | selected review item |
@@ -64,7 +64,7 @@ Something "on top" is one step lighter. There are no drop shadows anywhere.
 | Disabled | ash text, line border, `not-allowed` cursor | `<button disabled>` |
 | The assistant is pointing at part of a recorded screen | `.sy-mark`: marker outline + steel inner ring | "MARKED BY ASSISTANT" |
 | A person marked a map node for the next scan | marker tag `.sy-tag--intent` on the node | "START · PROBE", "RETRY", "SKIP" |
-| The crawler failed on this action | failure: `.sy-edge--failed`, `data-state="failed"` node | `/kontakt` ✕ 01a110d5 |
+| The crawler failed on this action | failure: `.sy-edge--failed`, `data-state="failed"` node | `/kontakt` ✕ 01a110d5-2028 |
 | The portal showed an error we provoked or recorded | **neutral** chip `.sy-chip`, never failure red | "technical", "500 · simulated" |
 | Where the next scan will replay | blueprint dashed `.sy-edge--planned` | `/ → Samochód → step 2` |
 | Queued, or not reached yet | ash dashed: `.sy-chip--dashed`, `data-state="unobserved"` | "+38 queued", "step 3 · not reached" |
@@ -114,6 +114,7 @@ Shape grammar: **filled** = it happened or is happening · **hollow** = it didn'
    If both are true, show failure and put "needs you" in the Review inbox count. Different *fields*
    may differ: a scan whose **status** is `stopped` (Interrupted) can show a **stop reason** of
    `failed` with its ERR reference, as two separate elements (screen 10).
+   **Paint on an inverted item takes the item's ink.** On a selected (chalk) nav item, counts and chips use `--sy-text-on-paint`, never ash (1.9:1).
 6. **Orange budget per view:** at most one primary button and one intent plate, plus small needs-you statuses and counts.
 7. **Links** are chalk with a marker underline. They are not blue (blue means drawn) and not orange text
    (orange text means needs you).
@@ -160,6 +161,6 @@ OK and failure, running and to-be, and OK and ash come out close, so no status r
 
 - ✅ Find "what needs me" by scanning for orange. ❌ Use orange for a "Save successful" toast. Use inspected.
 - ✅ Draw proposals dashed blue until applied, then solid green "Applied". ❌ Show an applied change in blue.
-- ✅ Put run ids on tags: `01a110d5`. ❌ Paint ids in brand orange.
+- ✅ Put run ids on tags: `01a110d5-2028`. ❌ Paint ids in brand orange.
 - ✅ Show "Assistant down" as a failure state with the reference ERR-… ❌ Turn the whole header red.
 - ✅ Use ash for stopped or interrupted. ❌ Use red for interrupted (nothing broke; it stopped).

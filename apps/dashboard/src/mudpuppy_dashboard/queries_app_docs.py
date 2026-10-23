@@ -1,7 +1,7 @@
 """The React console's Docs (R-96, spec 066; spec 004 R-15, FR-030): a portal's documentation as
 an SRS, its sections with their record counts, the overview, and each section's records filtered
-and paged by cursor, with the capability map and the screen navigation. Built over the htmx
-pages' read model (`queries_docs`, `diagrams`), so both show the same; statuses come mapped."""
+and paged by cursor, with the capability map and the screen navigation. Built over the read
+model `queries_docs` and `diagrams`; statuses come mapped."""
 
 from __future__ import annotations
 
@@ -113,7 +113,7 @@ VIEWS = ("overview", "traceability")
 
 
 def _base(portal: str) -> str:
-    """The htmx Docs list's address: the `list` value `neighbours` rebuilds for Prev / Next."""
+    """The `list` value `neighbours` rebuilds a Docs list from, for a record's Prev / Next."""
     return f"/docs/{quote(portal, safe='')}"
 
 
@@ -122,7 +122,7 @@ def docs_base(portal: str) -> str:
 
 
 def record_href(portal: str, key: str, list_url: str | None = None) -> str:
-    """A record's page in the console; `list_url` (an htmx list address) gives it Prev / Next."""
+    """A record's page in the console; `list_url` (a `neighbours` list key) gives it Prev / Next."""
     tail = f"?{urlencode({'list': list_url})}" if list_url else ""
     return f"{docs_base(portal)}/{quote(key, safe='')}{tail}"
 

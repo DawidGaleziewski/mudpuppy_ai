@@ -22,12 +22,18 @@ import {
   Variants,
 } from '../design-system';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
+import { useScreenRecordings, type ScreenRecordings } from '../app/api-state';
+import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
+import { RecordingView } from '../app/Recording';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
+import { ScreenAmendments } from './ScreenAmendments';
+import { Inputs, ReachedAt } from './ScreenRecordings';
 
-type Tab = 'variants' | 'actions' | 'history';
+// Designer Q10: Variants · Inputs (screens with a form) · Actions · Amendments · History.
+type Tab = 'variants' | 'inputs' | 'actions' | 'amendments' | 'history';
 
 const screenHref = (portal: string, key: string) =>
   `/app/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}`;
@@ -65,6 +71,10 @@ function seen(v: VariantOut) {
 
 const variantLabel = (v: VariantOut) => `r${String(v.ordinal)}`;
 
+/** The Screen page with one of its recordings open in the dialog. */
+const recordingOn = (d: ScreenDetailData, v: VariantOut) =>
+  `${screenHref(d.portal, d.screen.key)}?variant=r${String(v.ordinal)}&recording=${encodeURIComponent(v.state_id)}`;
+
 function VariantList({ d }: { d: ScreenDetailData }) {
   // the dialog steps through the variants that have a picture (← / →)
   const pictured = d.variants.filter((v) => v.picture?.shot ?? v.picture?.wire);
@@ -85,6 +95,7 @@ function VariantList({ d }: { d: ScreenDetailData }) {
                 title={v.title || d.screen.title}
                 alt={`Variant ${variantLabel(v)} of ${v.title || d.screen.title}`}
                 route={d.screen.route}
+                href={recordingOn(d, v)}
                 set={{ items, at: Math.max(0, pictured.indexOf(v)) }}
                 {...(v.picture ? { scans: v.picture.scans } : {})}
               />
@@ -228,26 +239,34 @@ function History({ d }: { d: ScreenDetailData }) {
   );
 }
 
-function Detail({ d, tab, setTab }: { d: ScreenDetailData; tab: Tab; setTab: (t: Tab) => void }) {
+interface DetailProps {
+  d: ScreenDetailData;
+  rec: ScreenRecordings | undefined;
+  tab: Tab;
+  setTab: (t: Tab) => void;
+  ask: (a: Ask) => void;
+}
+
+function Detail({ d, rec, tab, setTab, ask }: DetailProps) {
+  const none = () => <Text small muted>This screen has no recordings.</Text>;
   const panels: Record<Tab, () => ReactNode> = {
     variants: () => <VariantList d={d} />,
+    inputs: () => (rec ? <Inputs rec={rec} ask={ask} /> : none()),
     actions: () => <Actions d={d} />,
+    amendments: () => (rec ? <ScreenAmendments portal={d.portal} state={rec.state} list={rec.amendments} canMark={rec.can_mark} ask={ask} /> : none()),
     history: () => <History d={d} />,
   };
+  const items = [
+    { id: 'variants', label: 'Variants', count: d.variants.length },
+    ...(rec?.inputs.length ? [{ id: 'inputs', label: 'Inputs', count: rec.inputs.length }] : []),
+    { id: 'actions', label: 'Actions', count: d.actions.length },
+    { id: 'amendments', label: 'Amendments', count: rec?.amendments.items.length ?? 0 },
+    { id: 'history', label: 'History', count: d.history.length + d.labels.length },
+  ];
   return (
     <Stack>
       <Needs d={d} />
-      <Tabs
-        label="Screen sections"
-        panelPrefix="screen"
-        selected={tab}
-        onSelect={(t) => setTab(t as Tab)}
-        items={[
-          { id: 'variants', label: 'Variants', count: d.variants.length },
-          { id: 'actions', label: 'Actions', count: d.actions.length },
-          { id: 'history', label: 'History', count: d.history.length + d.labels.length },
-        ]}
-      />
+      <Tabs label="Screen sections" panelPrefix="screen" selected={tab} onSelect={(t) => setTab(t as Tab)} items={items} />
       <TabPanel prefix="screen" id={tab}>
         {panels[tab]()}
       </TabPanel>
@@ -255,10 +274,11 @@ function Detail({ d, tab, setTab }: { d: ScreenDetailData; tab: Tab; setTab: (t:
   );
 }
 
-function meta(d: ScreenDetailData) {
+function meta(d: ScreenDetailData, rec: ScreenRecordings | undefined) {
   const s = d.screen;
   return (
-    <Cluster>
+    <Stack>
+      <Cluster>
       <Text route>{s.route}</Text>
       {s.parts.length > 0 && <Text>part {s.parts.join(', ')}</Text>}
       <ShownStatus status={s.status} />
@@ -271,18 +291,42 @@ function meta(d: ScreenDetailData) {
           in process <Text asIs>{s.process.name}</Text>
         </Text>
       )}
-    </Cluster>
+      </Cluster>
+      {rec && <ReachedAt rec={rec} />}
+    </Stack>
   );
 }
 
-const TABS: readonly Tab[] = ['variants', 'actions', 'history'];
+const TABS: readonly Tab[] = ['variants', 'inputs', 'actions', 'amendments', 'history'];
 
-/** One screen of the portal model (designer screen v2-07): what needs you on it, its variants, actions and history. */
+/** A recording of this screen open over the page (`?recording=`, designer Q10); ← / → step through the variants. */
+function OpenRecording({ d, state, hl, setParams }: { d: ScreenDetailData; state: string; hl: string | null; setParams: ReturnType<typeof useSearchParams>[1] }) {
+  const set = {
+    states: d.variants.map((v) => ({ state: v.state_id, label: `r${String(v.ordinal)}` })),
+    go: (s: string) =>
+      setParams((p) => {
+        p.set('recording', s);
+        return p;
+      }),
+  };
+  const close = () =>
+    setParams((p) => {
+      p.delete('recording');
+      p.delete('hl');
+      return p;
+    });
+  return <RecordingView key={state} state={state} hl={hl} onClose={close} set={set} />;
+}
+
+/** One screen of the portal model (designer screen v2-07): what needs you on it, its variants, inputs, actions, amendments and history. */
 export function Screen() {
   const { portal = '', screenKey = '' } = useParams();
   const [params, setParams] = useSearchParams();
   const tab = TABS.find((t) => t === params.get('tab')) ?? 'variants';
   const q = useScreen(portal, screenKey);
+  const rec = useScreenRecordings(portal, screenKey).data;
+  const { ask, view } = useConfirmedWrite(['portals', portal, 'screens', screenKey]);
+  const recording = params.get('recording');
   const title = q.data ? q.data.screen.title || '(untitled page)' : screenKey;
   return (
     <Shell current="screens">
@@ -298,10 +342,16 @@ export function Screen() {
             <Tag>{screenKey}</Tag> <Text asIs>{title}</Text>
           </>
         }
-        meta={q.data ? meta(q.data) : undefined}
+        meta={q.data ? meta(q.data, rec) : undefined}
       />
+      {view}
       <QueryState query={q} what="the screen">
-        {(d) => <Detail d={d} tab={tab} setTab={(t) => setParams({ tab: t }, { replace: true })} />}
+        {(d) => (
+          <>
+            <Detail d={d} rec={rec} tab={tab} ask={ask} setTab={(t) => setParams({ tab: t }, { replace: true })} />
+            {recording && <OpenRecording d={d} state={recording} hl={params.get('hl')} setParams={setParams} />}
+          </>
+        )}
       </QueryState>
     </Shell>
   );

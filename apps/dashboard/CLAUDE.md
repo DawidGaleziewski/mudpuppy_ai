@@ -1,12 +1,15 @@
 # mudpuppy-dashboard
 
-Read-only operator dashboard over the crawler's SQLite store, showing portals, runs, states, actions, safety class, frontier, forms, network shapes, robots.txt, decision log. Docs tab shows BA agent's documentation (SRS view). Glossary tab explains MudPuppy terms.
+The JSON API over the crawler's SQLite store that the React console (`apps/web`) reads, the relay
+to the chat service, the evidence files, and the console itself at `/app/` (R-100: the console is
+a React single-page app; the dashboard has no pages of its own). Read-only on the store.
 
-Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
+Layer: app (Python, FastAPI, uv; outside the TS layers)
 
 ## Run
-- `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` → http://127.0.0.1:8765.
-- Dev mode: `uv run mudpuppy-dashboard --dev`.
+- `pnpm --dir apps/web build`, then `cd apps/dashboard && uv sync && uv run mudpuppy-dashboard` →
+  http://127.0.0.1:8765/app/.
+- Dev mode: `uv run mudpuppy-dashboard --dev` (with `pnpm --dir apps/web dev` on 5173).
 - Env: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`, `MUDPUPPY_PORT`, `MUDPUPPY_DEV`; chat service URL `MUDPUPPY_CHAT_URL` (see README).
 - Workbench beta (spec 043): `MUDPUPPY_WORKBENCH=1` shows it; `MUDPUPPY_WORKBENCH_MODEL=0`
   turns the assistant off (live views stay), `MUDPUPPY_WORKBENCH_COMMANDS=0` pauses the cards;
@@ -15,30 +18,23 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 
 ## Layout
 - `app.py` only builds the app; `web/deps.py` holds `Ctx` and `Web` (`web_of(request)`);
-  `web/<page>.py` is one `APIRouter` per page with its fragments; a page's query is one Pydantic
-  model (`Annotated[Model, Query()]`).
-- `queries*.py`: the read models, one module per page or concept; `models.py`: read-only models
-  of the schema (drift test vs. `data/schema/schema.sql`).
-- Writes go through the chat service (`chat_client.py`); `as_of.py` serves past model versions.
-- **Where each page and read model lives, by spec: `LAYOUT.md`.** Read it before changing a page.
+  `web/api_<page>.py` is one `APIRouter` per console page under `/api`, with typed response
+  models; `web/legacy.py` redirects every old address to its React page.
+- `queries*.py`: the read models (`queries_app_*.py` shape them as the console's JSON);
+  `models.py`: read-only models of the schema (drift test vs. `data/schema/schema.sql`).
+- Writes go through the chat service (`chat_client.py`, `web/chat_writes.py`, the relay
+  `web/chat_relay.py`); `as_of.py` serves past model versions.
+- **Where each router and read model lives: `LAYOUT.md`.** Read it before changing one.
 
 ## Invariants
-- Reads DB read-only (test_readonly), except chat/amendment writes through chat service.
+- Reads DB read-only (test_readonly); every write goes through the chat service.
 - No SQL in routers (G-15); a router never imports another router (G-13).
-- UI follows the Salvage Yard design system (spec 022): all UI work uses the `mudpuppy-salvage-ui`
-  skill; reference screens in `docs/design/salvage-yard/screens/`. Never use Console-era styling
-  (amber `#FFB000`, JetBrains Mono, scanlines, glow, round status dots, bracket statuses like
-  `[ OK ]`, the `mudpuppy://console` wordmark). Every template lives under `templates/salvage/`;
-  routers name them without the prefix (`web/deps.py` `salvage_template`).
-  `scripts/find-old-styles.sh src` must report 0.
-- Compose from `sy-` classes; product-only layout classes use `mp-`. No hex, fonts, radius or
-  shadows in templates or app CSS. Statuses through the one status helper, record ids through the
-  tag helper, human text through the note helper. At most one primary button and one intent plate
-  per view. Ask the owner before adding a colour, font, radius, shadow or animation.
+- Every status leaves the API mapped (`status_map.py`, `{shape, word}`); the console never maps.
+- UI work happens in `apps/web` (skills `mudpuppy-react-ui`, `mudpuppy-salvage-ui`).
 
 ## Where to add things
-- New page: G-15 — `web/<page>.py` router (follow `web/glossary.py`), included in `app.py`,
-  its template, queries in a `queries_*.py` module, a route test, a line in `LAYOUT.md`.
+- A console page's data: a read model in `queries_app_<page>.py` (pytest first), a route in
+  `web/api_<page>.py` (follow `web/api_screens.py`), included in `app.py`, a line in `LAYOUT.md`.
 
 ## Tests
 - `uv run ruff check && uv run pytest -n auto -m 'not perf and not serial' && uv run pytest -m 'perf or serial'`
@@ -53,14 +49,14 @@ Layer: app (Python, FastAPI + Jinja + htmx, uv; outside the TS layers)
 
 ## UI check (spec 022)
 - `pnpm --dir apps/dashboard ui:check --base http://127.0.0.1:<port> [paths…]` against a running
-  dashboard: screenshots at 1280 and 390 px into `ui-check/`; fails on a page-level horizontal
-  scroll, not exactly one h1, more than one primary button or intent plate, an axe-core
-  serious/critical issue, or a console error. `apps/dashboard/package.json` exists only for this
-  check (Playwright, axe-core).
+  dashboard (console paths under `/app/`): screenshots at 1280 and 390 px into `ui-check/`; fails
+  on a page-level horizontal scroll, not exactly one h1, more than one primary button or intent
+  plate, an axe-core serious/critical issue, or a console error. `apps/dashboard/package.json`
+  exists only for this check (Playwright, axe-core).
 
 ## Other commands
 - `uv run mudpuppy-glossary --write`: glossary sync. `mudpuppy-dashboard-smoke`: smoke tests.
 
 ## See also
 - `LAYOUT.md`; specs/003-dashboard-ui (R-12), specs/004-ba-documentation (R-15),
-  specs/006-glossary-ba-wiki (R-22); docs/code-guidelines.md (G-15)
+  specs/006-glossary-ba-wiki (R-22), specs/071-r100-react-spa (R-100); docs/code-guidelines.md (G-15)

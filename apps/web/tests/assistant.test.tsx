@@ -59,7 +59,6 @@ const page = (over: Record<string, unknown> = {}) => ({
     { id: 'm3', kind: 'error', text: 'The scan stopped.', at: '2026-10-23T10:01:00Z', ref: 'ERR-abc', credential: null, proposal: null },
     { id: 'm4', kind: 'credential', text: 'Login form reached.', at: '2026-10-23T10:02:00Z', ref: null, credential: { ref: 'SHOP_PASSWORD', portal: 'shop', environment: 'sandbox', persona: 'client', reason: 'Login form reached.', stored: false, status: { shape: 'needs', word: 'Needs you' } }, proposal: null },
   ],
-  full_page: '/chat?conversation=conv-1',
   ...over,
 });
 const docs = { portal: 'shop', sections: [{ id: 'overview', label: 'Overview', count: 0 }], section: { id: 'overview', label: 'Overview', count: 0 }, statuses: [], counts: [], sessions: [], records: null, diagram: null };
@@ -68,11 +67,16 @@ const open = async () => fireEvent.click(await screen.findByRole('button', { nam
 const drawer = () => screen.getByRole('complementary', { name: 'Assistant' });
 
 describe('The assistant drawer', () => {
+  it('opens with an address that asks for it (designer Q11: no full chat page)', async () => {
+    at('/app/portals/shop/docs?assistant=open', routes(page()));
+    expect(await screen.findByRole('complementary', { name: 'Assistant' })).toBeTruthy();
+  });
+
   it('opens on the button and Ctrl+J, shows the timeline, closes on Esc', async () => {
     at('/app/portals/shop/docs', routes(page()));
     await open();
     expect(await within(drawer()).findByText('Starting a scan.')).toBeTruthy();
-    expect(within(drawer()).getByRole('link', { name: 'ERR-abc' }).getAttribute('href')).toBe('/chat/errors/ERR-abc');
+    expect(within(drawer()).getByRole('link', { name: 'ERR-abc' }).getAttribute('href')).toBe('/app/errors/ERR-abc');
     expect(within(drawer()).getByText('Needs you')).toBeTruthy();
     expect(FakeSource.last?.url).toBe(`${CONV}/events`);
     fireEvent.keyDown(document, { key: 'Escape' });
@@ -168,6 +172,6 @@ describe('The assistant on Home, the scan line and page actions (spec 070)', () 
     expect(pageOf({ action: 'open', path: '/app/portals/shop/rules' })).toBe('/app/portals/shop/rules');
     expect(pageOf({ action: 'open', path: 'https://elsewhere.example' })).toBeNull();
     expect(pageOf({ action: 'open', path: '//elsewhere.example' })).toBeNull();
-    expect(pageOf({ action: 'highlight', stateId: 'st-1', elementKey: 'button|dalej||' })).toBe('/states/st-1?hl=button%7Cdalej%7C%7C');
+    expect(pageOf({ action: 'highlight', stateId: 'st-1', elementKey: 'button|dalej||' })).toBe('/app/states/st-1?hl=button%7Cdalej%7C%7C');
   });
 });

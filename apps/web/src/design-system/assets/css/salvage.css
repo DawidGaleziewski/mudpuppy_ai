@@ -933,9 +933,141 @@
     border: var(--sy-weld) solid var(--sy-border-weld); color: var(--sy-text-muted); font-size: var(--sy-fs-micro); }
   .sy-id__copy:hover { color: var(--sy-text); border-color: var(--sy-border-control); }
 
+  /* ===== 2.1 · Recorded map: the moves of one scan (spec 054) ============ */
+  /* "One scan's path" (Map) and the scan's paths (Scans, Workbench live map). Solid = this scan made the move.
+     --tree     the scan's first arrival at a page: the spine of the recording. Ash, 2px.
+     --offtree  a move between two pages the scan already had (back to /, across through the menu). Control edge, 1px,
+                solid, with an arrowhead (marker-end="url(#…)" on the path, .sy-edge-arrow in the marker): off-tree
+                moves run against the tree, so their direction is drawn. One line per page pair, labelled
+                "↩ 3×" or "↩ step 140" (text.sy-edge-label). More than six lines into one page: none drawn, a chip
+                "↩ 14" on the page instead. Layer "Moves off the tree", on by default.
+     --others   a move other scans made that this one didn't. Control edge, 1.5px, long dash 10 6, no arrowhead.
+                Layer "Other scans' moves (N)", off by default; pages only other scans reached are .sy-node--dim.
+     Queued links keep --frontier (ash 4 4), the failing move keeps --failed. Demo: components.html#c-21-edges. */
+  .sy-edge--tree { stroke: var(--sy-text-muted); stroke-width: 2; }
+  .sy-edge--offtree { stroke: var(--sy-border-control); stroke-width: 1; }
+  .sy-edge--others { stroke: var(--sy-border-control); stroke-width: 1.5; stroke-dasharray: 10 6; }
+  .sy-edge-arrow { fill: none; stroke: var(--sy-border-control); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .sy-legend__item { display: inline-flex; align-items: center; gap: 6px; }
+  .sy-legend__item > svg { flex: none; overflow: visible; }
+
   /* ===== 2.1 · Chips on the selected nav item ============================ */
   /* The selected item is chalk; muted text on it fails contrast. Chips there take the item's ink. */
   .sy-nav__item[aria-current="page"] .sy-chip { color: var(--sy-text-on-paint); border-color: currentColor; }
+
+  /* ===== 2.2 · Console answers, 23 Oct evening (docs/19-console-answers/) ============================ */
+
+  /* ----- Q2 · Phase bar: a scan's phases over time (Trace, spec 056) -----
+     <figure class="sy-phasebar" aria-labelledby="…">
+       <ol class="sy-phasebar__track">
+         <li class="sy-phasebar__phase" data-kind="work|wait|quiet" data-state="done|running|failed" style="--sy-phase: 742">
+           <button class="sy-phasebar__btn" type="button" aria-pressed="false">
+             <span class="sy-phasebar__name">Explore</span><span class="sy-phasebar__time">10:49:44Z · 12 min · 96 steps</span></button></li> …</ol>
+       <div class="sy-phasebar__axis"><span style="left: 0">10:49Z</span> … </div></figure>
+     Phases are data: name, start, end, kind, state, steps. The bar never invents a phase; gaps are drawn as kind "quiet".
+     --sy-phase = the phase's length in seconds. Phases share the track by length (flex) with a 24px floor, so a
+     20-second Start stays a target on a 2-hour scan; the axis ticks are placed by time and may drift by a few px there.
+     work = neutral plate · wait = waiting for a person (marker tint, the only orange) · quiet = no events (dashed, hatched).
+     running = open dashed cyan end · failed = red end cap. Pressing a phase filters the trace below to its time range. */
+  .sy-phasebar { display: flex; flex-direction: column; gap: 4px; min-width: 0; margin: 0; }
+  .sy-phasebar__track { display: flex; gap: 2px; height: 46px; margin: 0; padding: 3px; list-style: none;
+    background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-phasebar__phase { flex: var(--sy-phase, 1) 1 0px; min-width: 24px; display: flex; }
+  .sy-phasebar__btn { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; gap: 1px;
+    padding: 0 6px; overflow: hidden; white-space: nowrap; text-align: left; cursor: pointer;
+    background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); color: var(--sy-text);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); line-height: 1.25;
+    transition: border-color var(--sy-dur-hover) linear; }
+  .sy-phasebar__btn:hover { border-color: var(--sy-text); }
+  .sy-phasebar__btn:focus-visible { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: 2px; position: relative; z-index: 1; }
+  .sy-phasebar__name { overflow: hidden; text-overflow: ellipsis; font-weight: 500; text-transform: uppercase; letter-spacing: 0.04em; }
+  .sy-phasebar__time { overflow: hidden; text-overflow: ellipsis; color: var(--sy-text-muted); }
+  .sy-phasebar__btn[aria-pressed="true"] { background: var(--sy-bg-inverse); border-color: var(--sy-bg-inverse); color: var(--sy-text-on-paint); }
+  .sy-phasebar__btn[aria-pressed="true"] .sy-phasebar__time { color: inherit; }
+  .sy-phasebar__phase[data-kind="wait"] > .sy-phasebar__btn { background: var(--sy-intent-tint); border-color: var(--sy-intent); }
+  .sy-phasebar__phase[data-kind="quiet"] > .sy-phasebar__btn { border-style: dashed; border-color: var(--sy-text-muted); color: var(--sy-text-muted);
+    background: repeating-linear-gradient(135deg, transparent 0 5px, var(--sy-bg-plate) 5px 9px); }
+  .sy-phasebar__phase[data-state="running"] > .sy-phasebar__btn { border-color: var(--sy-active); border-right-style: dashed; }
+  .sy-phasebar__phase[data-state="failed"] > .sy-phasebar__btn { box-shadow: inset -4px 0 0 var(--sy-fail); }
+  /* Narrow phases (React sets data-narrow under 72px): the time line leaves the picture, not the accessible name. */
+  .sy-phasebar__phase[data-narrow] .sy-phasebar__time { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .sy-phasebar__phase[data-narrow] > .sy-phasebar__btn { padding: 0 4px; }
+  .sy-phasebar__axis { position: relative; height: 16px; margin-inline: 4px; }
+  .sy-phasebar__axis > span { position: absolute; transform: translateX(-50%); white-space: nowrap;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+  .sy-phasebar__axis > span:first-child { transform: none; }
+  .sy-phasebar__axis > span:last-child { transform: translateX(-100%); }
+  .sy-phasebar__key { display: inline-block; width: 18px; height: 12px; background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-phasebar__key[data-kind="wait"] { background: var(--sy-intent-tint); border-color: var(--sy-intent); }
+  .sy-phasebar__key[data-kind="quiet"] { border-style: dashed; border-color: var(--sy-text-muted);
+    background: repeating-linear-gradient(135deg, transparent 0 3px, var(--sy-bg-plate) 3px 6px); }
+  .sy-phasebar__key[data-state="running"] { border-color: var(--sy-active); border-right-style: dashed; }
+  .sy-phasebar__key[data-state="failed"] { box-shadow: inset -4px 0 0 var(--sy-fail); }
+
+  /* ----- Q3 · The map in overview: below 50% the nodes keep their shape and state, their words fade (still read
+     by assistive tech: opacity, not visibility). Set by the zoom, never by hand. ----- */
+  .sy-graph--overview .sy-node > *, .sy-graph--overview .sy-edge-label { opacity: 0; }
+  .sy-graph--overview .sy-node:hover, .sy-graph--overview .sy-node:focus-visible { cursor: zoom-in; }
+
+  /* ----- Q5 · Before / after: "Not here", overlay mode ----- */
+  /* The same place on the side without the change: dashed marker box, label "Not here". The system points at an
+     absence, so it stays in the marker family, but dashed and untinted. Box (default): the region's own coordinates,
+     for things that don't push the page (a floating button, a badge, an overlay). data-shape="line": the region was
+     inserted and pushed the content below it, so the other side gets a dashed line at the insertion point instead. */
+  .sy-mark--gone { background: transparent; outline-style: dashed; outline-width: 2px; }
+  .sy-mark--gone > .sy-mark__label { background: var(--sy-paper); color: var(--sy-paper-ink); outline: 1px dashed var(--sy-paper-ink); outline-offset: -1px; }
+  .sy-mark--gone[data-shape="line"] { height: 2px; outline: 0; box-shadow: none;
+    background: repeating-linear-gradient(90deg, var(--sy-intent) 0 8px, var(--sy-bg-ground) 8px 12px); }
+  /* Overlay: the after's picture over the before's at --sy-overlay (default 50%); the after's marks stay at full strength.
+     <div class="sy-compare sy-compare--overlay"> … <div class="sy-compare__stack" style="--sy-overlay: 0.5">
+       <figure class="sy-shot sy-compare__under"><img …before…></figure>
+       <figure class="sy-shot sy-compare__over" aria-hidden="true"><img …after…><mark class="sy-mark sy-mark--overlay" …></figure></div>
+       <label class="sy-compare__mix">…<input type="range" min="0" max="100" value="50">…</label></div> */
+  .sy-compare--overlay { grid-template-columns: minmax(0, 1fr); }
+  .sy-compare__stack { position: relative; display: grid; min-width: 0; }
+  .sy-compare__stack > * { grid-area: 1 / 1; min-width: 0; }
+  .sy-compare__under { z-index: 0; }
+  .sy-compare__over { z-index: 1; background: transparent; border-color: transparent; pointer-events: none; }
+  .sy-compare__over > img { opacity: var(--sy-overlay, 0.5); }
+  .sy-compare__mix { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; font-size: var(--sy-fs-xs); }
+  .sy-compare__mix input[type="range"] { flex: 1 1 160px; max-width: 320px; min-height: 24px; accent-color: var(--sy-text); }
+  .sy-compare__mix output { min-width: 4ch; font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); }
+
+  /* ----- Q6 · The release range's label lives inside the timeline's own box ----- */
+  .sy-releases--ranged { padding-top: 24px; }
+  .sy-releases--ranged > .sy-releases__range { top: 24px; }
+  .sy-releases--ranged > .sy-releases__range > span { top: -22px; }
+  .sy-releases__range[data-label="start"] > span { left: 0; transform: none; }
+  .sy-releases__range[data-label="end"] > span { left: auto; right: 0; transform: none; }
+
+  /* ----- Q7 · Facts that explain how to read a table sit above it, outside the caption ----- */
+  /* <dl id="br021-facts" class="sy-facts sy-facts--table">…</dl>
+     <div class="sy-table-wrap"><table class="sy-table sy-table--decision" aria-describedby="br021-facts">
+       <caption class="sy-sr-only">BR-021 decision table</caption>… */
+  .sy-facts--table { margin: 0; padding: 10px 12px; gap: 4px var(--sy-space-4); font-size: var(--sy-fs-xs);
+    background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-plate); border-bottom-color: var(--sy-border-weld); }
+  .sy-facts--table + .sy-table-wrap { border-top: 0; }
+  .sy-facts--table + .sy-table-wrap--flush { border-top: 0; }
+  .sy-plate > .sy-facts--table { border-width: 0 0 var(--sy-weld); }   /* inside a plate: flush, like the table under it */
+
+  /* ----- Q8 · The assistant drawer is one window high; the log scrolls inside ----- */
+  :root { --sy-header-h: 65px; }   /* one header row; 121px below 1200 (RESPONSIVE) */
+  .sy-drawer { position: sticky; top: var(--sy-header-h); align-self: flex-start; height: calc(100dvh - var(--sy-header-h)); }
+  .sy-drawer .sy-chat__log { min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+  .sy-drawer--static { position: static; height: auto; }   /* previews and docs only */
+
+  /* ----- Q9 · A segment that can't be chosen here: aria-disabled (stays focusable, says why) ----- */
+  .sy-seg > [aria-disabled="true"], .sy-seg > :disabled { color: var(--sy-text-muted); cursor: not-allowed; }
+  .sy-seg > [aria-disabled="true"]:hover, .sy-seg > :disabled:hover { background: transparent; }
+
+  /* ----- Q10 · A recording in the picture dialog: picture + facts side by side ----- */
+  /* <dialog class="sy-dialog sy-dialog--wide sy-dialog--recording"> head · <div class="sy-dialog__main">
+       <figure class="sy-dialog__figure">…</figure><aside class="sy-dialog__aside">facts · show marks · amendments</aside></div> · foot */
+  .sy-dialog__main { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) var(--sy-dialog-aside, 320px); }
+  .sy-dialog__main > .sy-dialog__figure { min-height: 0; }
+  .sy-dialog__aside { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--sy-space-3);
+    padding: var(--sy-space-4); border-left: var(--sy-weld) solid var(--sy-border-weld); background: var(--sy-bg-plate); font-size: var(--sy-fs-xs); }
+  .sy-dialog__aside .sy-facts { font-size: var(--sy-fs-xs); grid-template-columns: max-content minmax(0, 1fr); }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -965,6 +1097,7 @@
    height cap follow it. */
 @media (max-width: 1199px) {
   .sy-graphview { --sy-graph-sticky: 128px; --sy-graph-top: 152px; }
+  :root { --sy-header-h: 121px; }
 }
 @media (max-width: 1023px) {
   .sy-app__body { flex-wrap: wrap; }
@@ -973,8 +1106,22 @@
   .sy-nav__item { flex: none; }
   .sy-nav__foot { display: none; }
   .sy-drawer { flex: 1 1 100%; max-width: none; border-left: 0; border-top: var(--sy-weld) solid var(--sy-border-plate); }
+  /* Stacked under the page: no longer sticky; the log keeps its own scroll so it never grows the page by thousands of px */
+  .sy-drawer { position: static; height: auto; }
+  .sy-drawer .sy-chat__log { max-height: 60dvh; }
+  .sy-dialog__main { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 1fr) auto; }
+  .sy-dialog__aside { max-height: 40dvh; border-left: 0; border-top: var(--sy-weld) solid var(--sy-border-weld); }
 }
 @media (max-width: 639px) {
+  /* A recording on a phone: one scroll, the picture first, its facts after */
+  .sy-dialog__main { display: block; overflow: auto; }
+  .sy-dialog__main > .sy-dialog__figure { overflow: visible; }
+  .sy-dialog__aside { max-height: none; }
+  /* Time axes on phones: only the two ends (Q5); scan times leave the lane, their names stay in the links */
+  .sy-releases { --sy-releases-name: 88px; }
+  .sy-releases__axis > span:not(:first-child):not(:last-child),
+  .sy-phasebar__axis > span:not(:first-child):not(:last-child) { display: none; }
+  .sy-releases__scan > span { display: none; }
   .sy-dialog--wide:not(.sy-dialog--static) { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; }
   .sy-variant:only-child { grid-template-areas: "head" "pic" "body"; grid-template-columns: minmax(0, 1fr); }
   /* Phones: the map opens as a list; the graph opens full screen in a wide dialog, zoom bar at thumb height. */
@@ -1019,6 +1166,16 @@
   .sy-node { border-color: CanvasText; }
   .sy-node[aria-pressed="true"] { outline-color: Highlight; }
   .sy-edge--unseen, .sy-edge--unchecked, .sy-edge--retired, .sy-edge--process, .sy-edge--changed { stroke: CanvasText; }
+  .sy-edge--tree, .sy-edge--offtree, .sy-edge--others, .sy-edge-arrow { stroke: CanvasText; }
+  .sy-edge--failed { stroke-width: 4; }
+  .sy-phasebar__btn, .sy-phasebar__key { border-color: CanvasText; }
+  .sy-phasebar__btn[aria-pressed="true"] { forced-color-adjust: none; background: Highlight; color: HighlightText; border-color: Highlight; }
+  .sy-phasebar__phase[data-state="failed"] > .sy-phasebar__btn, .sy-phasebar__key[data-state="failed"] { box-shadow: none; border-right-width: 4px; }
+  .sy-phasebar__phase[data-kind="wait"] > .sy-phasebar__btn, .sy-phasebar__key[data-kind="wait"] { border-style: double; border-width: 3px; }
+  .sy-phasebar__phase[data-state="running"] > .sy-phasebar__btn, .sy-phasebar__key[data-state="running"] { border-right-width: 3px; border-right-style: dashed; }
+  .sy-seg > [aria-disabled="true"], .sy-seg > :disabled { color: GrayText; }
+  .sy-mark--gone { outline-color: Highlight; }   /* the only 4px line: tells apart from the 2px tree without colour */
+  .sy-edge-label { fill: CanvasText; }
   .sy-releases__span, .sy-releases__track { border-color: CanvasText; }
   .sy-releases__scan::before { forced-color-adjust: none; background-color: CanvasText; }
   .sy-queue__item[aria-current="true"] { outline-color: Highlight; }

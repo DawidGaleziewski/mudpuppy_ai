@@ -1,6 +1,6 @@
 ---
 name: mudpuppy-salvage-ui
-description: Use for ANY MudPuppy console UI work (pages, templates, components, CSS, statuses, UI copy, migrating a Console-era page, and the generative UI Workbench beta) so it follows the Salvage Yard design system. Replaces the old Console design-system rules (JetBrains Mono, amber, scanlines, bracket statuses).
+description: Use for ANY MudPuppy console UI work (React pages and design-system components in apps/web, CSS, statuses, UI copy, and the generative UI Workbench beta) so it follows the Salvage Yard design system; with skill mudpuppy-react-ui for how the React app is built. Replaces the old Console design-system rules (JetBrains Mono, amber, scanlines, bracket statuses).
 ---
 
 # MudPuppy · Salvage Yard UI
@@ -10,7 +10,7 @@ rules are fixed. Your job is to **compose** from them, not to restyle.
 
 ## Paths (edit these two lines to match the repo)
 
-- **DS_PATH** = `apps/dashboard/src/mudpuppy_dashboard/static/salvage` (served at `/static/salvage/`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `css/genui.css` for Workbench pages, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
+- **DS_PATH** = `apps/web/src/design-system/assets` (the React console; `pnpm --dir apps/web ds:sync`): the runtime design system served to browsers (`css/tokens.css`, `css/fonts.css`, `css/salvage.css`, `css/genui.css` for Workbench pages, `fonts/`, `tag-icon.svg`). Copied from the design package's `design-system/`.
 - **DESIGN_PKG** = `docs/design/salvage-yard`: the whole design package committed to the repo (reference screens, screenshots, wireframes, docs). In the references below, paths like `screens/…`, `screenshots/…`, `migration/…`, `design-system/…` and `docs/…` are relative to DESIGN_PKG.
 
 If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask the user to commit the package before you rely on reference screens.
@@ -28,11 +28,13 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 | `10-processes.md` | Anything about processes: lifecycle, variants A/B, revisions, drafts, conflicts, compare and change spec, live per environment, data model, API, rules PR-01–PR-17 |
 | `11-map-runs.md` | Anything about the map, marks, probing form states, checkpoints and replay, resume or retry of a stopped scan, scan types, reconciliation of differing states; requirements FE-M01–M13 |
 | `12-v2-ux.md` | Anything for MudPuppy 2.0: IA and grouped nav, the As of / From time model, UI vocabulary, review flow and keys, overturn, before/after, decision tables, states; screens `v2-*` |
-| `13-v2-fixtures.md` | The 2.0 demo/test data (releases, changes, findings, rules, processes) the v2 screens use, and the Workbench fixture (replay of scan 01a110d5) |
+| `13-v2-fixtures.md` | The 2.0 demo/test data (releases, changes, findings, rules, processes) the v2 screens use, and the Workbench fixture (replay of scan 01a110d5-2028) |
 | `14-workbench.md` | Anything in the Workbench (gen UI beta): paths, layouts per phase, behaviour rules WB-UI-01…42, states, the phased plan; screens `wb-*` |
 | `15-genui-guidelines.md` | Before designing or reviewing any generated view, narration, suggestion or command card: provenance, writing, stability, trust, a11y |
 | `16-genui-components.md` | Using or adding a gen UI component: catalogue components (the model may place them) and frame components (server-owned), props, states, markup |
-| `17-genui-architecture.md` | Wiring the Workbench: htmx vs React decision, view-spec pipeline, validation, SSE, commands, security, tests and evals, tickets WB-xx |
+| `18-design-answers/` | Pictures that open larger, the wide picture dialog, a screen's variants, the graph's zoom bar and height, record and scan ids, chips on the selected nav item, accessible names, the recorded map's edges (one file each, with React notes) |
+| `19-console-answers/` | The React console's 13 questions: phase bar, readable map opening, the persona card, Not here and overlay, time axes, table facts, drawer height, disabled segments, recordings on the Screen page, no chat page, scan line words, the A2UI catalogue |
+| `17-genui-architecture.md` | Wiring the Workbench (React since R-100): view-spec pipeline, validation, SSE, commands, security, tests and evals, tickets WB-xx |
 | `02-design-decisions.md` | Before "fixing" something that looks odd: it is probably intentional |
 | `01-brand-book.md` | Wordmark, mark, voice |
 | `09-qa-checklist.md` | Before saying done |
@@ -40,7 +42,7 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 
 ## The eight rules
 
-1. **Every record is a tagged part.** Record IDs shown as data (SCR-, AMD-, CAP-, NFR-, BR-, run ids, revision labels) → `<a class="sy-tag" href=…>ID</a>`, in the ID's real case. Exempt: IDs inside text a person typed, `.sy-mark__label`, `.sy-note__by`, and ERR references.
+1. **Every record is a tagged part.** Record IDs shown as data (SCR-, PROC-, BR-, CAP-, NFR-, REQ-, UC-, DI-, GL-, ASM-, OQ-, FUP-, API-, AMD-, scan ids, revision labels) → `<a class="sy-tag" href=…>ID</a>`, in the ID's real case. Exempt: IDs inside text a person typed, `.sy-mark__label`, `.sy-note__by`, and ERR references.
 2. **Orange paint marks intent.** `--sy-intent` = brand, the primary button (**at most one** `.sy-btn--primary` per view; some views have none), "needs you", `.sy-tag--intent`. Never success.
 3. **Blueprint is the to-be.** Drafted, designed, inferred or proposed content is dashed blueprint (`.sy-drawn`, `.sy-plate--drawn`, `.sy-proposal`, `data-status="draft|inferred"`). Applied content turns solid.
 4. **Humans type, machines print.** Text a person wrote → `.sy-note` (+ `.sy-note__by`). Machine output is never in `.sy-note`.
@@ -48,6 +50,34 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 6. **Square, no shadows.** No radius, no box-shadow. 1px lines; 2px for selected or focused.
 7. **Expanded caps only for short labels.** Titles, labels, nav and primary buttons ≤ 4–5 words. Write sentence case in HTML and let CSS uppercase it. Long names take `.sy-case-normal`.
 8. **Shape + word on every status.** `<span class="sy-status" data-status="…">Word</span>`, mapped in ONE helper.
+
+## Ids on screen
+
+- **Scan ids** are full UUIDs in data, URLs, JSON and exports. On screen show the **first two groups** (`01a110d5-2028`) in
+  `.sy-id` or a tag, with the full id in `title`, and `.sy-id__copy` where people act on the id. Never the 8-character form.
+  Two scans sharing the short form → show the third group for both. On a time axis, label scans by start time.
+- **Record ids** are shown as stored, any number of digits (BR-021, BR-1001).
+- Buttons that show their content (filmstrip items, map nodes, picture buttons) get **no `aria-label`**; extra words go in
+  `.sy-sr-only` after the visible text.
+
+## Map edges
+
+Each edge style has one meaning on every map. Model maps (Now, Since previous release): `--unseen`, `--unchecked`,
+`--retired` (layer), `--process`, `--changed`. A scan's recorded map: `--tree` (first visit), `--offtree` (back or
+across, with an arrowhead, one line per page pair labelled `↩ 3×`, a chip past six lines into one page), `--others` (other
+scans' moves, layer off by default). `--frontier` and `--failed` mean the same on both. Never borrow a model-map style
+for a scan's move. Edges are `aria-hidden`; the List view and the inspector carry the facts.
+
+## 2.2 rules (`19-console-answers/`)
+
+- **Time bars and axes:** phases and releases are data; size by length with a 24 px floor; keep the first and last tick,
+  others ≥ 64 px apart, only the ends under 640 px. The only orange on a phase bar is Waiting for you.
+- **Maps open readable** (≥ 80 %); Fit is for the shape and draws an overview under 50 %.
+- **Facts that explain a table go above it** (`.sy-facts--table`, `aria-describedby`), never in the caption.
+- **Absence is marked, not filled:** "Not here" is `.sy-mark--gone`, a box for floating things, a line for inserted regions.
+- **Unavailable controls stay** with `aria-disabled` and a reason; never `disabled` without one.
+- **Writes with values the person owns** use the editable command card; secrets only by vault reference.
+- **Scan lines:** status · AI scan / Check run · 13-character id · progress · pages · queued · where or when.
 
 ## Status enum
 
@@ -122,7 +152,7 @@ item with `<span class="sy-chip sy-chip--dashed">beta</span>`, and one layout in
 ## Generative UI rules (Workbench)
 
 1. **The model never writes markup.** It returns a view spec (`workbench/schema/view-spec.schema.json`); the server validates it,
-   resolves ids and renders Jinja partials. Never `|safe` a model string. Unknown or invalid components are dropped, not the view.
+   resolves ids, and the React `GenView` draws each component. A model string is always text, never markup. Unknown or invalid components are dropped, not the view.
 2. **The model picks what; the server decides where.** Placement comes from the path and the phase. Chat is always inline.
 3. **Every generated frame** is a `.sy-genview` (solid) with `.sy-genmark` "generated", a status if it has one and a source line;
    its heading has an sr-only ", generated". "Why this view?" and "Right view?" appear once per view, on its lead frame.
@@ -137,7 +167,7 @@ item with `<span class="sy-chip sy-chip--dashed">beta</span>`, and one layout in
    moves on its own; one polite announcement per stage change or milestone; no new animation.
 9. **Point and ask:** context travels as ids in `.sy-ctxchip`s, never as pasted text; `A` asks about the focused item, `@` picks one.
 10. **Answer first:** the words never wait for the view; with no view the answer is plain chat, and nothing turns red.
-11. **Adding a component** = CSS in `genui.css` + Jinja partial + entry in `workbench/tools/gen_wb_schema.py` (regenerate, never edit
+11. **Adding a component** = CSS in `genui.css` + its React part in `GenView` + entry in `workbench/tools/gen_wb_schema.py` (regenerate, never edit
     the JSON) + evals + `16-genui-components.md`. Changing a prompt or the catalogue = run the golden-prompt evals.
 
 ## Class reference (complete list of what you may use)
@@ -170,6 +200,8 @@ item with `<span class="sy-chip sy-chip--dashed">beta</span>`, and one layout in
 | Type | `.sy-h1` `.sy-h2` `.sy-h3` `.sy-label` `.sy-meta` `.sy-small` `.sy-muted` `.sy-prose` `.sy-mono` (`--sm`) `.sy-route` `.sy-num` `.sy-case-normal` `.sy-truncate` `.sy-sr-only` |
 | Layout | `.sy-stack` `.sy-cluster` `.sy-split` `.sy-grid` (`--sy-gap`, `--sy-min`) `.sy-grow` |
 
+| 2.1 (`18-design-answers/`) | `button.sy-thumb-btn` (`__hint`, `__word`) · `.sy-dialog--wide` + `.sy-dialog__figure[data-fit=width\|page]` + `.sy-dialog__close` · `.sy-variants` > `.sy-variant` (`__head` `__pic` `__body`; `:only-child` = picture left) · `.sy-graphview` (`--embedded`) > `.sy-graph__zoom[role=toolbar]` (`.sy-graph__zoom-level`) + `.sy-graph` · `.sy-id` (`--full`) + `.sy-id__copy` · recorded map: `.sy-edge--tree`, `.sy-edge--offtree` (+ `marker-end`, `.sy-edge-arrow`), `.sy-edge--others`, `.sy-legend__item` |
+| 2.2 (`19-console-answers/`) | `figure.sy-phasebar` > `ol.sy-phasebar__track` > `li.sy-phasebar__phase[data-kind][data-state][data-narrow]` (`--sy-phase`) > `button.sy-phasebar__btn` (`__name`, `__time`) + `__axis` · `.sy-graph--overview` · `.sy-mark--gone` (`[data-shape=line]`) · `.sy-compare--overlay` > `__stack` (`--sy-overlay`) > `__under` + `__over`, `__mix` · `.sy-releases--ranged` + `__range[data-label]` · `dl.sy-facts--table` · `.sy-drawer` sticky (`--sy-header-h`), `--static` · `.sy-seg > [aria-disabled]` · `.sy-dialog__main` > `__figure` + `.sy-dialog__aside` · genui: `.sy-cmd__form` (`__wide`, `__data`, `[data-edited]`) |
 | Gen UI (Workbench, `genui.css`) | `.sy-wb` (`--inline` `--nosheet` `--split` `--focus`; `__conv` `__stage` `__aside` `__head`) · `.sy-pathswitch` (`__why[data-source=assistant\|you]`) · `.sy-genmark` · `.sy-genview` (`--card` `--failure`; `[data-gen-state=composing\|ready\|stale]`; `__head` `__title` `__tools` `__why` `__notice` `__body` `__foot` `__source`) · `.sy-genwhy` (`__switch`) · `.sy-genfeedback` (`__btn[aria-pressed]` `__why`) · `.sy-genskel` (`__label` `__block`) · `.sy-genstatus` (`--done`) · `ol.sy-narration` (`li[data-kind=milestone\|live\|stop]`) · `a.sy-cite` · `ol.sy-evtail` (`__id`) · `ol.sy-evstrip` · `.sy-ctxbar` · `.sy-ctxchip` (`__at` `__remove`) · `.sy-suggest` · `.sy-askable` + `.sy-ask` (`--show`) · `.sy-mini` (`--mock` `--locked` `__img`) · `.sy-order` · `.sy-film` (`__item[aria-pressed][data-state=here\|failed\|frontier]` `__route`) · `.sy-node[data-state=here]` · `.sy-livebar` (`__main`) · `.sy-sheet` (`__head` `__body` `__close`) · `.sy-cmdbar` (`__main` `__reply`) · `.sy-cmd[data-cmd-state=proposed\|running\|done\|failed\|undone\|cancelled\|expired]` (`__head` `__title` `__body` `__foot`) |
 | 2.0 | `.sy-nav__group` · `.sy-portal--compact` · `.sy-search--compact` · `.sy-status[data-status=overturned]` · `.sy-releases` (`__lane` `--scans`, `__name`, `__track`, `__span` `--current` `--rollout` `--unknown`, `__scan` `--check`, `__axis`, `__range`) · `.sy-compare` (`__side`, `__head`) · `.sy-differs` · `table.sy-table--decision` (`.sy-dt-group` `.sy-dt-n` `.sy-dt-cond` `.sy-dt-any` `.sy-dt-result`) · `ol.sy-queue` (`__group`, `__item[aria-current]`, `__check`, `__main`, `__claim`, `__meta`) · `.sy-keybar` (`--sticky`) · `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` `.sy-node--dim` `[data-state=retired]` · `.sy-bundle` |
 
@@ -177,7 +209,7 @@ Anything not in this table is not a library class. Product-only layout classes u
 
 ## Never
 
-- Hex, `rgb()` or named colours, `font-family`, `font-size`, `letter-spacing`, `text-transform`, animations or transitions in templates or app CSS. Use role tokens and classes.
+- Hex, `rgb()` or named colours, `font-family`, `font-size`, `letter-spacing`, `text-transform`, animations or transitions in pages or app CSS. Use role tokens and classes.
 - Amber `#FFB000`, JetBrains Mono, scanlines, glow, round dots, bracket statuses (`[ OK ]`), the `mudpuppy://console` wordmark.
 - Marker orange for success; red for anything but failure or destruction; blue for anything real.
 - Two primary buttons or two intent plates in one view.

@@ -1,5 +1,5 @@
-"""The React console's scan sections (R-96, spec 055): one route per htmx `/runs/{id}` tab (States,
-Actions, Frontier, Forms, Network, Robots, Decisions, Docs). Read-only, no SQL here (G-15)."""
+"""The React console's scan sections (R-96, spec 055): one route per section (States, Actions,
+Frontier, Forms, Network, Robots, Decisions, Docs). Read-only, no SQL here (G-15)."""
 
 from __future__ import annotations
 

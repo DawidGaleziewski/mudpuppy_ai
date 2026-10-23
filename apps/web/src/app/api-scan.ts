@@ -14,6 +14,8 @@ export interface ScanHead {
   facts: { label: string; value: string }[];
   tabs: { id: string; label: string; count: number }[];
   needs_attention: boolean;
+  /** The portal hooks that ran in it (spec 023 US2.3). */
+  hooks?: { point: string; fn: string; runs: number; outcomes: Record<string, number>; pages_patched: number }[];
 }
 
 export interface ScanFailure {

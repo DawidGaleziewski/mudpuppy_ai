@@ -1,6 +1,0 @@
-{#- The views of Screens (v2-06, v2-08): the model's screens, their map, the recorded pages. -#}
-<nav class="sy-tabs" aria-label="Screens views">
-  <a class="sy-tab" href="{{ c.url('/screens') }}"{% if screens_tab == "list" %} aria-current="page"{% endif %}>List{% if screens_total is defined and screens_total is not none %} <span class="sy-count sy-count--muted">{{ screens_total }}</span>{% endif %}</a>
-  <a class="sy-tab" href="{{ c.url('/map') }}"{% if screens_tab == "map" %} aria-current="page"{% endif %}>Map</a>
-  <a class="sy-tab" href="{{ c.url('/screens', recorded=1) }}"{% if screens_tab == "recorded" %} aria-current="page"{% endif %}>Recorded pages</a>
-</nav>

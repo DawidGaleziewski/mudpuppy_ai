@@ -25,6 +25,19 @@ Screens referenced are in `screens/`; behaviour comes from the redesign wirefram
 | FE-V15 | M | Scan ids: full UUID in data, URLs and exports; the 13-character short form on screen with the full id in the title and Copy where people act on it; third group only on a clash. | No 8-character scan ids on screen; Copy test. |
 | FE-V16 | M | Chips on a selected nav item meet 4.5:1. | axe `color-contrast` 0 on wb-01…wb-10. |
 | FE-V17 | M | Filmstrip items, map nodes and picture buttons have no `aria-label`; their visible text names them. | axe `label-content-name-mismatch` 0. |
+| FE-V18 | M | Recorded map: tree moves `--tree`, moves off the tree `--offtree` with an arrowhead (one line per page pair, labelled; a chip past six into one page), other scans' moves `--others` behind a layer that is off by default; no `--retired` / `--unseen` there. | Fixture of three returns draws one `↩ 3×` line; layers don't move nodes; forced colours check. |
+| FE-V19 | M | Trace phase bar: phases as data, sized by length with a 24 px floor; kinds work · wait · quiet; running and failed ends; a phase filters the trace (URL keeps it). | Every phase ≥ 24 px and named; filter + Show all; forced colours. |
+| FE-V20 | M | Map opening never below 80 %, scrolled to the start page or `sel`; Fit fits all and draws `.sy-graph--overview` under 50 %. | 19-screen map opens readable; overview keeps node names for screen readers. |
+| FE-V21 | M | `persona.add` as an editable command card; credentials only as vault references; values entered for the vault never reach the model. | Contract tests for persona-add and invalid-persona-secret. |
+| FE-V22 | M | Before / after: `.sy-mark--gone` (box or line), `.sy-compare--overlay` with a keyboard slider; no inline styles. | Banner case shows the line form; overlay marks at full strength. |
+| FE-V23 | S | Time axes: ticks ≥ 64 px apart with both ends kept; ends only under 640 px; `.sy-releases--ranged` with `data-label`. | No overlapping labels at 390 px; nothing above the timeline covered. |
+| FE-V24 | M | Table facts in `dl.sy-facts--table` above the table with `aria-describedby`; the caption only names it. | No `mp-caption`; SR announces the name, not the facts, on entry. |
+| FE-V25 | M | The drawer is sticky and one window high; its log scrolls inside (capped at 60dvh when stacked). | 200 messages don't lengthen the page. |
+| FE-V26 | M | Segments that can't be used are `aria-disabled` with a reason line. | "This page" on Home: focusable, reason read, click ignored. |
+| FE-V27 | M | `/states/{id}` redirects to the Screen page's recording dialog; Screen page gains Inputs and Amendments tabs, Reached at, Compare between variants. | Every docs evidence link lands on its visit. |
+| FE-V28 | S | No 1.x chat page; `/chat` redirects; Get started list on a new portal's Home; New process with the scope checklist. | Old chat links resolve; Get started disappears after the first scan. |
+| FE-V29 | M | Scan lines use one grammar (kind word, 13-char id, "no new step for N min" after 2 min). | No 8-char ids; kind word always present. |
+| FE-V30 | S | A2UI spike: generated catalog, server-owned data model and frame components, agent filter. | `workbench/a2ui/check.py` and `test_a2ui.py` pass. |
 
 ## B. Shell and navigation
 

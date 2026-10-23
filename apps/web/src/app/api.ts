@@ -2,6 +2,8 @@
 // pydantic models in `queries_app.py` declare it, and one TanStack Query hook per endpoint.
 import { useQuery } from '@tanstack/react-query';
 import type { StatusKind } from '../design-system';
+import { currentAsOf, withAsOf } from './asOf';
+import { currentStore, withStore } from './store';
 
 export interface PortalSummary {
   id: string;
@@ -14,6 +16,10 @@ export interface PortalList {
   environment: string;
   portals: PortalSummary[];
   other_environments: string[];
+  /** The Workbench beta is on: the nav offers it. */
+  workbench?: boolean;
+  /** Live MCP servers that disagree with the console (R-61), each named. */
+  warnings?: string[];
 }
 
 /**
@@ -54,7 +60,9 @@ export class ApiError extends Error {
 }
 
 export async function getJson<T>(path: string): Promise<T> {
-  const r = await fetch(path, { headers: { accept: 'application/json' } });
+  // the chosen data store (spec 019); a model page As of a past version asks its API as of that
+  // version (spec 040 FR-001)
+  const r = await fetch(withStore(withAsOf(path, currentAsOf()), currentStore()), { headers: { accept: 'application/json' } });
   if (!r.ok) {
     const body = (await r.json().catch(() => null)) as { detail?: unknown } | null;
     const detail = typeof body?.detail === 'string' ? body.detail : `${String(r.status)} ${r.statusText}`;
@@ -63,8 +71,9 @@ export async function getJson<T>(path: string): Promise<T> {
   return (await r.json()) as T;
 }
 
+// The frame reads it on every page (the Workbench switch): kept for 30 s, not fetched per page.
 export const usePortals = () =>
-  useQuery({ queryKey: ['portals'], queryFn: () => getJson<PortalList>('/api/portals') });
+  useQuery({ queryKey: ['portals'], queryFn: () => getJson<PortalList>('/api/portals'), staleTime: 30_000 });
 
 export const useScans = (portal: string) =>
   useQuery({

@@ -5,7 +5,6 @@ from __future__ import annotations
 from mudpuppy_dashboard import db, queries_hooks
 
 from .conftest import Store, insert, make_client, ts
-from .test_chat import text
 
 
 def seed(store: Store) -> None:
@@ -49,10 +48,16 @@ def test_hook_runs_group_by_hook_with_outcomes(empty_store: Store) -> None:
     assert rows[("onBeforePageLoad", "skipPrint")].outcomes == {"skip": 1}
 
 
-def test_scan_page_lists_the_hooks_that_ran(empty_store: Store) -> None:
+def test_the_scan_head_lists_the_hooks_that_ran(empty_store: Store) -> None:
     seed(empty_store)
     with make_client(empty_store) as c:
-        body = text(c.get("/runs/run-h").text)
-    assert "Portal hooks" in body
-    assert "onPageLoad · patchCalculator ran 2" in body and "Failed" in body
-    assert "Skipped the page" in body and "patched 1 page" in body
+        hooks = c.get("/api/scans/run-h").json()["hooks"]
+    calc = next(h for h in hooks if h["fn"] == "patchCalculator")
+    assert calc == {
+        "point": "onPageLoad",
+        "fn": "patchCalculator",
+        "runs": 2,
+        "outcomes": {"ok": 1, "failed": 1},
+        "pages_patched": 1,
+    }
+    assert len(hooks) == 3

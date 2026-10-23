@@ -1,7 +1,7 @@
 """The React console's assistant drawer (R-96, spec 069; spec 022 M3 FE-A02–A05): the portal's
 conversation as a timeline (messages, system lines, failures with their reference, credential
 requests by name only, the assistant's proposals) and whether the chat service runs. Built from
-the htmx drawer's own timeline (`web/views_chat.timeline`, passed in by the router)."""
+`queries_app_timeline.timeline`, passed in by the router."""
 
 from __future__ import annotations
 
@@ -81,12 +81,10 @@ class AssistantPage(BaseModel):
     start_hint: str | None
     conversation: Conversation | None
     items: list[Item]
-    #: The full chat page (the htmx 1.x Home with its step tracker and tools).
-    full_page: str
     scan: ScanLine | None
 
 
-#: A running run quiet this long is called out (the htmx chat's QUIET_WARN_MS).
+#: A running run quiet this long is called out.
 QUIET_MS = 5 * 60_000
 
 
@@ -177,8 +175,8 @@ def assistant_page(
     up: tuple[bool, str],
     scan: ScanLine | None = None,
 ) -> AssistantPage:
-    """`timeline` is `views_chat.timeline`'s (kind, item) pairs; `up` whether the chat service
-    answers and the command that starts it; `scan` the conversation's run in one line."""
+    """`timeline`: `queries_app_timeline.timeline`'s (kind, item) pairs; `up` whether the chat
+    service answers and the command that starts it; `scan` the conversation's run in one line."""
     service_up, hint = up
     items = []
     for kind, item in timeline:
@@ -188,13 +186,11 @@ def assistant_page(
             items.append(_proposal(portal, item))
         else:
             items.append(_message(item))
-    query = f"?conversation={quote(conversation.id, safe='')}" if conversation else ""
     return AssistantPage(
         portal=portal,
         service_up=service_up,
         start_hint=None if service_up else hint,
         conversation=_conversation(conversation) if conversation else None,
         items=items,
-        full_page=f"/chat{query}",
         scan=scan,
     )

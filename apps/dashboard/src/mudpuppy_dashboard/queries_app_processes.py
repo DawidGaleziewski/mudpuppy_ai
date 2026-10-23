@@ -1,5 +1,5 @@
-"""The React console's Processes list (R-96, spec 057; designer screen 04): the htmx list's read
-models (`queries_processes`, `queries_process_doc.pictures`) as typed JSON. Statuses come mapped;
+"""The React console's Processes list (R-96, spec 057; designer screen 04): the read models
+`queries_processes` and `queries_process_doc.pictures` as typed JSON. Statuses come mapped;
 pictures as URLs the dashboard serves. Read-only."""
 
 from __future__ import annotations

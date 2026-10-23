@@ -1,14 +1,14 @@
 ---
 name: mudpuppy-react-ui
-description: How to build the MudPuppy console in React (apps/web, R-96) so it stays consistent - the design-system components and their rules, Storybook documentation for every component, the page and data patterns over the dashboard's JSON API, tests, and the checks before done. Use for ANY work in apps/web - a new page, a component, a story, a visual fix, the API a page reads - and when moving an htmx page to React. Not for the htmx dashboard templates (skill mudpuppy-salvage-ui) or the crawler.
+description: How to build the MudPuppy console in React (apps/web, the only UI since R-100) so it stays consistent - the design-system components and their rules, Storybook documentation for every component, the page and data patterns over the dashboard's JSON API, router links, tests, and the checks before done. Use for ANY UI work - a new page, a component, a story, a visual fix, the API a page reads. Not for the crawler.
 ---
 
 # MudPuppy console in React
 
-The console is moving from htmx to a React single-page app in `apps/web` (owner, 2026-10-22: "I
-want whole app to be react from now. Goal is no more htmx, just react spa app"). The look stays
-Salvage Yard: the designer's CSS is the source of truth, the React components draw it, pages
-compose the components. Consistency comes from one rule: **pages never style; they compose.**
+The console is a React single-page app in `apps/web`, the only UI (R-100, owner 2026-10-23:
+"100% react spa. No htmx. … React router. No a hrefs"). The look is Salvage Yard: the
+designer's CSS is the source of truth, the React components draw it, pages compose the
+components. Consistency comes from one rule: **pages never style; they compose.**
 
 ## Where things are
 
@@ -73,8 +73,10 @@ Commands (in `apps/web`): `pnpm dev` (Vite on 5173, `/api` proxied to the dashbo
 3. In `apps/web`: a typed fetch function and hook in `src/app/api.ts`, the page in
    `src/pages/<Page>.tsx` composed from the design system, the route in the `routes` list of `src/app/App.tsx`.
 4. A test that renders the page with a stubbed API: its states (loading, empty, error, data).
-5. When it replaces an htmx page, the htmx page goes once the React one covers it; the owner does
-   not need both working meanwhile.
+5. Links: every `href` goes through a design-system component (`Text`, `LinkButton`, `Anchor`…),
+   which the app draws as a React Router `Link` (`routerLink`); a move made by code uses `useGo`.
+   Never a raw `<a>` in `src/pages` or `src/app` (lint refuses it); a file or a download stays a
+   plain link through `Anchor download`.
 
 ## Before you say done
 

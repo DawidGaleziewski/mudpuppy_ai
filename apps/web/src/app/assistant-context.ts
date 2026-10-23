@@ -1,7 +1,6 @@
 // What a page can ask of the assistant (spec 070): open the drawer, and say something there. A
 // message waits in this browser's session until the drawer's conversation is ready, also across a
-// page change (the htmx drawer's `assistant-say`), so it is never dropped while the assistant is
-// busy or the drawer was closed.
+// page change, so it is never dropped while the assistant is busy or the drawer was closed.
 import { createContext, useContext } from 'react';
 
 const SAY_KEY = 'mudpuppy.assistant.say';

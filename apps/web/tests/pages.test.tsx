@@ -121,7 +121,7 @@ describe('Portal home', () => {
     expect(screen.getByRole('link', { name: 'Scans' }).getAttribute('href')).toBe('/app/portals/shop/scans');
   });
 
-  it('says so when nothing waits and nothing was scanned', async () => {
+  it('shows Get started on a portal that was never scanned (designer Q11)', async () => {
     at('/app/portals/shop', {
       '/api/portals/shop/home': {
         ...home,
@@ -132,8 +132,10 @@ describe('Portal home', () => {
         rules: { total: 0, by_status: [] },
       },
     });
-    expect(await screen.findByText('Nothing waits for you on this portal.')).toBeTruthy();
-    expect(screen.getByText('No scan yet. Start one from the chat.')).toBeTruthy();
+    expect(await screen.findByText('No scan yet. Ask the assistant to start one.')).toBeTruthy();
+    expect(screen.getByRole('list', { name: 'Get started' })).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'First scan' }).getAttribute('href')).toBe('/app/portals/shop/scans/plan');
+    expect(screen.queryByText('Nothing waits for you on this portal.')).toBeNull();
   });
 
   it('shows the API reason for an unknown portal', async () => {

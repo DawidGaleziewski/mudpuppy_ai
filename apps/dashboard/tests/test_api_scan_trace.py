@@ -6,7 +6,7 @@ from __future__ import annotations
 from fastapi.testclient import TestClient
 
 from .conftest import BIG_RUN, Store, make_client
-from .test_routes import seed_trace_with_events_and_agent
+from .seeds import seed_trace_with_events_and_agent
 
 
 def _client(store: Store) -> TestClient:

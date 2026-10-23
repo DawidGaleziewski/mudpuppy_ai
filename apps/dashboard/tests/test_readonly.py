@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from mudpuppy_dashboard import db
+from mudpuppy_dashboard import db, smoke
 
 from .conftest import BIG_RUN, Store, make_client
 
@@ -42,52 +42,35 @@ def test_missing_store_is_reported_and_never_created(tmp_path: Path) -> None:
     assert not (data_dir / "db" / "production.sqlite").exists()
 
 
-def test_every_route_leaves_the_store_unchanged(liveinsurer_store: Store) -> None:
-    liveinsurer_store.connect().execute("PRAGMA wal_checkpoint(TRUNCATE)").close()
-    before = digest(liveinsurer_store.path)
-    files_before = sorted(p.name for p in liveinsurer_store.path.parent.iterdir())
-    urls = [
-        "/",
-        "/healthz",
-        "/fragments/summary",
-        "/fragments/runs",
-        f"/runs/{BIG_RUN}",
-        *(
-            f"/fragments/runs/{BIG_RUN}/{section}"
-            for section in (
-                "header",
-                "states",
-                "actions",
-                "frontier",
-                "forms",
-                "network",
-                "robots",
-                "decisions",
-            )
-        ),
-    ]
-    with make_client(liveinsurer_store) as client:
+def _unchanged_after(store: Store, urls: list[str], allowed: tuple[int, ...]) -> None:
+    store.connect().execute("PRAGMA wal_checkpoint(TRUNCATE)").close()
+    before = digest(store.path)
+    files_before = sorted(p.name for p in store.path.parent.iterdir())
+    with make_client(store) as client:
         for url in urls:
-            assert client.get(url).status_code == 200, url
-    assert digest(liveinsurer_store.path) == before
-    assert sorted(p.name for p in liveinsurer_store.path.parent.iterdir()) == files_before
+            assert client.get(url).status_code in allowed, url
+    assert digest(store.path) == before
+    assert sorted(p.name for p in store.path.parent.iterdir()) == files_before
 
 
-def test_every_docs_route_leaves_the_store_unchanged(ba_fixture: Store) -> None:
-    """T055: the Docs pages, fragments and run tabs are GET-only and never write."""
-    from .test_docs_routes import ALL_PAGES
-
-    ba_fixture.connect().execute("PRAGMA wal_checkpoint(TRUNCATE)").close()
-    before = digest(ba_fixture.path)
-    files_before = sorted(p.name for p in ba_fixture.path.parent.iterdir())
-    extra = [
-        "/docs/nope",
-        "/docs/reference-insurer/REQ-404",
-        "/docs/reference-insurer?section=processes&flag=open_question&status=draft",
-        "/fragments/docs/reference-insurer/section/traceability?push=1",
+def test_every_scan_read_leaves_the_store_unchanged(liveinsurer_store: Store) -> None:
+    sections = ("states", "actions", "frontier", "forms", "network", "robots", "decisions")
+    urls = [
+        "/healthz",
+        "/api/portals",
+        f"/api/scans/{BIG_RUN}",
+        f"/api/scans/{BIG_RUN}/graph",
+        *(f"/api/scans/{BIG_RUN}/{s}" for s in sections),
     ]
-    with make_client(ba_fixture) as client:
-        for url in (*ALL_PAGES, *extra):
-            assert client.get(url).status_code in (200, 404), url
-    assert digest(ba_fixture.path) == before
-    assert sorted(p.name for p in ba_fixture.path.parent.iterdir()) == files_before
+    _unchanged_after(liveinsurer_store, urls, (200,))
+
+
+def test_every_console_read_leaves_the_store_unchanged(ba_fixture: Store) -> None:
+    """T055: every read of the console is GET-only and never writes."""
+    portal = "reference-insurer"
+    urls = [
+        *(a for a in smoke.addresses([portal], None) if "/app/" not in a and "/assistant" not in a),
+        f"/api/portals/{portal}/docs/REQ-404",
+        f"/api/portals/{portal}/docs?section=processes&flag=open_question&status=draft",
+    ]
+    _unchanged_after(ba_fixture, urls, (200, 404))

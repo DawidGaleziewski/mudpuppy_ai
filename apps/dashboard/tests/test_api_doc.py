@@ -1,6 +1,6 @@
 """The React console's Docs, part 2 (R-96, spec 067): one record (facts, content blocks, evidence,
 relations, revisions, the review panel, Prev / Next, a process's maps and Open in Processes) and
-one analysis session, as the htmx Docs shows them, statuses mapped."""
+one analysis session, statuses mapped."""
 
 from __future__ import annotations
 
@@ -84,7 +84,7 @@ def test_a_process_record_has_its_maps_and_opens_in_processes(ba_fixture: Store)
         plain = c.get(f"{API}/PROC-002").json()
     (m,) = proc["variant_maps"]
     assert m["source"].startswith("flowchart TD") and m["scan"]["href"].endswith("/process")
-    assert proc["process"]["export"] == f"/docs/{P}/PROC-001/export"
+    assert proc["process"]["export"] == f"/app/portals/{P}/processes/PROC-001/documentation"
     assert proc["process"]["can_open"] and plain["variant_maps"] == []
     service = Service()
     service.routes[("POST", f"/portals/{P}/processes/from-record")] = httpx2.Response(

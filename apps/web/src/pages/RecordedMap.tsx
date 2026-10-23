@@ -19,6 +19,7 @@ import {
   Tag,
   Text,
 } from '../design-system';
+import { planHref } from '../app/api-plan';
 import { recordedQuery, useRecordedMap, type RecordedFilter, type RecordedMap, type RecordedNode } from '../app/api-recorded';
 import { QueryState } from '../app/QueryState';
 import { ShownChip } from '../app/ShownChip';
@@ -232,7 +233,7 @@ function Body({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
   return (
     <Stack>
       <Text small muted block>
-        {recordedMeta(m)} · <Text href="/scans/plan">Next scan plan</Text>
+        {recordedMeta(m)} · <Text href={planHref(m.portal)}>Next scan plan</Text>
       </Text>
       <Tools m={m} v={v} set={set} />
       <Columns

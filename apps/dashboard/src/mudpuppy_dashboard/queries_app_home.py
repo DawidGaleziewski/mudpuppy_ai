@@ -1,5 +1,5 @@
-"""The React console's portal home (R-96, spec 051; designer screen v2-01, UX-R01–R03): the htmx
-home's read model (`queries_portal_home.portal_home`) as a typed JSON shape. Statuses come mapped
+"""The React console's portal home (R-96, spec 051; designer screen v2-01, UX-R01–R03): the read
+model `queries_portal_home.portal_home` as a typed JSON shape. Statuses come mapped
 by the one status map, so the app shows shape and word without a mapping of its own."""
 
 from __future__ import annotations

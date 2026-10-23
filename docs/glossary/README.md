@@ -3963,22 +3963,24 @@ category `[battle-tested-scar]`.
 
 #### React console
 
-**The console rebuilt as a React single-page app at /app/, replacing the htmx pages one by one.**
+**The console, a React single-page app at /app/; the only UI since R-100.**
 
-`apps/web` draws the same Salvage Yard look with React components (each one documented in
+`apps/web` draws the Salvage Yard look with React components (each one documented in
 Storybook) and reads the dashboard's JSON API under `/api`. The dashboard serves its build at
-`/app/`; the htmx pages stay until their React page replaces them. Every UI change follows
+`/app/`; every link moves through React Router, so changing pages never reloads the app.
+Older addresses (`/states/…`, `/docs/…`, `/runs/…`) redirect to their React page. The
+header's data-store menu and As of are kept in the page address. Every UI change follows
 the skill `mudpuppy-react-ui`.
 
 *Example:* http://127.0.0.1:8765/app/portals/reference-insurer-local/scans
 
 *Seen in:* /app/
 
-*Labels:* `React preview`, `/app/`, `Storybook`
+*Labels:* `/app/`, `Storybook`, `Data store`
 
 *Related:* [Persona sample](#persona-sample)
 
-<sub>Last changed in R-96, 2026-10-23.</sub>
+<sub>Last changed in R-100, 2026-10-23.</sub>
 
 ### Personas
 

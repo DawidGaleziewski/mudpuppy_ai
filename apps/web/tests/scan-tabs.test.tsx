@@ -66,7 +66,7 @@ describe('Scan sections', () => {
       ],
     });
     const table = await screen.findByRole('table', { name: 'Screens observed in this scan' });
-    expect(within(table).getByRole('link', { name: 'Strona główna' }).getAttribute('href')).toBe('/states/st-1');
+    expect(within(table).getByRole('link', { name: 'Strona główna' }).getAttribute('href')).toBe('/app/states/st-1');
     expect(within(table).getByRole('link', { name: 'shots/1.png' }).getAttribute('href')).toBe('/evidence/shots/1.png');
     const nav = screen.getByRole('navigation', { name: 'Scan sections' });
     expect(within(nav).getByRole('link', { name: /States/ }).getAttribute('aria-current')).toBe('page');

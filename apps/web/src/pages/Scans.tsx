@@ -1,6 +1,8 @@
 import { useParams } from 'react-router';
-import { Meter, PageHead, Plate, ScanId, shortScanId, Stack, Table, Text } from '../design-system';
+import { LinkButton, Meter, PageHead, Plate, ScanId, shortScanId, Stack, Table, Text } from '../design-system';
 import { useScans, type ScanSummary } from '../app/api';
+import { planHref } from '../app/api-plan';
+import { ScansViews } from '../app/ScansViews';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
@@ -18,7 +20,7 @@ const columns = (ids: readonly string[]) => [
   { header: 'Started (UTC)', cell: (s: ScanSummary) => <Text mono>{s.started_at}</Text> },
 ];
 
-/** A portal's scans: a running one's progress first, then the newest 25 (the htmx Scans page, R-96). */
+/** A portal's scans: a running one's progress first, then the newest 25 (R-96). */
 export function Scans() {
   const portal = useParams().portal ?? '';
   const q = useScans(portal);
@@ -34,7 +36,9 @@ export function Scans() {
         ]}
         title="Scans"
         meta={q.data ? `${String(q.data.total)} scans · ${String(running.length)} running` : undefined}
+        actions={<LinkButton size="md" href={planHref(portal)}>Plan next scan</LinkButton>}
       />
+      <ScansViews portal={portal} current="all" />
       <QueryState query={q} what="the scans">
         {(list) => (
           <Stack>

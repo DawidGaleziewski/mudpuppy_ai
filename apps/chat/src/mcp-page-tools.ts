@@ -226,8 +226,8 @@ export function registerPageTools(
     'open_page',
     {
       description:
-        'Open a dashboard page for the BA, e.g. /states/<id>, /docs/<portal>/<key>, /runs/<id>, /screens, /search?q=…. Only dashboard paths; the BA can always go back.',
-      inputSchema: { path: z.string().regex(/^\/[a-z]/, 'a dashboard path starting with /') },
+        'Open a console page for the BA, e.g. /app/states/<id>, /app/portals/<portal>/docs/<key>, /app/scans/<id>, /app/portals/<portal>/screens, /app/search?q=…. Only console paths under /app/; the BA can always go back.',
+      inputSchema: { path: z.string().regex(/^\/app\//, 'a console path starting with /app/') },
     },
     ({ path }) => ok({ opened: path }),
   );

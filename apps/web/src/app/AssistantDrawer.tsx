@@ -213,11 +213,6 @@ export function AssistantDrawer({ portal, context, onClose, nudge }: { portal: s
       onClose={onClose}
       actions={
         <Cluster>
-          {q.data && (
-            <Text small href={q.data.full_page}>
-              Full page
-            </Text>
-          )}
           <Button size="sm" variant="quiet" onClick={onClose}>
             Close
           </Button>

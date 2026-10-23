@@ -1,0 +1,13 @@
+{# Compare — before / after of one change (2.0 Changes). The difference is marked with .sy-differs. #}
+{% set ch = vm.ch %}
+<div class="sy-compare" style="--sy-min: 180px">
+  <section class="sy-compare__side"><header class="sy-compare__head"><span>{{ ch.before_label }}</span><span class="sy-tag sy-tag--sm">{{ ch.before }}</span></header>
+    <figure class="sy-shot sy-askable" aria-label="{{ ch.screen }} {{ ch.before }} (illustration)"><span class="sy-shot__title">Twoja składka</span><span>OC · 612 zł</span></figure></section>
+  <section class="sy-compare__side"><header class="sy-compare__head"><span>{{ ch.after_label }}</span><span class="sy-tag sy-tag--sm">{{ ch.after }}</span></header>
+    <figure class="sy-shot sy-askable" aria-label="{{ ch.screen }} {{ ch.after }} (illustration)"><mark class="sy-mark"><span class="sy-mark__label">New</span>Oferta specjalna</mark><span class="sy-shot__title">Twoja składka</span><span>OC · 612 zł</span></figure></section>
+</div>
+<div class="sy-table-wrap"><table class="sy-table sy-table--dense" aria-label="What differs">
+  <thead><tr><th scope="col"></th><th scope="col">{{ ch.before }}</th><th scope="col">{{ ch.after }}</th></tr></thead>
+  <tbody>{% for label, a, b, differs in ch.rows %}<tr><th scope="row">{{ label }}</th><td{% if differs %} class="sy-differs"{% endif %}>{{ a }}</td><td{% if differs %} class="sy-differs"{% endif %}>{{ b }}{% if differs %} · differs{% endif %}</td></tr>{% endfor %}</tbody>
+</table></div>
+<a class="sy-small" href="{{ ch.href }}">Open {{ ch.id }} in Changes</a>

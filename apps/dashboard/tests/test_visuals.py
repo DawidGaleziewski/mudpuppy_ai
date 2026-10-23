@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import re
 import sqlite3
 from pathlib import Path
 
@@ -152,90 +151,12 @@ def test_evidence_route_refuses_everything_else(visual_store: Store, ref: str) -
         assert c.get(f"/evidence/{ref}").status_code == 404
 
 
-# --- /states/{id} -----------------------------------------------------------------------------
-
-
-def test_state_page_shows_screenshot_wireframe_tab_and_citing_records(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get("/states/st-shot").text
-    assert f'src="/evidence/{SHOT}"' in html
-    assert 'href="/states/st-shot?view=wireframe"' in html
-    assert ">Show elements</a>" in html
-    assert "sy-mark--overlay" not in html  # outlines only on request
-    # the citing records sit on the "Cited by" tab of the side panel
-    assert 'href="/states/st-shot?side=cited"' in html
-    with make_client(visual_store) as c:
-        cited = c.get("/states/st-shot", params={"side": "cited"}).text
-    assert "/docs/reference-insurer/DI-001" in cited
-    assert "spinbutton &#34;Pojemność silnika&#34;" in cited or 'spinbutton "Pojemność' in cited
-
-
-def test_state_page_outlines_every_boxed_element_on_request(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get("/states/st-shot", params={"elements": 1}).text
-    boxes = re.findall(r'<mark class="sy-mark sy-mark--overlay" style="([^"]+)"', html)
-    assert len(boxes) == 2  # the hidden button has no box
-    assert "left: 10.0%; top: 2.5%; width: 50.0%; height: 2.0%;" in boxes[0]
-    assert "2 of 3" in html
-
-
-def test_state_page_falls_back_to_the_wireframe_without_a_screenshot(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get("/states/st-plain").text
-    assert f'src="/evidence/{SVG}"' in html
-    assert "No screenshot recorded; wireframe shown." in html
-    assert f"/evidence/{EXCALIDRAW}?download=Kontakt" in html
-    assert "?view=wireframe" in html and 'aria-current="page"' in html
-
-
-def test_state_page_wireframe_tab(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get("/states/st-shot", params={"view": "wireframe"}).text
-    assert f'src="/evidence/{SVG}"' in html
-    assert ">Download Excalidraw</a>" in html
+# --- /api/states/{id} -------------------------------------------------------------------------
 
 
 def test_unknown_state_is_404(visual_store: Store) -> None:
     with make_client(visual_store) as c:
-        r = c.get("/states/nope")
-    assert r.status_code == 404
-    assert "No screen with id" in r.text
-
-
-def test_run_states_table_links_states_and_shows_thumbnails(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get("/runs/run-1").text
-    assert f'class="sy-thumb" src="/evidence/{SHOT}"' in html
-    assert 'href="/states/st-shot"' in html
-    assert 'href="/states/st-plain?view=wireframe"' in html
-
-
-# --- record page Screens panel -----------------------------------------------------------------
-
-
-def test_record_screens_panel_outlines_only_this_revisions_regions(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get(f"/docs/{PORTAL}/DI-001").text
-    panel = html[
-        html.index('<details class="sy-disclosure" open><summary><h2 class="sy-h3">Screens') :
-    ]
-    assert f'src="/evidence/{SHOT}"' in panel
-    boxes = re.findall(r'<mark class="sy-mark sy-mark--overlay" style="([^"]+)"', panel)
-    assert boxes == ["left: 10.0%; top: 10.0%; width: 25.0%; height: 1.5%;"]
-    assert "Not on the screenshot" in panel  # the hidden button's legend entry
-    assert "the field" in panel
-    # the evidence table names the region and links the state page
-    assert 'href="/states/st-shot"' in html
-
-
-def test_record_screens_panel_uses_the_wireframe_without_a_screenshot(visual_store: Store) -> None:
-    with make_client(visual_store) as c:
-        html = c.get(f"/docs/{PORTAL}/SCR-001").text
-    panel = html[
-        html.index('<details class="sy-disclosure" open><summary><h2 class="sy-h3">Screens') :
-    ]
-    assert f'src="/evidence/{SVG}"' in panel
-    assert 'data-status="unobserved">Wireframe' in panel
+        assert c.get("/api/states/nope").status_code == 404
 
 
 # --- layout loading ----------------------------------------------------------------------------
@@ -267,4 +188,4 @@ def test_pre_0006_store_still_renders_state_pages(visual_store: Store) -> None:
     conn.commit()
     conn.close()
     with make_client(visual_store) as c:
-        assert c.get("/states/st-plain").status_code == 200
+        assert c.get("/api/states/st-plain").status_code == 200

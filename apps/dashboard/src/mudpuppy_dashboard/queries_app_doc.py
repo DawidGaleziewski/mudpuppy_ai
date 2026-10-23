@@ -1,8 +1,8 @@
 """The React console's Docs, part 2 (R-96, spec 067; spec 004 R-15): one record (its facts, the
 content of the revision shown as blocks, the process maps of its variants, the screens it cites
 with their regions, the evidence, relations and revisions, the review panel, Prev / Next in the
-list it was opened from) and one analysis session. Built over the htmx pages' read models
-(`queries_docs`, `visuals`, `diagrams`, `neighbours`); statuses come mapped."""
+list it was opened from) and one analysis session. Built over the read models `queries_docs`,
+`visuals`, `diagrams` and `neighbours`; statuses come mapped."""
 
 from __future__ import annotations
 
@@ -16,7 +16,7 @@ from . import diagrams, neighbours, queries_processes, visuals
 from . import queries_docs as qd
 from .formats import short_id
 from .models import ResolvedEvidence
-from .queries_app import StatusOut, status_out
+from .queries_app import StatusOut, state_href, status_out
 from .queries_app_doc_content import Block, content_blocks
 from .queries_app_docs import NOT_OBSERVED, docs_base, record_href, session_href
 
@@ -185,7 +185,7 @@ def _evidence_href(portal: str, e: ResolvedEvidence) -> tuple[str | None, str | 
     if kind == "review":
         return f"#review-{link.target_id}", None
     if kind in ("state", "screen_region"):
-        return f"/states/{quote(link.target_id, safe='')}", None
+        return state_href(link.target_id), None
     if not link.run_id:
         return None, None
     return f"{scan_href(link.run_id, e.tab)}#{quote(link.target_id, safe='')}", None
@@ -280,8 +280,8 @@ def _history(portal: str, d: qd.DocRecordDetail) -> list[Revision]:
 def _neighbours(
     conn: sqlite3.Connection, portal: str, list_url: str | None, key: str
 ) -> Neighbours | None:
-    """Prev / Next in the Docs list the record was opened from (R-71); the `list` value is the
-    htmx list's address, which `neighbours` rebuilds."""
+    """Prev / Next in the Docs list the record was opened from (R-71); `neighbours` rebuilds the
+    list from the `list` value."""
     found = neighbours.ordered_list(conn, portal, list_url) if list_url else None
     if found is None or key not in found.ids:
         return None
@@ -323,7 +323,7 @@ def _process(conn: sqlite3.Connection, portal: str, d: qd.DocRecordDetail, revie
     linked = queries_processes.linked_process(conn, portal, key)
     p = quote(portal, safe="")
     return ProcessLink(
-        export=f"/docs/{p}/{quote(key, safe='')}/export",
+        export=f"/app/portals/{p}/processes/{quote(key, safe='')}/documentation",
         linked=Ref(label=linked, href=f"/app/portals/{p}/processes/{quote(linked, safe='')}")
         if linked
         else None,
