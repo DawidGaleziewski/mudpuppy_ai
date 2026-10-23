@@ -18,6 +18,7 @@ import { nowIso } from '@mudpuppy/core';
 import { classify, MODEL_DEFAULTS, type Deviation, type DeviationKind } from '@mudpuppy/model';
 import { visitPair, type VisitContext } from './deviation-visits.js';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
+import { guardOverturned } from './overturn-guard.js';
 import { journeyPath, referenceOf, type ReplayResult } from './replay-tests.js';
 
 type Raw = BetterSqlite3.Database;
@@ -302,17 +303,22 @@ export function resolveContextReplays(
   const replays = replaysOf(plan, results);
   if ('repeated' in replays && replays.repeated.length === 0) return { waiting: true }; // all diverged
   const deviation = deviationOf(d);
-  const decision = classify({
-    kind: d.kind,
-    result: deviation.after?.result ?? 'ok',
-    buildChanged: false,
-    schemaChanged: false,
-    contextDiffers: plan.r4 !== null,
-    sameEpochAndAudience: plan.r4 === null,
-    presentForOtherAudience: false,
-    newActionSameScreens: false,
-    replays,
-  });
+  const decision = guardOverturned(
+    raw,
+    portal,
+    deviation,
+    classify({
+      kind: d.kind,
+      result: deviation.after?.result ?? 'ok',
+      buildChanged: false,
+      schemaChanged: false,
+      contextDiffers: plan.r4 !== null,
+      sameEpochAndAudience: plan.r4 === null,
+      presentForOtherAudience: false,
+      newActionSameScreens: false,
+      replays,
+    }),
+  );
   if (decision.decision === 'replay')
     return decision.rule === 'R5' && !results.r5 ? { next: 'R5' } : { waiting: true };
   if (decision.decision === 'ambiguous') {

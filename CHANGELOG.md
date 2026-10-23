@@ -6,6 +6,9 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-87: an overturn stands** (spec 049, v2.5.3, 2026-10-23). When a person overturned an
+  automatic explanation, the same rule no longer explains the same kind of change on that screen
+  on its own: the next one waits for a person, with a note naming the overturn. Undo lifts it.
 - **R-94 (8): Workbench commands per environment; the header's portal list** (spec 048, v2.5.2,
   2026-10-23). Commands run only on the environments in `MUDPUPPY_WORKBENCH_COMMAND_ENVS`
   (default local-dev and sandbox); elsewhere the card says why and points to Scans, and the chat

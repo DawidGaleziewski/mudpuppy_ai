@@ -11,6 +11,7 @@ import type BetterSqlite3 from 'better-sqlite3';
 import { newId, nowIso } from '@mudpuppy/core';
 import { classify, statusOf, type Deviation } from '@mudpuppy/model';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
+import { guardOverturned } from './overturn-guard.js';
 import { hypothesisEvents } from './model-decide.js';
 import { outcomeOf, planForTest, type PendingReplay } from './replay-tests.js';
 
@@ -211,17 +212,22 @@ export function resolveRuleMismatch(
   const outcome = seen ? outcomeOf(raw, seen) : null;
   if (!d || outcome === null) return null;
   const failing = (JSON.parse(d.after_json) as { outcome: string }).outcome;
-  const decision = classify({
-    kind: 'rule_mismatch',
-    result: 'ok',
-    buildChanged: false,
-    schemaChanged: false,
-    contextDiffers: false,
-    sameEpochAndAudience: true,
-    presentForOtherAudience: false,
-    newActionSameScreens: false,
-    replays: { ruleReproduced: outcome === failing },
-  });
+  const decision = guardOverturned(
+    raw,
+    portal,
+    { kind: 'rule_mismatch', screen: d.screen_id },
+    classify({
+      kind: 'rule_mismatch',
+      result: 'ok',
+      buildChanged: false,
+      schemaChanged: false,
+      contextDiffers: false,
+      sameEpochAndAudience: true,
+      presentForOtherAudience: false,
+      newActionSameScreens: false,
+      replays: { ruleReproduced: outcome === failing },
+    }),
+  );
   if (decision.decision !== 'hypothesis') return null;
   const ruleKey = (JSON.parse(d.before_json) as { rule: string }).rule;
   const deviation: Deviation = {

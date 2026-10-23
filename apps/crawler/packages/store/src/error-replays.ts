@@ -9,6 +9,7 @@ import type BetterSqlite3 from 'better-sqlite3';
 import { nowIso } from '@mudpuppy/core';
 import { classify, MODEL_DEFAULTS, type Deviation, type DeviationKind } from '@mudpuppy/model';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
+import { guardOverturned } from './overturn-guard.js';
 import { journeyPath, referenceOf, type PendingReplay, type ReplayResult } from './replay-tests.js';
 
 type Raw = BetterSqlite3.Database;
@@ -130,17 +131,22 @@ export function resolveErrorReplays(
   const d = waitingErrors(raw, portal).find((x) => x.id === deviationId);
   if (!d) return null;
   const after = JSON.parse(d.after_json!) as { toScreen: string; result: string };
-  const decision = classify({
-    kind: d.kind,
-    result: after.result,
-    buildChanged: false,
-    schemaChanged: false,
-    contextDiffers: false,
-    sameEpochAndAudience: true,
-    presentForOtherAudience: false,
-    newActionSameScreens: false,
-    replays: { same },
-  });
+  const decision = guardOverturned(
+    raw,
+    portal,
+    { kind: d.kind, screen: d.screen_id, ...(d.element_key ? { elementKey: d.element_key } : {}) },
+    classify({
+      kind: d.kind,
+      result: after.result,
+      buildChanged: false,
+      schemaChanged: false,
+      contextDiffers: false,
+      sameEpochAndAudience: true,
+      presentForOtherAudience: false,
+      newActionSameScreens: false,
+      replays: { same },
+    }),
+  );
   if (decision.decision !== 'hypothesis') return null;
   const deviation: Deviation = {
     kind: d.kind,

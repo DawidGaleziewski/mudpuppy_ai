@@ -1,9 +1,12 @@
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import type { Deviation, RuleDecision } from '@mudpuppy/model';
 import {
   LEGACY_PROFILE,
   ModelDecisionError,
   decideHypothesis,
+  guardOverturned,
+  undoDecision,
   labelPair,
   migrateUp,
   openDb,
@@ -203,6 +206,47 @@ describe("a person's decisions (spec 039 design § 10.3)", () => {
       actor: 'Owner',
       reason: 'overturned: the menu moved, the release is the same',
     });
+    await o.close();
+  });
+
+  it('an overturn stands for its rule on that screen until it is undone (R-87)', async () => {
+    const o = open();
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    deploy(o);
+    reconcilePortalModel(o.raw, 'shop', { now: T(59) });
+    const fact = o.raw
+      .prepare(
+        `SELECT h.kind, h.rule, d.kind AS deviation, d.screen_id FROM hypotheses h
+         JOIN deviations d ON d.id = h.deviation_id WHERE h.key = 'H-0001'`,
+      )
+      .get() as { kind: string; rule: string; deviation: Deviation['kind']; screen_id: string };
+    const change = { kind: fact.deviation, screen: fact.screen_id };
+    const derived = {
+      decision: 'hypothesis',
+      kind: fact.kind,
+      rule: fact.rule,
+      derived: true,
+    } as RuleDecision;
+    expect(guardOverturned(o.raw, 'shop', change, derived)).toBe(derived);
+    decideHypothesis(o.raw, {
+      portal: 'shop',
+      key: 'H-0001',
+      decision: 'overturn',
+      actor: 'Owner',
+      reason: 'the menu moved, the release is the same',
+      decisionId: 'cmd-overturn',
+      now: T(58).replace('T00:00', 'T00:01'),
+    });
+    const guarded = guardOverturned(o.raw, 'shop', change, derived);
+    expect(guarded).toMatchObject({ derived: false });
+    expect(guarded).toHaveProperty('note');
+    expect((guarded as { note: string }).note).toContain(
+      'Owner overturned the same explanation here before',
+    );
+    // another screen, or a decision for a person, is not touched
+    expect(guardOverturned(o.raw, 'shop', { ...change, screen: 'other' }, derived)).toBe(derived);
+    undoDecision(o.raw, { portal: 'shop', decisionId: 'cmd-overturn', actor: 'Owner' });
+    expect(guardOverturned(o.raw, 'shop', change, derived)).toBe(derived);
     await o.close();
   });
 

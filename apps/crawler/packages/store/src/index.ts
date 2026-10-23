@@ -18,6 +18,7 @@ export * from './rule-mining.js';
 export * from './process-proposals.js';
 export * from './replay-tests.js';
 export * from './error-replays.js';
+export * from './overturn-guard.js';
 export * from './context-replays.js';
 export * from './deviation-visits.js';
 export * from './rule-export.js';

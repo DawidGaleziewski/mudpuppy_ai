@@ -17,6 +17,7 @@ import {
   type RuleDecision,
 } from '@mudpuppy/model';
 import { visitPair } from './deviation-visits.js';
+import { guardOverturned } from './overturn-guard.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -205,7 +206,7 @@ export function interpretVersion(
       continue;
     }
     const { context, replacement } = contextOf(raw, d, next, found);
-    const decision = classify(context);
+    const decision = guardOverturned(raw, portal, d, classify(context));
     if (decision.decision === 'hypothesis' && decision.kind === 'replaces' && replacement)
       replacements.push(replacement);
     const id = newId();
