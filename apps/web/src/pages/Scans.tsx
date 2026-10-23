@@ -6,7 +6,15 @@ import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 
 const columns = [
-  { header: 'Scan', cell: (s: ScanSummary) => <Tag size="sm">{s.id}</Tag>, rowHeader: true },
+  {
+    header: 'Scan',
+    cell: (s: ScanSummary) => (
+      <Tag size="sm" href={`/app/scans/${encodeURIComponent(s.id)}`}>
+        {s.id}
+      </Tag>
+    ),
+    rowHeader: true,
+  },
   { header: 'Persona', cell: (s: ScanSummary) => s.persona },
   { header: 'Kind', cell: (s: ScanSummary) => s.mode },
   { header: 'Status', cell: (s: ScanSummary) => <ShownStatus status={s.status} /> },

@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { Bundle, Chip, Graph, GraphNode, Legend, Stack, Status, Text } from '../index.js';
+import { Bundle, Chip, Graph, GraphNode, Legend, Stack, Status, Tag, Text } from '../index.js';
 
 const H = 96;
 const curve = (x1: number, y1: number, x2: number, y2: number) => {
@@ -80,6 +80,56 @@ export const Map: Story = {
       </Stack>
     );
   },
+};
+
+/** A recorded screen with several states (a deck), a mark for the next scan, and a failed one. */
+export const RecordedNodes: Story = {
+  args: { width: 340, height: H, edges: [] },
+  render: (args) => (
+    <Graph {...args}>
+      <GraphNode
+        id="f"
+        x={0}
+        y={0}
+        height={H}
+        route="/wniosek"
+        title="Wniosek"
+        deck
+        marks={
+          <Tag size="sm" intent>
+            Probe
+          </Tag>
+        }
+        meta={
+          <>
+            <Status status="ok">Observed</Status>
+            <Chip>2 states</Chip>
+            <Chip variant="dashed">+2 queued</Chip>
+          </>
+        }
+      />
+      <GraphNode
+        id="o"
+        x={190}
+        y={0}
+        height={H}
+        route="/oferty"
+        title="Oferty"
+        state="failed"
+        marks={
+          <Tag size="sm" intent>
+            Stopped here
+          </Tag>
+        }
+        meta={
+          <>
+            <Status status="failed">Failed</Status>
+            <Chip variant="fail">1 failed</Chip>
+          </>
+        }
+      />
+    </Graph>
+  ),
 };
 
 export const RetiredNode: Story = {

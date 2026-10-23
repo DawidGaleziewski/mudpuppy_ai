@@ -99,7 +99,12 @@ class MapData(BaseModel):
     out_links: dict[str, list[OutLinkOut]]
 
 
-VIEWS = [Option(value="now", label="Now"), Option(value="since", label="Since previous release")]
+#: The map's views; One scan's path is the recorded map (`/map/recorded`, spec 054).
+VIEWS = [
+    Option(value="now", label="Now"),
+    Option(value="since", label="Since previous release"),
+    Option(value="path", label="One scan's path"),
+]
 LAYER_OPTIONS = [
     Option(value="retired", label="Retired links"),
     Option(value="unseen", label="Not seen since"),

@@ -160,9 +160,4 @@ describe('Screens map', () => {
     expect(within(table).getByText('Not seen lately')).toBeTruthy();
     expect(within(table).getByRole('link', { name: 'SC-0002' }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0002');
   });
-
-  it('says so when the portal has no model yet', async () => {
-    at('/app/portals/shop/screens/map', { [MAP]: { ...map, has_model: false, nodes: [], edges: [] } });
-    expect(await screen.findByText('No model yet: the first scan builds it. Start one from the chat.')).toBeTruthy();
-  });
 });

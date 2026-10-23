@@ -4,17 +4,15 @@ from __future__ import annotations
 
 import sqlite3
 from typing import Any
-from urllib.parse import parse_qs, quote, urlencode
+from urllib.parse import parse_qs, urlencode
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
 from .. import (
-    chat_client,
     db,
     neighbours,
     queries_chat,
-    queries_map_node,
     queries_revisions,
     queries_screens,
     queries_suites,
@@ -22,6 +20,7 @@ from .. import (
     visuals,
 )
 from . import views_access
+from .chat_writes import PROBE_MARK_DONE, SCREEN_MARK_KINDS, mark_call
 from .deps import Ctx, same_origin, web_of
 
 router = APIRouter()
@@ -145,32 +144,6 @@ def fragment_state_amendments(
     return web.render(c, "partials/state_amendments.html", am=am, st=page.figure.state)
 
 
-PROBE_MARK_DONE = {
-    "mark": "Marked for probing. Ask the assistant to probe the marked forms.",
-    "remove": "Probe mark removed.",
-}
-
-
-async def _mark_call(
-    web: Any, env: str, method: str, portal: str, body: dict[str, Any]
-) -> str | None:
-    """One chat service call on the portal's marks; the refusal's message, or None."""
-    path = f"/portals/{quote(portal, safe='')}/marks"
-    try:
-        status, answer = await chat_client.call(
-            web.settings, method, path, body, web.chat_transport
-        )
-    except chat_client.ChatUnavailable:
-        return chat_client.not_running(env)
-    if status in (200, 201):
-        return None
-    message = answer.get("message") if isinstance(answer, dict) else None
-    return str(message or status)
-
-
-SCREEN_MARK_KINDS = {kind: label for kind, label, _ in queries_map_node.SCREEN_MARKS}
-
-
 @router.post("/states/{state_id}/mark", response_model=None)
 async def state_mark(request: Request, state_id: str, env: str | None = None) -> Response:
     """Set or remove a Start here / Focus / Recheck / Retry / Skip mark on a screen state (spec 034
@@ -199,7 +172,7 @@ async def state_mark(request: Request, state_id: str, env: str | None = None) ->
             "target_id": state_id,
         }
         method = "POST" if action == "mark" else "DELETE"
-        refused = await _mark_call(web, c.env, method, portal, body)
+        refused = await mark_call(web, c.env, method, portal, body)
         label = SCREEN_MARK_KINDS[kind]
         done = f"Marked {label}." if action == "mark" else f"{label} mark removed."
         note = f"Not recorded: {refused}." if refused else done
@@ -236,7 +209,7 @@ async def state_probe_mark(request: Request, state_id: str, env: str | None = No
     else:
         body = {"author": author, "kind": "probe", "target_kind": "form_step", "target_id": fs.id}
         method = "POST" if action == "mark" else "DELETE"
-        refused = await _mark_call(web, c.env, method, fs.portal, body)
+        refused = await mark_call(web, c.env, method, fs.portal, body)
         note = f"Not recorded: {refused}." if refused else PROBE_MARK_DONE[action]
     # The map's inspector sends `back` (spec 033 FR-011); only a map address is followed.
     back = (form.get("back") or [""])[0]

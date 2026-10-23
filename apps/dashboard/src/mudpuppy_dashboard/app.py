@@ -30,12 +30,13 @@ from . import (
     status_map,
     wb_frames,
 )
+from .formats import fmt_duration, fmt_when
 from .models import DECISION_KINDS, FRONTIER_STATUSES, RUN_STATUSES, SAFETY_CLASSES
 from .settings import Settings
 from .web import access as access_page
 from .web import activity as activity_page
 from .web import amendments as amendments_page
-from .web import api_app, api_map, api_screens, spa
+from .web import api_app, api_map, api_recorded, api_scan, api_screens, api_writes, spa
 from .web import changes as changes_page
 from .web import chat as chat_page
 from .web import check_runs as check_runs_page
@@ -182,8 +183,12 @@ def create_app(
     app.include_router(workbench_stream_page.router)
     # R-96 (spec 050): the React console's JSON API and the app itself.
     app.include_router(api_app.router)
+    # Before api_screens: its /screens/{key} would take /screens/recorded.
+    app.include_router(api_recorded.router)
     app.include_router(api_screens.router)
     app.include_router(api_map.router)
+    app.include_router(api_scan.router)
+    app.include_router(api_writes.router)
     app.include_router(spa.router)
     # Last: its /chat/portals/{portal}/{rest} forwarder must not shadow the routes above.
     app.include_router(processes_page.router)
@@ -191,26 +196,6 @@ def create_app(
 
 
 # ---- formatting filters --------------------------------------------------------------------
-
-
-def fmt_duration(ms: int | None) -> str:
-    if ms is None:
-        return "—"
-    seconds = ms // 1000
-    if seconds < 60:
-        return f"{seconds}s" if seconds else f"{ms}ms"
-    minutes, seconds = divmod(seconds, 60)
-    if minutes < 60:
-        return f"{minutes}m {seconds:02d}s"
-    hours, minutes = divmod(minutes, 60)
-    return f"{hours}h {minutes:02d}m"
-
-
-def fmt_when(iso: str | None) -> str:
-    """`2026-09-25T19:44:01.776Z` → `2026-09-25 19:44:01Z` (UTC, as stored)."""
-    if not iso:
-        return "—"
-    return iso.replace("T", " ")[:19] + "Z"
 
 
 def short_id(value: str, keep: int = 13) -> str:

@@ -168,6 +168,10 @@ export interface GraphNodeProps {
   dim?: boolean;
   /** `data-state`: retired, failed, unobserved, blocked, frontier; none: observed. */
   state?: string | undefined;
+  /** Several states stacked on the screen (a recorded form step and its validation state). */
+  deck?: boolean;
+  /** Tags above the route: a mark waiting for the next scan ("Probe"), "Stopped here". */
+  marks?: ReactNode;
 }
 
 /** A node of a `Graph`: a button that selects it, or a link for a folded deck. */
@@ -187,26 +191,30 @@ export function GraphNode({
   process = false,
   dim = false,
   state,
+  deck = false,
+  marks,
 }: GraphNodeProps) {
   // layout only: the API placed the node
   const place: CSSProperties = { left: x, top: y, height };
   const common = { 'data-node': id, 'data-near': near.join(' '), style: place };
   if (href !== undefined)
     return (
-      <a {...common} className={cx('sy-node sy-node--deck', dim && 'sy-node--dim')} href={href}>
+      <a {...common} className={cx('sy-node sy-node--deck', dim && 'sy-node--dim')} href={href} data-state={state}>
         <span className="sy-node__route">{route}</span>
         <span className="sy-node__title">{title}</span>
+        {meta !== undefined && <span className="sy-node__meta">{meta}</span>}
       </a>
     );
   return (
     <button
       {...common}
       type="button"
-      className={cx('sy-node', process && 'sy-node--process', dim && 'sy-node--dim')}
+      className={cx('sy-node', deck && 'sy-node--deck', process && 'sy-node--process', dim && 'sy-node--dim')}
       data-state={state}
       aria-pressed={pressed}
       onClick={onSelect}
     >
+      {marks !== undefined && <span className="sy-node__marks">{marks}</span>}
       <span className="sy-node__route">{route}</span>
       <span className="sy-node__title sy-truncate" title={fullTitle}>
         {title}

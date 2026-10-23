@@ -5,12 +5,16 @@ import { AppShell, Chip, Text, type NavGroup } from '../design-system';
 /** The console frame: the portal's sections in the 2.0 grouping, the current one marked. */
 export function Shell({
   current,
+  portal: given,
   children,
 }: {
   current: 'portals' | 'home' | 'screens' | 'scans';
+  /** The portal when the address does not name it (a scan's page). */
+  portal?: string | undefined;
   children: ReactNode;
 }) {
-  const { portal } = useParams();
+  const params = useParams();
+  const portal = given ?? params.portal;
   const base = portal ? `/app/portals/${encodeURIComponent(portal)}` : null;
   const nav: NavGroup[] = [
     { items: [{ href: '/app/', label: 'Portals', current: current === 'portals' }] },

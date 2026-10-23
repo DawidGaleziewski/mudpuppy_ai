@@ -6,6 +6,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 5: the scan-based views in React** (spec 054, v2.6.4, 2026-10-23).
+  Screens → Map gains One scan's path: every recorded screen with the discovery tree, what each
+  page left (queued, failed, blocked) and the Scans, Persona and layer filters in the address; a
+  portal without a model opens on it. Its inspector sets the next-scan marks (Start here, Focus,
+  Recheck, Retry, Skip) and the Probe mark. Screens gains Recorded pages (every recorded page, 25
+  a page). `/app/scans/{id}` shows a scan's summary, its sections (Graph in React, the others on
+  the htmx page for now) and the Graph tab: where it stopped, the path there, Resume, and per
+  screen Retry this path (with a variation), Skip it and Mark Start here. These are the console's
+  first writes: each asks first in a dialog, goes to the chat service through the dashboard
+  (`/api/states/{id}/marks`, `…/probe-mark`, `/api/scans/{id}/skip`, `…/restart`, the same calls
+  the htmx pages send) and says whether it was recorded. Scan ids are whole (D-9). New components
+  in Storybook: Confirm, Path; GraphNode draws a deck of states and marks. The Scans list links
+  each scan to its page.
 - **R-96 step 4: the model map in React** (spec 053, v2.6.3, 2026-10-23).
   `/app/portals/{p}/screens/map`: the portal model's screens and links drawn in their state
   (Now or Since previous release), a process overlaid, the layers of retired, not-seen and

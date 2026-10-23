@@ -7,60 +7,23 @@ crawler replays to each start point); "Skip it" sets a Skip mark through the cha
 
 from __future__ import annotations
 
-import json
-from typing import Any
 from urllib.parse import parse_qs, quote
 
 from fastapi import APIRouter, Request
 from fastapi.responses import HTMLResponse, PlainTextResponse, RedirectResponse, Response
 
 from .. import chat_client, db, queries_plan
+from .chat_writes import (
+    SCAN_TYPES,
+    TYPE_LABELS,
+    VARIATIONS,
+    plan_from_form,
+    scan_request_text,
+    send_to_chat,
+)
 from .deps import Ctx, same_origin, web_of
 
 router = APIRouter()
-
-SCAN_TYPES = (
-    ("focused", "Focused", "Replays to the Start here and Focus marks and explores from there."),
-    ("recheck", "Recheck", "Replays to the Recheck marks and records what each shows now."),
-    ("retry", "Retry a path", "Replays to a failed action and tries it again, with a variation."),
-    ("continue", "Continue a stopped scan", "Picks up where a stopped scan left off."),
-)
-TYPE_LABELS = {t: label for t, label, _ in SCAN_TYPES}
-VARIATIONS = queries_plan.VARIATIONS
-
-
-def scan_request_text(
-    portal: str, persona: str, environment: str | None, run_type: str, plan: dict[str, Any]
-) -> str:
-    """The chat message a "Start scan" sends: precise enough that the assistant makes exactly
-    this `request_scan` call."""
-    where = f" in environment “{environment}”" if environment else ""
-    args = {"portal": portal, "persona": persona, "run_type": run_type, "plan": plan}
-    if environment:
-        args["environment"] = environment
-    return (
-        f"Start a {TYPE_LABELS[run_type].lower()} scan of {portal} as {persona}{where}, as planned "
-        f"on the Plan next scan page: call request_scan with {json.dumps(args)} and start the "
-        "crawler with the hand-off."
-    )
-
-
-def _plan_from_form(run_type: str, form: dict[str, str]) -> dict[str, Any] | None:
-    """The `plan` for the type, or None when the form misses what the type needs."""
-    plan: dict[str, Any] = {}
-    if run_type == "focused":
-        depth = form.get("depth", "2")
-        plan["depth"] = int(depth) if depth.isdigit() and int(depth) <= 10 else 2
-    if run_type in ("continue", "retry") and form.get("parent_run_id"):
-        plan["parent_run_id"] = form["parent_run_id"]
-    if run_type == "retry":
-        if form.get("target_transition_id"):
-            plan["target_transition_id"] = form["target_transition_id"]
-        variation = form.get("variation", "none")
-        plan["variation"] = variation if variation in dict(VARIATIONS) else "none"
-    if run_type == "continue" and "parent_run_id" not in plan:
-        return None
-    return plan
 
 
 @router.get("/scans/plan", response_class=HTMLResponse)
@@ -110,32 +73,6 @@ def recover_page(
     )
 
 
-async def _send_to_chat(
-    web: Any, env: str, portal: str, text: str
-) -> tuple[str | None, str | None]:
-    """Post the request to the portal's conversation: (conversation id, refusal message)."""
-    try:
-        status, body = await chat_client.call(
-            web.settings, "POST", "/conversations", {"portal": portal}, web.chat_transport
-        )
-        conv = body.get("id") if isinstance(body, dict) else None
-        if status >= 300 or not isinstance(conv, str):
-            return None, "the chat service did not open a conversation"
-        status, body = await chat_client.call(
-            web.settings,
-            "POST",
-            f"/conversations/{quote(conv, safe='')}/messages",
-            {"text": text},
-            web.chat_transport,
-        )
-    except chat_client.ChatUnavailable:
-        return None, chat_client.not_running(env)
-    if status >= 300:
-        message = body.get("message") if isinstance(body, dict) else None
-        return conv, str(message or status)
-    return conv, None
-
-
 def _back(c: Ctx, form: dict[str, str], note: str) -> RedirectResponse:
     run = form.get("parent_run_id")
     if form.get("from") == "graph" and run:  # the scan's graph, on the screen it was sent from
@@ -158,11 +95,11 @@ async def plan_start(request: Request, env: str | None = None) -> Response:
     portal = c.portal
     if not portal or run_type not in TYPE_LABELS or not persona:
         return _back(c, form, "Pick a portal, a scan type and a persona first.")
-    plan = _plan_from_form(run_type, form)
+    plan = plan_from_form(run_type, form)
     if plan is None:
         return _back(c, form, "Continuing needs the stopped scan; start it from its recovery page.")
     text = scan_request_text(portal, persona, form.get("environment") or None, run_type, plan)
-    conv, refused = await _send_to_chat(web, c.env, portal, text)
+    conv, refused = await send_to_chat(web, c.env, portal, text)
     if refused:
         return _back(c, form, f"Not started: {refused}.")
     return RedirectResponse(c.url("/chat", conversation=conv), status_code=303)

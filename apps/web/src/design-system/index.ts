@@ -5,6 +5,7 @@ export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButt
 export { Callout, type CalloutProps } from './components/Callout.js';
 export { Chip, type ChipProps } from './components/Chip.js';
 export { Compare, CompareSide, type CompareSideProps } from './components/Compare.js';
+export { Confirm, type ConfirmProps } from './components/Confirm.js';
 export { Count } from './components/Count.js';
 export { Facts } from './components/Facts.js';
 export {
@@ -22,6 +23,7 @@ export { Cluster, Columns, Grid, Split, Stack } from './components/Layout.js';
 export { Meter, type MeterProps } from './components/Meter.js';
 export { Note, type NoteProps } from './components/Note.js';
 export { PageHead, type Crumb, type PageHeadProps } from './components/PageHead.js';
+export { Path, type PathStep } from './components/Path.js';
 export { Picture, type PictureProps } from './components/Picture.js';
 export { Plate, type PlateProps } from './components/Plate.js';
 export { Row, Rows, type RowProps } from './components/Rows.js';

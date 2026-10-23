@@ -474,7 +474,7 @@ of the portal at once; the scan graph is one.
 
 *Example:* A shop scan stopped on /sklep/produkt/:param: the graph shows /sklep → product, Stopped here, Resume.
 
-*Seen in:* A scan's page → Graph; Scans (Where it stopped; N failed)
+*Seen in:* A scan's page → Graph (/app/scans/…); Scans (Where it stopped; N failed)
 
 *Labels:* `Graph`, `Where it stopped`, `How it went`, `Stopped here`, `Path to where it stopped`, `Screens in the order seen`, `Mark Start here`, `Retry this path`, `Skip it in the next scans`, `Resume`
 
@@ -486,7 +486,7 @@ of the portal at once; the scan graph is one.
 
 #### Portal map
 
-**Every screen your scans recorded as a node, laid out by how far it is from the start page, under Scans → Map.**
+**Every screen your scans recorded as a node, laid out by how far it is from the start page, under Screens → Map → One scan's path.**
 
 Each screen is one node; several states of one screen (form steps, a validation or error
 state) stack as a deck with a count. The lines show the first move into each screen; tick
@@ -494,17 +494,20 @@ All links for the rest (every page links to the footer pages, so all of them at 
 the map). A page's queued, failed and blocked items are chips on its node. Pick one scan or
 persona to grey out what it did not see; the list view shows the same screens as a table.
 Select a node to see its states, the scans that saw it and where its actions lead, and mark
-a form step for probing from there.
+a form step for probing from there. A portal with a model opens Screens → Map on the
+model's map; One scan's path is this recorded map, and a portal without a model shows it
+at once. Every mark asks first and then says whether it was recorded. Recorded pages (next
+to List and Map) lists the same recorded pages as a table, 25 a page.
 
 *Example:* /kalkulator/pojazd · 5 states · +3 queued, under / in the second row
 
-*Seen in:* Scans → Map
+*Seen in:* Screens → Map → One scan's path; Screens → Recorded pages
 
-*Labels:* `Screens by depth`, `All links`, `Not in these scans`
+*Labels:* `One scan's path`, `Recorded pages`, `Screens by depth`, `All links`, `Not in these scans`, `Moved in other scans`
 
-*Related:* [Map (live)](#live-map), [Probe mark](#probe-mark), [State](#state), [Frontier](#frontier)
+*Related:* [Map (live)](#live-map), [Probe mark](#probe-mark), [Scan mark](#scan-mark), [State](#state), [Frontier](#frontier)
 
-<sub>Last changed in R-69, 2026-10-17.</sub>
+<sub>Last changed in R-96, 2026-10-23.</sub>
 
 <a id="probe-suite"></a>
 

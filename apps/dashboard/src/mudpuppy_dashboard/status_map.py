@@ -138,6 +138,11 @@ VOCABULARIES: dict[str, dict[str, Status]] = {
         "temporary": _s("queued", "Temporary"),
         "blocked": _s("skipped", "Blocked"),
     },
+    # A form step's probe coverage on the Recorded pages (spec 032 US5, spec 054).
+    "probe_coverage": {
+        "probed": _s("ok", "Probed"),
+        "unprobed": _s("todo", "Not probed"),
+    },
     # The map (spec 033): a node's `data-state` and its word. Red only where the crawler failed.
     "map_node": {
         "observed": _s("ok", "Observed"),

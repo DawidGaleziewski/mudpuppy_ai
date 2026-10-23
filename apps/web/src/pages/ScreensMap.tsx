@@ -28,6 +28,7 @@ import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
 import { MapInspector } from './MapInspector';
+import { RecordedMapBody } from './RecordedMap';
 
 type Show = 'graph' | 'list';
 
@@ -227,7 +228,12 @@ function MapList({ m, v }: { m: MapData; v: View }) {
 
 function MapBody({ m, v, set }: { m: MapData; v: View; set: (next: Partial<View>) => void }) {
   if (!m.has_model) {
-    return <Callout>No model yet: the first scan builds it. Start one from the chat.</Callout>;
+    return (
+      <Stack>
+        <Callout>No model yet: the first scan builds it. Until then the map shows what the scans recorded.</Callout>
+        <RecordedMapBody portal={m.portal} />
+      </Stack>
+    );
   }
   return (
     <Stack>
@@ -271,8 +277,34 @@ function meta(m: MapData) {
   return `${s} · now`;
 }
 
-/** The portal model's map (designer screen v2-08): screens and their links in their state, a process overlaid, one screen inspected. */
+function crumbs(portal: string) {
+  return [
+    { label: 'Portals', href: '/app/' },
+    { label: portal, href: `/app/portals/${encodeURIComponent(portal)}` },
+    { label: 'Screens', href: screensHref(portal) },
+    { label: 'Map' },
+  ];
+}
+
+/** Screens ▸ Map: the model's map (Now, Since previous release), or One scan's path, the recorded map. */
 export function ScreensMap() {
+  const [params] = useSearchParams();
+  return params.get('view') === 'path' ? <RecordedMapPage /> : <ModelMap />;
+}
+
+function RecordedMapPage() {
+  const portal = useParams().portal ?? '';
+  return (
+    <Shell current="screens">
+      <PageHead crumbs={crumbs(portal)} title="Map" />
+      <ScreensViews portal={portal} current="map" />
+      <RecordedMapBody portal={portal} />
+    </Shell>
+  );
+}
+
+/** The portal model's map (designer screen v2-08): screens and their links in their state, a process overlaid, one screen inspected. */
+function ModelMap() {
   const portal = useParams().portal ?? '';
   const [params, setParams] = useSearchParams();
   const [defaultShow] = useState<Show>(() => (narrow() ? 'list' : 'graph'));
@@ -288,6 +320,10 @@ export function ScreensMap() {
     node: params.get('node') ?? '',
   };
   const set = (next: Partial<View>) => {
+    if (next.f?.view === 'path') {
+      setParams({ view: 'path' }, { replace: true });
+      return;
+    }
     const to = { ...v, ...next };
     const p = mapQuery(to.f);
     if (to.show !== defaultShow) p.set('show', to.show);
@@ -298,12 +334,7 @@ export function ScreensMap() {
   return (
     <Shell current="screens">
       <PageHead
-        crumbs={[
-          { label: 'Portals', href: '/app/' },
-          { label: portal, href: `/app/portals/${encodeURIComponent(portal)}` },
-          { label: 'Screens', href: screensHref(portal) },
-          { label: 'Map' },
-        ]}
+        crumbs={crumbs(portal)}
         title="Map"
         meta={q.data?.has_model ? meta(q.data) : undefined}
       />

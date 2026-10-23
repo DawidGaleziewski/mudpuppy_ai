@@ -119,3 +119,11 @@ card's "As" persona choice), `wb_frames.py` (frame,
 - Spec 053 (R-96, the React model map): `web/api_map.py` (`/api/portals/{p}/map`) over
   `queries_app_map.py` (`queries_model_map.model_map` as JSON: nodes placed, edges drawn, the
   legend's words); a screen's actions carry their `place` (inside, out, menu) for the inspector.
+- Spec 054 (R-96, the scan-based views): `web/api_recorded.py` (`/api/portals/{p}/map/recorded`,
+  `…/map/recorded/{screen}`, `…/screens/recorded`; included before `api_screens`) over
+  `queries_app_recorded.py` (`queries_map`, `queries_map_node`) and
+  `queries_app_recorded_pages.py`; `web/api_scan.py` (`/api/scans/{id}`, `…/graph`) over
+  `queries_app_scan.py` (`queries.run_summary`, `queries_run_graph`); the React console's writes
+  in `web/api_writes.py` (marks, Probe, Skip, restarts; `{ok, message, href}`), which send the
+  same chat service calls as the htmx routes through `web/chat_writes.py`; `formats.py` holds
+  the duration and timestamp formats (the htmx filters and the API). Scan ids are whole (D-9).

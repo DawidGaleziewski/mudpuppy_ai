@@ -3,6 +3,8 @@ import { createBrowserRouter, RouterProvider } from 'react-router';
 import { NotFound } from '../pages/NotFound';
 import { PortalHome } from '../pages/PortalHome';
 import { Portals } from '../pages/Portals';
+import { RecordedPages } from '../pages/RecordedPages';
+import { Scan } from '../pages/Scan';
 import { Scans } from '../pages/Scans';
 import { Screen } from '../pages/Screen';
 import { Screens } from '../pages/Screens';
@@ -15,7 +17,9 @@ export const routes = [
   { path: '/app/portals/:portal/scans', element: <Scans /> },
   { path: '/app/portals/:portal/screens', element: <Screens /> },
   { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },
+  { path: '/app/portals/:portal/screens/recorded', element: <RecordedPages /> },
   { path: '/app/portals/:portal/screens/:screenKey', element: <Screen /> },
+  { path: '/app/scans/:scan', element: <Scan /> },
   { path: '*', element: <NotFound /> },
 ];
 
