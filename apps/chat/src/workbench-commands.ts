@@ -308,8 +308,10 @@ export interface ConfirmDeps {
   launch: (conversationId: string, prompt: string, command: CommandRow) => void;
   /** Tell the conversations following a stopped run (the chat's own stop does). */
   stopped?: (runId: string) => void;
-  /** `workbench_commands` setting: off pauses the cards. */
+  /** `workbench_commands` setting, or an environment not switched on (D-6): off pauses the cards. */
   commandsOn?: boolean;
+  /** Why commands are off, for the card (D-6); a plain "paused" without it. */
+  offReason?: string;
 }
 
 function tokenMatches(row: CommandRow, token: string): boolean {
@@ -325,7 +327,8 @@ export function confirmCommand(
   input: { id: string; token: string; by: string; persona?: string },
 ): CommandRow {
   const { raw } = deps;
-  if (deps.commandsOn === false) throw new CommandRefusal('PAUSED', 'commands are paused');
+  if (deps.commandsOn === false)
+    throw new CommandRefusal('PAUSED', deps.offReason ?? 'commands are paused');
   const row = getCommand(raw, input.id);
   if (row.state !== 'proposed')
     throw new CommandRefusal('NOT_PROPOSED', `the command is ${row.state}`);

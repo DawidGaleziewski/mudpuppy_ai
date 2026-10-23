@@ -18,6 +18,7 @@ import {
   type WbPath,
 } from '@mudpuppy/workbench-contract';
 import { CommandRefusal, proposeCommand, resolveScan } from './workbench-commands.js';
+import { commandsAllowedOn, commandsOffReason } from './workbench-envs.js';
 import { currentTurn } from './workbench-turn.js';
 
 export interface WorkbenchToolContext {
@@ -25,6 +26,8 @@ export interface WorkbenchToolContext {
   conversationId: string;
   /** The person's rollout phase (1 in spec 043). */
   phase: number;
+  /** The chat's environment (D-6): a proposal is refused where commands are off; unset, the confirm checks. */
+  environment?: string;
 }
 
 type Ok = (value: unknown) => CallToolResult;
@@ -184,6 +187,8 @@ export function registerWorkbenchTools(
       const conversation = conversationOf(ctx.raw, ctx.conversationId);
       if (conversation.portal_id === null)
         return refused('NO_PORTAL', 'pick a portal before proposing a command');
+      if (ctx.environment !== undefined && !commandsAllowedOn(ctx.environment))
+        return refused('PAUSED', commandsOffReason(ctx.environment));
       try {
         const row = proposeCommand(ctx.raw, {
           conversationId: ctx.conversationId,

@@ -37,6 +37,7 @@ import { buildSessionRequest } from './session-config.js';
 import { ChatStore } from './store.js';
 import { isWorkbench, observeWorkbench } from './workbench-events.js';
 import { createWorkbenchService, type WorkbenchService } from './workbench-service.js';
+import { commandsAllowedOn, commandsOffReason } from './workbench-envs.js';
 import {
   buildWorkbenchSessionRequest,
   createWorkbenchFence,
@@ -185,6 +186,9 @@ async function main(): Promise<void> {
     service,
     paths: { repoRoot },
     launches,
+    // D-6 (owner 2026-10-22): commands only on the environments switched on.
+    commandsOn: () => commandsAllowedOn(environment),
+    offReason: commandsOffReason(environment),
     telemetry: telemetryLog(join(repoRoot, 'data', 'logs', 'workbench')),
     stopped: (runId) => {
       for (const conversationId of conversationsOfRun(opened.raw, runId))

@@ -31,7 +31,9 @@ store, vault, workflow.
 - Chat schemas will move to `@mudpuppy/chat-model` (G-10).
 - `fence` is the agent's permission control: only the tools a session lists.
 - A Workbench conversation (spec 043) writes only through command cards a person confirms; its
-  fence starts the crawler only with a confirmed command's prompt (`workbench-session`).
+  fence starts the crawler only with a confirmed command's prompt (`workbench-session`). Commands
+  run only on the environments in `MUDPUPPY_WORKBENCH_COMMAND_ENVS` (default `local-dev,sandbox`,
+  spec 048).
 
 ## Where to add things
 - New HTTP route: a `<resource>Routes(req, res, method, path, deps)` in its `api-*` file, listed

@@ -131,6 +131,7 @@ def client(empty_store: Store, chat: Chat) -> Iterator[TestClient]:
         default_env=empty_store.env,
         workbench=True,
         reviewer="dawid",
+        workbench_command_envs=empty_store.env,  # D-6: the test store's environment is switched on
     )
     with TestClient(create_app(settings, chat_transport=httpx2.MockTransport(chat))) as c:
         yield c
@@ -217,6 +218,26 @@ def test_confirm_forwards_the_token_signed(client: TestClient, chat: Chat) -> No
         {"token": "test-token-not-real", "by": "dawid"},
     ) in chat.calls
     assert f'id="cmd-{CMD}"' in r.text
+
+
+def test_confirm_is_refused_where_commands_are_off(empty_store: Store, chat: Chat) -> None:
+    """D-6 (R-94 (8)): an environment not switched on says why and sends the person to Scans."""
+    seed_conversation(empty_store)
+    settings = Settings(
+        data_dir=empty_store.data_dir,
+        default_env=empty_store.env,
+        workbench=True,
+        reviewer="dawid",
+        workbench_command_envs="local-dev,sandbox",
+    )
+    with TestClient(create_app(settings, chat_transport=httpx2.MockTransport(chat))) as c:
+        r = c.post(
+            f"/workbench/commands/{CMD}/confirm",
+            data={"token": "test-token-not-real"},
+            headers=ORIGIN,
+        )
+    assert f"Workbench commands are off on {empty_store.env}. Start scans in Scans." in r.text
+    assert not any(call[1].endswith("/confirm") for call in chat.calls)
 
 
 def test_confirm_forwards_the_persona_picked_on_a_start_card(

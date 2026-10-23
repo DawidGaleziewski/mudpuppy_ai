@@ -6,6 +6,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-94 (8): Workbench commands per environment; the header's portal list** (spec 048, v2.5.2,
+  2026-10-23). Commands run only on the environments in `MUDPUPPY_WORKBENCH_COMMAND_ENVS`
+  (default local-dev and sandbox); elsewhere the card says why and points to Scans, and the chat
+  service refuses the proposal and the confirm. The header lists this store's portals first and
+  the ones of other environments under "Other environments". D-9 (full scan ids) moves to R-96.
 - **R-32: the 2.0 acceptance run with the real agent** (spec 047, v2.5.1, 2026-10-23). Through
   the chat on the reference portal: a guest scan, the car calculator as the process scope, its
   documentation (66 records in 11 minutes), an export, a new release of the portal, a re-scan, a

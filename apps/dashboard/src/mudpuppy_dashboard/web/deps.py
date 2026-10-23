@@ -219,12 +219,13 @@ class Web:
         )
         return Ctx(request, s, store, portal=chosen_portal(request), store_note=note)
 
-    def header_portals(self, c: Ctx) -> list[str]:
+    def header_portals(self, c: Ctx) -> tuple[list[str], list[str]]:
+        """This store's portals, and the configured ones of other environments (F-18 (b))."""
         try:
             with c.conn() as conn:
-                return queries_chat.known_portals(conn, self.settings.portals_dir)
+                return queries_chat.portals_by_environment(conn, self.settings.portals_dir, c.env)
         except db.StoreMissing:
-            return queries_chat.known_portals(None, self.settings.portals_dir)
+            return queries_chat.portals_by_environment(None, self.settings.portals_dir, c.env)
 
     def stray_servers(self, c: Ctx) -> list[str]:
         """Live MCP servers of the main data directory that disagree with the page (spec 031 US2).

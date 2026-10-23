@@ -29,6 +29,8 @@ export interface WorkbenchDeps {
   /** Stop notices to the conversations following a run (the chat's own stop does it). */
   stopped?: (runId: string) => void;
   commandsOn?: () => boolean;
+  /** Why commands are off (D-6: the environment is not switched on). */
+  offReason?: string;
 }
 
 export type Body = Record<string, unknown>;

@@ -204,7 +204,7 @@ def access_matrix(
     where, args = ("AND sc.id = ?", (portal, screen_id)) if screen_id else ("", (portal,))
     observations = conn.execute(
         f"""SELECT sc.id AS screen_id, sc.route_template, sc.title, o.persona_id, o.state_id,
-                   o.run_id, o.observed_at, {_full_scan('r')} AS complete
+                   o.run_id, o.observed_at, {_full_scan("r")} AS complete
             FROM state_observations o
             JOIN states s ON s.id = o.state_id
             JOIN screens sc ON sc.id = s.screen_id

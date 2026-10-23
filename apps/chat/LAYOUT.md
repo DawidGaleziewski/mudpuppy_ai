@@ -67,7 +67,9 @@ keeps the map (spec 042 T050, G-30).
   designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
   `workbench-commands` (proposals, one-time tokens, Confirm, expiry, settle; the audit row; spec
   044: a Start card's chosen persona, else the newest scan's); `workbench-persona` (spec 044: the
-  persona name check and the `guest`-else-first fallback);
+  persona name check and the `guest`-else-first fallback); `workbench-envs` (spec 048, D-6: the
+  environments where commands may run, `MUDPUPPY_WORKBENCH_COMMAND_ENVS`, default local-dev and
+  sandbox; a proposal and a confirm elsewhere are refused `PAUSED`);
   `workbench-cards` (the card actions the dashboard drives); `workbench-service` (conversations,
   turns with their context, Path switch, feedback, the day's cap); `workbench-context` (the
   context before each message, portal text in `<scan_data>`); `workbench-events` (`wb_*` events

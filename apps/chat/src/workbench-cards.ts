@@ -102,6 +102,7 @@ export function cardActions(deps: WorkbenchDeps) {
         raw,
         paths: deps.paths,
         commandsOn: deps.commandsOn?.() ?? true,
+        ...(deps.offReason === undefined ? {} : { offReason: deps.offReason }),
         launch,
         ...(deps.stopped === undefined ? {} : { stopped: deps.stopped }),
       };

@@ -29,6 +29,6 @@ const server = createChatMcpServer({
   evidence: createEvidenceStore(join(repoRoot, 'data', 'evidence')),
   checkRuns: { repoRoot, environment },
   // Spec 043: a Workbench session's server offers only the Workbench tools.
-  workbench: process.env.MUDPUPPY_CHAT_KIND === 'workbench' ? { phase: 1 } : null,
+  workbench: process.env.MUDPUPPY_CHAT_KIND === 'workbench' ? { phase: 1, environment } : null,
 });
 await server.connect(new StdioServerTransport());

@@ -31,6 +31,9 @@ def _note(text: str, status: int = 200) -> HTMLResponse:
 def _paused(web: Web, c: Ctx) -> str | None:
     if not web.settings.workbench_commands:
         return "Commands are paused. Use Scans for now."
+    allowed = {e.strip() for e in web.settings.workbench_command_envs.split(",") if e.strip()}
+    if c.env not in allowed:
+        return f"Workbench commands are off on {c.env}. Start scans in Scans."
     if c.as_of is not None:
         return "The Workbench works on now. Back to now to run commands."
     if not web.settings.reviewer:

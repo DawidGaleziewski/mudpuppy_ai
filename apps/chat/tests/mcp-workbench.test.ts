@@ -172,4 +172,23 @@ describe('Workbench tools', () => {
     });
     expect(refused).toMatchObject({ isError: true, body: { error: { code: 'PRECONDITION' } } });
   });
+
+  it('refuses a proposal on an environment where commands are off (D-6, R-94 (8))', async () => {
+    await client.close();
+    const server = createChatMcpServer({
+      raw: opened.raw,
+      paths: { repoRoot: repo },
+      conversationId: CONV,
+      workbench: { phase: 1, environment: 'production' },
+    });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    client = new Client({ name: 'test', version: '0.0.0' });
+    await Promise.all([server.connect(a), client.connect(b)]);
+    const off = await call('propose_command', {
+      command: 'scan.stop',
+      args: { scan: '01a110d5' },
+      reason: 'You asked to stop it.',
+    });
+    expect(off).toMatchObject({ isError: true, body: { error: { code: 'PAUSED' } } });
+  });
 });

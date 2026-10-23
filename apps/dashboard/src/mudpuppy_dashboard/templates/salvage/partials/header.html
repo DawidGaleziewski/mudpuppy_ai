@@ -7,9 +7,17 @@
   <details class="sy-portal mp-portal-menu">
     <summary><span class="sy-label">Portal</span> <span class="sy-mono">{{ c.portal or "All portals" }}</span></summary>
     <ul class="mp-menu" aria-label="Switch portal">
-      {%- for p in header_portals() %}
+      {%- set here, elsewhere = header_portals() %}
+      {%- for p in here %}
       <li><a href="{{ c.portal_url(section_href(section, p) or '/', p) }}"{% if p == c.portal %} aria-current="true"{% endif %}>{{ p }}</a></li>
       {%- endfor %}
+      {#- R-94 (8), F-18 (b): portals that declare another environment than this store's. #}
+      {%- if elsewhere %}
+      <li class="sy-label" aria-hidden="true">Other environments</li>
+      {%- for p in elsewhere %}
+      <li><a class="sy-muted" href="{{ c.portal_url(section_href(section, p) or '/', p) }}"{% if p == c.portal %} aria-current="true"{% endif %}>{{ p }}</a></li>
+      {%- endfor %}
+      {%- endif %}
       <li><a href="{{ c.url('/', portal='') }}"{% if not c.portal %} aria-current="true"{% endif %}>All portals</a></li>
       <li><a href="{{ c.url('/portals/new') }}">+ New portal</a></li>
     </ul>

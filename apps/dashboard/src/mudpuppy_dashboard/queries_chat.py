@@ -155,6 +155,36 @@ def known_portals(conn: sqlite3.Connection | None, portals_dir: Path) -> list[st
     return sorted(found)
 
 
+def _declared_environment(portal_yaml: Path) -> str | None:
+    """The `environment:` a portal file declares (spec 030 R-61); None when it cannot be read."""
+    try:
+        data = yaml.safe_load(portal_yaml.read_text(encoding="utf-8"))
+    except (OSError, yaml.YAMLError):
+        return None
+    env = data.get("environment") if isinstance(data, dict) else None
+    return env if isinstance(env, str) else None
+
+
+def portals_by_environment(
+    conn: sqlite3.Connection | None, portals_dir: Path, env: str
+) -> tuple[list[str], list[str]]:
+    """The header's portals (R-94 (8), F-18 (b), owner 2026-10-22): those of this store's
+    environment (declared, or with runs here) first, the other configured ones apart."""
+    every = known_portals(conn, portals_dir)
+    other = sorted(
+        p
+        for p in every
+        if (portals_dir / p / "portal.yaml").is_file()
+        and _declared_environment(portals_dir / p / "portal.yaml") not in (env, None)
+    )
+    with_runs: set[str] = set()
+    if conn is not None:
+        with contextlib.suppress(sqlite3.OperationalError):
+            with_runs = {r[0] for r in conn.execute("SELECT DISTINCT portal_id FROM runs")}
+    other = [p for p in other if p not in with_runs]
+    return [p for p in every if p not in other], other
+
+
 # --- progress of the conversation's run: counters and activity feed (T047, F-22) ---------------
 
 
