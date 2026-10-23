@@ -18,6 +18,8 @@ export interface ReplayPlan {
   inputs: Readonly<Record<string, string>>;
   /** Why this replay runs (the rationale every call carries). */
   purpose: string;
+  /** Log in as the persona first: the journey it repeats was logged in (spec 046 FR-007). */
+  login?: boolean;
 }
 
 export type ReplayOutcome =
@@ -125,6 +127,11 @@ export async function replay(
   };
   const open = (url: string) =>
     call('navigate', { run_id: runId, url, rationale, include_actions: true });
+  if (plan.login) {
+    const signed = await call('login', { run_id: runId, rationale });
+    if (signed.isError || signed.body.outcome !== 'logged_in')
+      return end({ status: 'diverged', runId, atStep: 0, reason: `login: ${messageOf(signed)}` });
+  }
   const first = await start(open, plan, cache);
   const from = first.from;
   let page = first.page;

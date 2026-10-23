@@ -101,9 +101,25 @@ const RENEW_SHORTCUT = '<li><a href="/moje-polisy/przedluz">Przedłuż polisę</
  * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
  * which GET requests it answers with a server error.
  */
+/** Who is visiting (spec 046): the logged-in customer's segment and the A/B arm of the session. */
+export interface Visit {
+  segment: 'standard' | 'premium' | null;
+  abArm: 'A' | 'B' | null;
+}
+
+export const NO_VISIT: Visit = { segment: null, abArm: null };
+
+/** The A/B cookie of scenario ab-test (spec 046 FR-003). */
+export const AB_COOKIE = 'ab_baner';
+
+const AB_BANNERS = {
+  A: '<p role="note">Nowość: ubezpieczenie turystyczne już od 12 zł za dzień.</p>',
+  B: '<p role="note">Promocja: 10% zniżki z kodem rabatowym na OC.</p>',
+} as const;
+
 interface ScenarioEffect {
   build?: string;
-  html?: (path: string, html: string) => string;
+  html?: (path: string, html: string, visit: Visit) => string;
   /** `before`: how many times this very address was loaded before on this instance. */
   fails?: (path: string, params: Readonly<Record<string, string>>, before: number) => boolean;
   /** A page only this scenario serves (null: not one of its paths). Not in the ground truth. */
@@ -250,6 +266,26 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
     fails: (path, params, before) =>
       path === '/kalkulator/pojazd' && params.krok === '1' && [1, 2, 3].includes(before % 5),
   },
+  // M3 (spec 046): the premium customer sees one more button on Moje polisy → context_variant (R4).
+  'persona-variant': {
+    html: (path, html, visit) =>
+      path === '/moje-polisy' && visit.segment === 'premium'
+        ? html.replace(
+            '<p><a href="/moje-polisy/przedluz">Przedłuż polisę</a></p>',
+            '<p><a href="/moje-polisy/przedluz">Przedłuż polisę</a></p>\n<p><button type="button">Oferta dla klientów premium</button></p>',
+          )
+        : html,
+  },
+  // M3 (spec 046): the home page's banner by the session's A/B cookie, given in turn → ab_test (R5).
+  'ab-test': {
+    html: (path, html, visit) =>
+      path === '/' && visit.abArm
+        ? html.replace(
+            '<section aria-labelledby="produkty">',
+            `${AB_BANNERS[visit.abArm]}\n<section aria-labelledby="produkty">`,
+          )
+        : html,
+  },
 };
 
 /** The page a built scenario serves at this path, if one does. */
@@ -299,12 +335,13 @@ export function applyScenarios(
   path: string,
   html: string,
   scenarios: readonly ScenarioId[],
+  visit: Visit = NO_VISIT,
 ): string {
   let out = html.replace(
     '</head>',
     `<script src="/static/app.${buildOf(scenarios)}.js"></script></head>`,
   );
-  for (const s of scenarios) out = EFFECTS[s]?.html?.(path, out) ?? out;
+  for (const s of scenarios) out = EFFECTS[s]?.html?.(path, out, visit) ?? out;
   return out;
 }
 

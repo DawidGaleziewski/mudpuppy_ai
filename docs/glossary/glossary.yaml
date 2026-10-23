@@ -3255,6 +3255,42 @@ entries:
     changed_in: R-81
     changed_on: 2026-10-21
 
+  - id: separating-flag
+    term: Separating flag
+    category: mudpuppy
+    group: Portal model
+    short: The cookie or web storage key whose value follows which version of a page a session gets, found by replaying the page.
+    explanation: |
+      When a page looks different to the same persona on the same release, the headless driver
+      opens it three more times in fresh sessions and records every cookie and storage key. If the
+      versions alternate and one flag has the same value whenever the same version shows (and
+      another value for the other version), that flag separates them: the finding is an A/B test
+      "separated by cookie:NAME", for a person to confirm. Session ids never separate: they differ
+      every time. A confirmed A/B test's flag goes to Settings ▸ Hints.
+    example: "The home page's banner, separated by cookie:ab_baner (A or B)."
+    appears_in: [Review, Settings → Hints, pnpm model:replay]
+    labels: [separated by, A/B test, ab_test, R5]
+    related: [hypothesis, headless-driver, deviation]
+    changed_in: R-88
+    changed_on: 2026-10-23
+
+  - id: persona-sample
+    term: Persona sample
+    category: mudpuppy
+    group: Personas
+    short: The personas worth scanning out of many test users, one per distinct combination of their attributes.
+    explanation: |
+      `pnpm personas:sample <portal>` reads the portal's personas and keeps the first persona of each
+      combination of attributes (tariff, contract, features, …), naming the ones it stands for, and
+      lists the pairs among them that differ in exactly one attribute: what a comparison of two
+      personas shows best. It only proposes; it changes nothing.
+    example: "3 of 120 personas to scan; basic / premium differ in tariff."
+    appears_in: [pnpm personas:sample]
+    labels: [sample, stands for, pairs]
+    related: [persona, access-dependent]
+    changed_in: R-88
+    changed_on: 2026-10-23
+
   - id: derived-fact
     term: Explained automatically (derived fact)
     category: mudpuppy

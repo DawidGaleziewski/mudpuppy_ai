@@ -207,20 +207,29 @@ function personaAttributes(ctx: BaContext, portalId: string): Record<string, unk
   return out;
 }
 
+/**
+ * A full scan (spec 024 edge cases, R-33 F-03): a completed map run that stopped before its step
+ * budget. Only full scans count as evidence that a persona does not get somewhere or see something.
+ */
+const fullScan = (t: string) =>
+  `(${t}.status = 'completed' AND ${t}.mode = 'map' AND ${t}.steps_used <
+     coalesce(json_extract(${t}.config_snapshot, '$.portal.scope.max_steps'), 1e9))`;
+
 /** The portal's access matrix, or one screen's row of it, with each persona's attributes. */
 export function getAccessMatrix(ctx: BaContext, raw: unknown) {
   const input = parseInput(GetAccessMatrixInput, raw);
   const runs = ctx.raw
     .prepare(
-      `SELECT persona_id, MAX(status = 'completed' AND mode = 'map') AS complete
+      `SELECT persona_id, MAX(${fullScan('runs')}) AS complete,
+              MAX(status = 'completed' AND mode = 'map') AS mapped
        FROM runs WHERE portal_id = ? GROUP BY persona_id ORDER BY persona_id`,
     )
-    .all(input.portal_id) as { persona_id: string; complete: number }[];
+    .all(input.portal_id) as { persona_id: string; complete: number; mapped: number }[];
   const completePersonas = new Set(runs.filter((r) => r.complete).map((r) => r.persona_id));
   const observations = ctx.raw
     .prepare(
       `SELECT sc.id AS screen_id, sc.route_template, sc.title, o.persona_id, o.state_id,
-              o.run_id, o.observed_at, (r.status = 'completed' AND r.mode = 'map') AS complete
+              o.run_id, o.observed_at, ${fullScan('r')} AS complete
        FROM state_observations o
        JOIN states s ON s.id = o.state_id
        JOIN screens sc ON sc.id = s.screen_id
@@ -257,6 +266,8 @@ export function getAccessMatrix(ctx: BaContext, raw: unknown) {
   return {
     portal_id: input.portal_id,
     personas: runs.map((r) => r.persona_id),
+    // R-33 F-03 (spec 046): mapped only by runs that ran out of steps; never "not reached".
+    budget_limited: runs.filter((r) => r.mapped && !r.complete).map((r) => r.persona_id),
     persona_attributes: personaAttributes(ctx, input.portal_id),
     screens: [...byScreen.values()].map((rows) =>
       screenAccess(rows, keys, completePersonas, evidence),

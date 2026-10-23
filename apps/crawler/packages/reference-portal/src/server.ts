@@ -21,6 +21,15 @@ import {
   travelPage,
   travelResult,
 } from './pages/forms.js';
+import {
+  accountFor,
+  cookiesOf,
+  policiesPage,
+  renewalPage,
+  sessionAccount,
+  SESSION_COOKIE,
+  type Account,
+} from './pages/account.js';
 import { car, faq, glossary, home, house, notFound } from './pages/static.js';
 import { pln } from './html.js';
 import { typicalVehicleValue } from './rules.js';
@@ -28,8 +37,10 @@ import {
   applyScenarios,
   failsUnder,
   scenarioPage,
+  AB_COOKIE,
   SERVER_ERROR_PAGE,
   type ScenarioId,
+  type Visit,
 } from './scenarios.js';
 
 export const ROBOTS_TXT = 'User-agent: *\nDisallow: /__admin/\n';
@@ -89,8 +100,19 @@ async function formBody(req: IncomingMessage): Promise<Params> {
   return out;
 }
 
-/** The page a response serves and the instance's scenarios (spec 039), set by the handler. */
-const pageOf = new WeakMap<ServerResponse, { path: string; scenarios: readonly ScenarioId[] }>();
+/** The page a response serves, the instance's scenarios (spec 039) and the visit (spec 046). */
+const pageOf = new WeakMap<
+  ServerResponse,
+  { path: string; scenarios: readonly ScenarioId[]; visit: Visit }
+>();
+
+/** The customer area by path: the account's page, or the login wall for a guest (spec 046). */
+function accountPage(path: string, account: Account | undefined): string | null {
+  if (path === '/moje-polisy') return account ? policiesPage(account) : loginWall('Moje polisy');
+  if (path === '/moje-polisy/przedluz')
+    return account ? renewalPage(account) : loginWall('Przedłuż polisę');
+  return null;
+}
 
 function send(
   res: ServerResponse,
@@ -100,7 +122,9 @@ function send(
 ) {
   const page = pageOf.get(res);
   const out =
-    page && type.startsWith('text/html') ? applyScenarios(page.path, body, page.scenarios) : body;
+    page && type.startsWith('text/html')
+      ? applyScenarios(page.path, body, page.scenarios, page.visit)
+      : body;
   res.writeHead(status, { 'content-type': type, 'cache-control': 'no-store' });
   res.end(out);
 }
@@ -131,8 +155,6 @@ const GET_ROUTES: Record<string, GetHandler> = {
   '/faq': faq,
   '/slowniczek': glossary,
   '/logowanie': () => loginPage(),
-  '/moje-polisy': () => loginWall('Moje polisy'),
-  '/moje-polisy/przedluz': () => loginWall('Przedłuż polisę'),
 };
 
 interface Asset {
@@ -193,6 +215,59 @@ const instanceAssets = (scenarios: readonly ScenarioId[]): Record<string, Asset>
   },
 });
 
+/**
+ * Scenario ab-test: the arm of a session, given in turn (A, B, A, …) to a page request without
+ * one. The counter belongs to one instance.
+ */
+function abArmPicker(scenarios: readonly ScenarioId[]) {
+  let nextArm = 0;
+  return (res: ServerResponse, path: string, cookies: Record<string, string>) => {
+    if (!scenarios.includes('ab-test')) return null;
+    const had = cookies[AB_COOKIE];
+    if (had === 'A' || had === 'B') return had;
+    if (!(path in GET_ROUTES) && accountPage(path, undefined) === null) return null; // assets, robots
+    const arm = nextArm++ % 2 === 0 ? 'A' : 'B';
+    res.setHeader('set-cookie', `${AB_COOKIE}=${arm}; Path=/`);
+    return arm;
+  };
+}
+
+/** A login form post: the session cookie and the customer area, or the form again (spec 046). */
+function logIn(res: ServerResponse, body: Params): void {
+  const who = accountFor(body.login ?? '', body.haslo ?? '');
+  if (!who) return send(res, 200, loginPage(true));
+  res.setHeader('set-cookie', `${SESSION_COOKIE}=${who.login}; Path=/; HttpOnly`);
+  return sendPage(res, { redirect: '/moje-polisy' });
+}
+
+/** A form post: the purchase, the contact form, the login, or the admin reset. */
+function handlePost(
+  portal: { state: PortalState },
+  res: ServerResponse,
+  path: string,
+  body: Params,
+): void {
+  if (path === '/kalkulator/zakup') {
+    const total = purchaseTotal(body);
+    if (total === null) return sendPage(res, { redirect: '/kalkulator/pojazd' });
+    const number = `RP/2026/${String(portal.state.purchases.length + 1).padStart(4, '0')}`;
+    portal.state.purchases.push({ number, total });
+    return send(res, 200, purchasePage(number, total));
+  }
+  if (path === '/kontakt') {
+    const errors = contactErrors(body);
+    if (errors.length > 0) return send(res, 200, contactPage(body, errors));
+    portal.state.contactRequests.push({ topic: body.temat! });
+    return sendPage(res, { redirect: '/kontakt/dziekujemy' });
+  }
+  if (path === '/logowanie') return logIn(res, body);
+  if (path === '/__admin/reset') {
+    portal.state = freshState();
+    return send(res, 204, '');
+  }
+  return send(res, 405, notFound());
+}
+
 export function startReferencePortal(opts: StartOptions): Promise<ReferencePortal> {
   const requests: LoggedRequest[] = [];
   const portal = { state: freshState() };
@@ -209,12 +284,16 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     return requests.filter(same).length - 1; // this request is already logged
   };
 
+  const abArmOf = abArmPicker(scenarios);
+
   /** An asset, a page, or the error a scenario injects for this request. */
-  const serveGet = (res: ServerResponse, path: string, p: Params): void => {
+  const serveGet = (res: ServerResponse, path: string, p: Params, account?: Account): void => {
     const asset = assetFor(assets, path);
     if (asset) return send(res, asset.status, asset.body(p), asset.type);
     const extra = scenarioPage(path, p, scenarios);
     if (extra !== null) return send(res, 200, extra);
+    const area = accountPage(path, account);
+    if (area !== null) return send(res, 200, area);
     const handler = GET_ROUTES[path];
     if (!handler) return send(res, 404, notFound());
     if (failsUnder(path, p, scenarios, loadsBefore(path, p)))
@@ -228,32 +307,17 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const method = req.method ?? 'GET';
     requests.push({ method, path: url.pathname, query: url.search });
     const path = url.pathname.length > 1 ? url.pathname.replace(/\/$/, '') : url.pathname;
-    pageOf.set(res, { path, scenarios });
+    const cookies = cookiesOf(req.headers.cookie);
+    const account = sessionAccount(cookies);
+    const visit: Visit = {
+      segment: account?.segment ?? null,
+      abArm: method === 'GET' ? abArmOf(res, path, cookies) : null,
+    };
+    pageOf.set(res, { path, scenarios, visit });
 
-    if (method === 'GET' || method === 'HEAD') return serveGet(res, path, params(url));
+    if (method === 'GET' || method === 'HEAD') return serveGet(res, path, params(url), account);
 
-    if (method === 'POST') {
-      const body = await formBody(req);
-      if (path === '/kalkulator/zakup') {
-        const total = purchaseTotal(body);
-        if (total === null) return sendPage(res, { redirect: '/kalkulator/pojazd' });
-        const number = `RP/2026/${String(portal.state.purchases.length + 1).padStart(4, '0')}`;
-        portal.state.purchases.push({ number, total });
-        return send(res, 200, purchasePage(number, total));
-      }
-      if (path === '/kontakt') {
-        const errors = contactErrors(body);
-        if (errors.length > 0) return send(res, 200, contactPage(body, errors));
-        portal.state.contactRequests.push({ topic: body.temat! });
-        return sendPage(res, { redirect: '/kontakt/dziekujemy' });
-      }
-      if (path === '/logowanie') return send(res, 200, loginPage(true));
-      if (path === '/__admin/reset') {
-        portal.state = freshState();
-        return send(res, 204, '');
-      }
-      return send(res, 405, notFound());
-    }
+    if (method === 'POST') return handlePost(portal, res, path, await formBody(req));
     return send(res, 405, notFound());
   };
   // Node ignores the handler's promise: a failed request (e.g. an aborted form body) answers 500

@@ -1243,6 +1243,29 @@ it in Review (or with `pnpm model:decide`), always with a one-line reason.
 
 <sub>Last changed in R-81, 2026-10-21.</sub>
 
+<a id="separating-flag"></a>
+
+#### Separating flag
+
+**The cookie or web storage key whose value follows which version of a page a session gets, found by replaying the page.**
+
+When a page looks different to the same persona on the same release, the headless driver
+opens it three more times in fresh sessions and records every cookie and storage key. If the
+versions alternate and one flag has the same value whenever the same version shows (and
+another value for the other version), that flag separates them: the finding is an A/B test
+"separated by cookie:NAME", for a person to confirm. Session ids never separate: they differ
+every time. A confirmed A/B test's flag goes to Settings ▸ Hints.
+
+*Example:* The home page's banner, separated by cookie:ab_baner (A or B).
+
+*Seen in:* Review; Settings → Hints; pnpm model:replay
+
+*Labels:* `separated by`, `A/B test`, `ab_test`, `R5`
+
+*Related:* [Finding and explanation (hypothesis, H-)](#hypothesis), [Headless driver (probe run)](#headless-driver), [Change (deviation)](#deviation)
+
+<sub>Last changed in R-88, 2026-10-23.</sub>
+
 <a id="derived-fact"></a>
 
 #### Explained automatically (derived fact)
@@ -3908,6 +3931,29 @@ category `[battle-tested-scar]`.
 *Related:* [Fix-plugin](#fix-plugin)
 
 <sub>Last changed in R-56, 2026-10-16.</sub>
+
+### Personas
+
+<a id="persona-sample"></a>
+
+#### Persona sample
+
+**The personas worth scanning out of many test users, one per distinct combination of their attributes.**
+
+`pnpm personas:sample <portal>` reads the portal's personas and keeps the first persona of each
+combination of attributes (tariff, contract, features, …), naming the ones it stands for, and
+lists the pairs among them that differ in exactly one attribute: what a comparison of two
+personas shows best. It only proposes; it changes nothing.
+
+*Example:* 3 of 120 personas to scan; basic / premium differ in tariff.
+
+*Seen in:* pnpm personas:sample
+
+*Labels:* `sample`, `stands for`, `pairs`
+
+*Related:* [Persona](#persona), [Access-dependent content](#access-dependent)
+
+<sub>Last changed in R-88, 2026-10-23.</sub>
 
 ## Business-analysis terms
 

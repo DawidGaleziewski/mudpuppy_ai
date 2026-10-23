@@ -6,6 +6,18 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Changed
+- **R-88: a page that differs between visits is replayed until it is explained** (spec 046,
+  v2.5.0, 2026-10-23). Rules R4 and R5 now run on the headless driver (`pnpm model:replay`): a
+  page that differs between two personas is walked again as each (each getting its own version:
+  a persona variant, explained automatically); a page that differs for the same persona is opened
+  three more times in fresh sessions, and the cookie or storage key whose value follows the
+  version is named ("A/B test, separated by cookie:ab_baner", for a person; it reaches Settings ▸
+  Hints when confirmed). Probe runs record every cookie and storage key. The reference portal has
+  a working login (two test customers, personas `klient` and `klient-premium`) and the scenarios
+  `persona-variant` and `ab-test`, each an end-to-end test. R-33's leftovers: a run that ran out
+  of steps no longer makes its persona "not reached" (`budget_limited` in the access matrix);
+  `pnpm personas:sample <portal>` proposes whom to scan. Findings in
+  `specs/046-r88-repeat-replays/findings.md`; leftovers R-98.
 - **R-89: the BA writes the rules the pages state** (spec 045, v2.4.0, 2026-10-23). Owner's
   approach A: when the BA records the rules or synthesis pass, the BA server lists the limits
   the pages state that no business rule states yet: probe validation messages, validation

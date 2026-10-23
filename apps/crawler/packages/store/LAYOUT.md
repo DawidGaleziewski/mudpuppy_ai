@@ -39,6 +39,9 @@ this file keeps the map (spec 042 T050, G-30).
   spec 040 T034),
   `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`),
   `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
+  `pendingContextReplays`, `resolveContextReplays`, `separatingFlag`, `replayLanding`
+  (`context-replays.ts`, rules R4 and R5 on the driver, spec 046), `visitPair`, `visitContext`
+  (`deviation-visits.ts`: a deviation's visit and its reference, shared with interpretation),
   `activeProfile`, `tauInForce`, `acceptedTau` (`fingerprint-profiles.ts`: one fingerprint profile
   per reconcile, the accepted τ per portal and profile, T112/T115), `acceptTau`
   (`model-calibration.ts`), `refingerprintPortal`, `compareProfiles` (`refingerprint.ts`, T113),

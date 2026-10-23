@@ -159,8 +159,9 @@ export function classify(c: RuleContext): RuleDecision {
     const d = rule(c);
     if (d) return d;
   }
-  // Same build, same context and nothing explained it: is it random?
-  if (c.kind === 'result_mismatch' || c.kind === 'target_mismatch') {
+  // Same build, same context and nothing explained it: is it random? A screen that shows another
+  // version to the same audience (a new member) asks too: an A/B test is one (spec 046, R-88).
+  if (c.kind === 'result_mismatch' || c.kind === 'target_mismatch' || c.kind === 'new_member') {
     const d = r5(c);
     if (d) return d;
   }

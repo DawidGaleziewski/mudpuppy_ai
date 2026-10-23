@@ -159,6 +159,7 @@
   "expected": {
     "portal_id": "access-shop",
     "personas": ["b2b", "basic", "guest", "premium"],
+    "budget_limited": [],
     "screens": [
       {
         "screen_id": "sc-home",

@@ -26,8 +26,8 @@ describe('scenario switchboard (spec 039 T005)', () => {
 
   it('refuses unknown ids and scenarios not built yet', () => {
     expect(() => parseScenarios('earthquake')).toThrow(/unknown scenario "earthquake"/);
-    expect(BUILT_SCENARIOS.has('ab-test')).toBe(false);
-    expect(() => parseScenarios('ab-test')).toThrow(/not built yet \(lands in M3\)/);
+    expect(BUILT_SCENARIOS.has('overlapping-rule')).toBe(false);
+    expect(() => parseScenarios('overlapping-rule')).toThrow(/not built yet \(lands in M4\)/);
     expect(parseScenarios('deployment')).toEqual(['deployment']);
   });
 

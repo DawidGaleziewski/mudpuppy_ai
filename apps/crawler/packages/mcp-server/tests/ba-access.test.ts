@@ -75,8 +75,27 @@ describe('get_access_matrix (spec 024 US2)', () => {
     expect(await h.must('get_access_matrix', { portal_id: 'nobody' })).toEqual({
       portal_id: 'nobody',
       personas: [],
+      budget_limited: [],
       persona_attributes: {},
       screens: [],
     });
+  });
+
+  it('a persona whose map run ran out of steps is budget-limited, never "not reached" (R-33 F-03)', async () => {
+    const h = await startBa();
+    const fx = seed(h);
+    h.fx.raw
+      .prepare(
+        `UPDATE runs SET steps_used = 40,
+           config_snapshot = json_set(config_snapshot, '$.portal.scope.max_steps', 40)
+         WHERE id = 'run-basic'`,
+      )
+      .run();
+    const m = (await h.must('get_access_matrix', { portal_id: fx.portal_id })) as {
+      budget_limited: string[];
+      screens: { screen_id: string; not_reached: string[] }[];
+    };
+    expect(m.budget_limited).toEqual(['basic']);
+    expect(m.screens.find((s) => s.screen_id === 'sc-admin')!.not_reached).toEqual(['premium']);
   });
 });

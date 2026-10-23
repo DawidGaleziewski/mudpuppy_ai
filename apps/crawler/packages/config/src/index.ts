@@ -13,3 +13,4 @@ export * from './ca-file.js';
 export * from './probe-budget.js';
 export * from './model-hooks.js';
 export * from './fingerprint-profiles.js';
+export * from './persona-sample.js';

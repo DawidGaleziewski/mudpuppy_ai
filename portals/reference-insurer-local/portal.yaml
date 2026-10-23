@@ -34,3 +34,14 @@ rate_limit:
   requests_per_second: 5
   max_concurrency: 2
   user_agent: "MudPuppy-Crawler/0.1 (local reference portal)"
+
+# The customer area (spec 046, R-88): two test customers, personas `klient` and `klient-premium`.
+login:
+  url: /logowanie
+  username: { label: "Login", css: "input[name=login]" }
+  password: { label: "Hasło", css: "input[name=haslo]" }
+  submit: { role: button, name: "Zaloguj się" }
+  success: { url_not_matching: "/logowanie", text: ["Zalogowano jako"] }
+  failure:
+    text: ["Nieprawidłowy login lub hasło."]
+  fields: { username: login, password: password }

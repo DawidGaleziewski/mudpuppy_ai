@@ -59,6 +59,17 @@ class AccessMatrix:
     portal_id: str
     personas: list[str]
     screens: list[ScreenAccess]
+    # R-33 F-03 (spec 046): personas mapped only by runs that ran out of steps, never "not reached"
+    budget_limited: list[str] = field(default_factory=list)
+
+
+def _full_scan(t: str) -> str:
+    """A completed map run that stopped before its step budget (spec 024 edge cases, R-33 F-03):
+    only full scans count as evidence that a persona does not get somewhere or see something."""
+    return (
+        f"({t}.status = 'completed' AND {t}.mode = 'map' AND {t}.steps_used < "
+        f"coalesce(json_extract({t}.config_snapshot, '$.portal.scope.max_steps'), 1e9))"
+    )
 
 
 @dataclass
@@ -184,7 +195,8 @@ def access_matrix(
 ) -> AccessMatrix:
     """The portal's access matrix, or one screen's row of it."""
     runs = conn.execute(
-        "SELECT persona_id, MAX(status = 'completed' AND mode = 'map') AS complete "
+        f"SELECT persona_id, MAX({_full_scan('runs')}) AS complete, "
+        "MAX(status = 'completed' AND mode = 'map') AS mapped "
         "FROM runs WHERE portal_id = ? GROUP BY persona_id ORDER BY persona_id",
         (portal,),
     ).fetchall()
@@ -192,7 +204,7 @@ def access_matrix(
     where, args = ("AND sc.id = ?", (portal, screen_id)) if screen_id else ("", (portal,))
     observations = conn.execute(
         f"""SELECT sc.id AS screen_id, sc.route_template, sc.title, o.persona_id, o.state_id,
-                   o.run_id, o.observed_at, (r.status = 'completed' AND r.mode = 'map') AS complete
+                   o.run_id, o.observed_at, {_full_scan('r')} AS complete
             FROM state_observations o
             JOIN states s ON s.id = o.state_id
             JOIN screens sc ON sc.id = s.screen_id
@@ -217,6 +229,7 @@ def access_matrix(
     return AccessMatrix(
         portal_id=portal,
         personas=[r["persona_id"] for r in runs],
+        budget_limited=[r["persona_id"] for r in runs if r["mapped"] and not r["complete"]],
         screens=[_screen(rows, keys, complete_personas, ev) for rows in by_screen.values()],
     )
 

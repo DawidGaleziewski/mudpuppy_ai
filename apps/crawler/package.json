@@ -49,6 +49,7 @@
     "reference-portal": "pnpm --filter @mudpuppy/reference-portal start",
     "vault": "tsx scripts/vault.ts",
     "personas:import": "tsx scripts/vault.ts import",
+    "personas:sample": "tsx scripts/personas-sample.ts",
     "eval": "tsx evals/index.ts",
     "eval:judge": "tsx evals/judge.ts",
     "eval:draw": "tsx evals/draw.ts",

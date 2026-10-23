@@ -1,0 +1,10 @@
+id: klient
+# A standard customer of the reference portal (spec 046, R-88): login jan.klient.
+extends: ["../_mixins/reference-insurer-test-data.yaml"]
+max_action_class: external-side-effect
+attributes: { segment: standard }
+auth:
+  login: ref:REF_INSURER_KLIENT_LOGIN
+  password: ref:REF_INSURER_KLIENT_PASSWORD
+viewport: { width: 1366, height: 768 }
+locale: pl-PL

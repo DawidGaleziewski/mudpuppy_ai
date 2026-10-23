@@ -27,6 +27,8 @@ Used by: mcp-server, crawler, safety, vault, gates, apps/chat (`src/index.ts` re
 - Spec 039 T111: `fingerprint-profiles.ts` (portal `fingerprint: { use, profiles }`, validated by
   resolving every profile; `portalFingerprintProfile(portal, name?)`); depends on
   `@mudpuppy/fingerprint` (kernel) for the built-ins.
+- Spec 046: `persona-sample.ts` (`samplePersonas`: one persona per distinct attribute combination
+  and the pairs differing in one attribute; pure, used by `scripts/personas-sample.ts`).
 - Spec 031: `network.ca_file` (resolved against the portal folder by `loadPortal`) and
   `ca-file.ts` (`readTrustedCa`, `spkiHash`: shared by preflight, the session and the doctor).
 

@@ -59,7 +59,9 @@ export function recordObservationStep(
     const via = observationVia(sc, page.relogged);
     const journeyId = await ensureJourney(ctx, rs);
     const buildIds = await upsertBuilds(ctx, run.portal_id, page.capture.builds);
-    const flags = await experimentFlags(rs);
+    const declared = await experimentFlags(rs);
+    // A probe run keeps every flag for rule R5; its context stays the declared arm (spec 046).
+    const flags = rs.headless ? { ...(await allFlags(rs)), ...declared } : declared;
     const { observation_id } = await recordObservation(ctx, {
       run_id: run.id,
       state_id: page.stateId,
@@ -70,7 +72,7 @@ export function recordObservationStep(
       journey_id: journeyId,
       seq: await nextObservationSeq(ctx, rs),
       result: page.capture.result,
-      context_key: contextKey(buildIds, audienceKey(rs), flags),
+      context_key: contextKey(buildIds, audienceKey(rs), declared),
       flags,
       build_ids: buildIds,
       fingerprint_profile: rs.profile.id,
@@ -91,6 +93,32 @@ export function recordObservationStep(
     );
     return reported(observation_id, observationReports(url, hops, via));
   });
+}
+
+const FLAG_VALUE_MAX = 64;
+
+/**
+ * Every cookie and web storage key of the session (spec 046 FR-006): a probe run of the headless
+ * driver records them all, so rule R5 can find the flag that separates two versions of a page
+ * although nobody declared it. Values are cut to 64 characters.
+ */
+async function allFlags(rs: RunState): Promise<Record<string, string>> {
+  const out: Record<string, string> = {};
+  for (const c of await rs.session.context.cookies().catch(() => []))
+    out[`cookie:${c.name}`] = c.value.slice(0, FLAG_VALUE_MAX);
+  const storage = await rs.session.page
+    .evaluate(() => {
+      const kv: [string, string][] = [];
+      for (const s of [window.localStorage, window.sessionStorage])
+        for (let i = 0; i < s.length; i++) {
+          const k = s.key(i);
+          if (k !== null) kv.push([k, s.getItem(k) ?? '']);
+        }
+      return kv;
+    })
+    .catch(() => [] as [string, string][]);
+  for (const [k, v] of storage) out[`storage:${k}`] = v.slice(0, FLAG_VALUE_MAX);
+  return out;
 }
 
 /** The values of the portal's experiment flags in this session: cookies and web storage keys. */

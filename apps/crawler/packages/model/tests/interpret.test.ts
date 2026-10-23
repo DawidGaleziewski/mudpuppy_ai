@@ -171,7 +171,18 @@ describe('rules R1–R8 (design § 8.2)', () => {
     });
   });
 
-  it('nothing explains a new member on the same build and context: ambiguous, for the agent', () => {
-    expect(classify(base)).toEqual({ decision: 'ambiguous' });
+  it('a new member on the same build and context asks R5 replays, then decides (spec 046)', () => {
+    expect(classify(base)).toEqual({ decision: 'replay', rule: 'R5', replays: 3, what: 'repeat' });
+    // stable replays: nothing random, ambiguous for the agent
+    expect(classify({ ...base, replays: { repeated: ['s1', 's1', 's1'] } })).toEqual({
+      decision: 'ambiguous',
+    });
+    // alternating, one cookie separates them: an A/B test for a person
+    expect(
+      classify({
+        ...base,
+        replays: { repeated: ['s1', 's2', 's1'], separatingFlag: 'cookie:ab_baner' },
+      }),
+    ).toMatchObject({ kind: 'ab_test', rule: 'R5', derived: false });
   });
 });

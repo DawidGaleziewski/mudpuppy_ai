@@ -102,8 +102,10 @@ rules; this file keeps the map (spec 042 T050, G-30).
   `action_json`, and test data is looked up by it.
 - Spec 039 (MudPuppy 2.0): `replay-driver.ts` (the headless driver: `replay(call, plan)` walks a
   recorded prefix by model element keys in a probe run, no LLM) and `replay-portal.ts`
-  (`replayPortal`: R1 error replays, R8 rule mismatches, then boundary and regression tests, one
-  budget; `pnpm model:replay`, `model:regress`) and `explore-process.ts` (`exploreProcess`: one
+  (`replayPortal`: R1 error replays, R4/R5 context replays (spec 046), R8 rule mismatches, then
+  boundary and regression tests, one budget; `pnpm model:replay`, `model:regress`; a plan with
+  `login` logs in first; probe runs record every cookie and storage key in `flags_json`,
+  `runtime/pipeline/observations.ts` `allFlags`) and `explore-process.ts` (`exploreProcess`: one
   pass of the stopping rule over a process, `pnpm model:explore`, T075).
   Spec 040: `boundary-suites.ts` (`proposeBoundarySuites`: a mined rule's boundary tests as one
   open probe suite for Review, a variant per test; after mining at a run's end and in

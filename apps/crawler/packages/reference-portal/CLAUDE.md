@@ -15,7 +15,10 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `removed-link`, `moved-link`, `renamed-button`, `rule-drift` (driver age 21 in the date
   field), `repeated-rows` (`/kierowcy?n=`), `numbered-sections` (`/sekcja/1`–`6`), and spec 040's
   `flaky-page` (HTTP 500 on loads 2–4 of every five of one address; `fails` gets the count of
-  earlier loads) and `threshold-rule` (under 18 → an exit page of its own). A scenario's
+  earlier loads) and `threshold-rule` (under 18 → an exit page of its own); spec 046's
+  `persona-variant` (the premium customer's extra button on Moje polisy) and `ab-test` (the home
+  banner by cookie `ab_baner`, A and B in turn). The customer area (`src/pages/account.ts`): two
+  test customers (`ACCOUNTS`, fake passwords) log in at `/logowanie` (cookie `sesja`). A scenario's
   effect may change HTML, ship a build, fail GET requests (`failsUnder`) or serve a page of its own
   (`scenarioPage`; such pages are not in the ground truth).
 

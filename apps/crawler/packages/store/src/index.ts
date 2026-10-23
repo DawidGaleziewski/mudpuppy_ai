@@ -18,6 +18,8 @@ export * from './rule-mining.js';
 export * from './process-proposals.js';
 export * from './replay-tests.js';
 export * from './error-replays.js';
+export * from './context-replays.js';
+export * from './deviation-visits.js';
 export * from './rule-export.js';
 export * from './rule-export-text.js';
 export * from './rule-guards.js';

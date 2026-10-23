@@ -62,6 +62,7 @@ def test_element_keys_and_an_unknown_portal(empty_store: Store) -> None:
         "portal_id": "nobody",
         "personas": [],
         "screens": [],
+        "budget_limited": [],
     }
     conn.close()
 

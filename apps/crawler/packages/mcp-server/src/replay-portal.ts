@@ -11,8 +11,15 @@ import {
   type OpenedDb,
   judgeReplays,
   pendingErrorReplays,
+  pendingContextReplays,
   pendingMismatchReplays,
   pendingReplays,
+  R5_REPLAYS,
+  replayLanding,
+  resolveContextReplays,
+  type ContextResults,
+  type ContextVerdict,
+  type VisitReplay,
   queueRegressions,
   recordReplay,
   recordRuleMismatches,
@@ -32,6 +39,8 @@ export interface ReplayPortalReport {
   replays: number;
   /** R1: deviation → the hypothesis written (null while it keeps waiting). */
   errors: { deviationId: string; results: (string | null)[]; hypothesis: string | null }[];
+  /** R4 and R5 (spec 046): deviation → the hypothesis written (null: open for the agent or waiting). */
+  contexts: { deviationId: string; hypothesis: string | null }[];
   /** Rules whose regression suite was queued. */
   regressions: string[];
   /** R8: rule mismatch → the hypothesis written (decision drift or flaky). */
@@ -78,6 +87,39 @@ async function runErrors(
   }
 }
 
+/**
+ * R4 and R5 (spec 046): each waiting deviation's walks, R4's two first when the audiences differ,
+ * then R5's three repeats unless R4 decided. Repeats never start from a cached prefix: each asks
+ * what a fresh session gets.
+ */
+async function runContext(
+  call: ToolCall,
+  raw: Raw,
+  portal: string,
+  r: ReplayPortalReport,
+  budget: number,
+) {
+  const landing = async (plan: VisitReplay) => {
+    r.replays += 1;
+    return replayLanding(raw, await replay(call, plan));
+  };
+  for (const plan of pendingContextReplays(raw, portal, { limit: budget - r.replays })) {
+    let r4: ContextResults['r4'];
+    let verdict: ContextVerdict = { next: 'R5' };
+    if (plan.r4) {
+      r4 = { reference: await landing(plan.r4.reference), current: await landing(plan.r4.current) };
+      verdict = resolveContextReplays(raw, portal, plan, { r4 });
+    }
+    if ('next' in verdict) {
+      const repeats = [];
+      for (let i = 0; i < R5_REPLAYS; i++) repeats.push(await landing(plan.r5));
+      verdict = resolveContextReplays(raw, portal, plan, { ...(r4 ? { r4 } : {}), r5: repeats });
+    }
+    const hypothesis = 'hypothesis' in verdict ? verdict.hypothesis : null;
+    r.contexts.push({ deviationId: plan.deviationId, hypothesis });
+  }
+}
+
 async function runMismatches(
   call: ToolCall,
   raw: Raw,
@@ -116,6 +158,7 @@ export async function replayPortal(
   const r: ReplayPortalReport = {
     replays: 0,
     errors: [],
+    contexts: [],
     regressions: [],
     mismatches: [],
     tests: 0,
@@ -126,6 +169,7 @@ export async function replayPortal(
   // path, since they ask whether the error comes back on the same way.
   const cache = prefixCache((runId, stateId) => observedUrl(raw, runId, stateId));
   await runErrors(call, raw, portal, r, budget);
+  await runContext(call, raw, portal, r, budget);
   await runMismatches(call, raw, portal, r, { budget, cache, ...today });
   r.regressions = queueRegressions(raw, portal, { all: opts.regress === true });
   const left = budget - r.replays;

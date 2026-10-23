@@ -280,12 +280,17 @@ describe('mudpuppy-chat MCP server', () => {
   });
 
   it('request_scan passes config problems through as INVALID', async () => {
-    const { writeFileSync } = await import('node:fs');
+    const { mkdirSync, writeFileSync } = await import('node:fs');
+    // The read-only twin has no login block (the sandbox reference portal has one since spec 046).
+    mkdirSync(join(root, 'personas/reference-insurer-readonly'), { recursive: true });
     writeFileSync(
-      join(root, 'personas/reference-insurer/client.yaml'),
+      join(root, 'personas/reference-insurer-readonly/client.yaml'),
       'id: client\nextends: ["../_mixins/anonymous-base.yaml"]\nauth:\n  login: ref:RI_LOGIN\n  password: ref:RI_PASSWORD\n',
     );
-    const { body } = await call('request_scan', { portal: 'reference-insurer', persona: 'client' });
+    const { body } = await call('request_scan', {
+      portal: 'reference-insurer-readonly',
+      persona: 'client',
+    });
     expect(body.error?.code).toBe('INVALID');
     expect(body.error?.details?.[0]).toContain('portal has no login block');
   });
