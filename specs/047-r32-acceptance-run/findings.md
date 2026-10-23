@@ -49,3 +49,9 @@
 
 - SC-007 and SC-008 (amendments, superseded after a re-scan): out of the re-scoped run.
 - Only the guest; the logged-in customers (spec 046) were not scanned through the chat.
+
+## Close-out review (G-31), 2026-10-23
+
+No findings (G-01–G-06, G-19, G-25, G-27, G-28, G-30 checked on `deviation-visits.ts` and the two
+e2e files; ESLint clean). Idea from the review: a fast-tier unit test for `visitPair`'s "earlier
+run first, same-run fallback" (today only the e2e tests cover it).
