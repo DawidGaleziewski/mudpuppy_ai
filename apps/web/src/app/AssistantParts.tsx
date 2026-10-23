@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Button, ChatDivider, Cluster, Confirm, Field, Input, Message, ProposalCard, Stack, Tag, Text, Vault } from '../design-system';
-import { chatCall, type AssistantConversation, type AssistantItem, type LiveLine } from './api-assistant';
+import { chatCall, type AssistantConversation, type AssistantItem, type AssistantPage, type LiveLine } from './api-assistant';
 import { ShownStatus } from './ShownStatus';
 
 /** A failure with its ERR reference, which the htmx error page looks up. */
@@ -125,6 +125,20 @@ export function Item({ item, conversation, onStored }: { item: AssistantItem; co
     default:
       return <ChatDivider>{`${item.text} · ${item.at}`}</ChatDivider>;
   }
+}
+
+/** The conversation's run in one line (FE-C02), with the way to its scan page. */
+export function ScanLine({ scan }: { scan: NonNullable<AssistantPage['scan']> }) {
+  return (
+    <Cluster>
+      <ShownStatus status={scan.status} />
+      <Text small>{scan.what}</Text>
+      {scan.quiet && <ShownStatus status={scan.quiet} />}
+      <Text small href={scan.href}>
+        Open in Scans
+      </Text>
+    </Cluster>
+  );
 }
 
 /** A line of the turn in progress: the streamed reply, a notice, a failure. */

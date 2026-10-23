@@ -195,4 +195,5 @@ card's "As" persona choice), `wb_frames.py` (frame,
 - Spec 069 (R-96, the assistant drawer): `web/api_assistant.py` (`GET /api/portals/{p}/assistant`,
   the conversation as a timeline from `views_chat.timeline`) over `queries_app_assistant.py`; the
   drawer sends, streams, stops, resets and stores credentials through the `/chat/…` forwarders in
-  `web/chat.py`, unchanged.
+  `web/chat.py`, unchanged. Spec 070 adds the conversation's scan line (`scan_line` over
+  `queries_chat.progress`).

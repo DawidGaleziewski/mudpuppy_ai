@@ -32,6 +32,8 @@ export interface AssistantPage {
   conversation: AssistantConversation | null;
   items: AssistantItem[];
   full_page: string;
+  /** The conversation's run in one line; none before it starts one. */
+  scan: { status: StatusOut; what: string; scan: string; href: string; running: boolean; quiet: StatusOut | null } | null;
 }
 
 /** What "This page" means on a page (spec 022 R6, `apps/chat/src/page-context.ts`). */
@@ -50,6 +52,8 @@ export const useAssistant = (portal: string, enabled: boolean) =>
     queryKey: assistantKey(portal),
     queryFn: () => getJson<AssistantPage>(`/api/portals/${encodeURIComponent(portal)}/assistant`),
     enabled,
+    // The scan line follows a running run (the htmx region polled every 3 s).
+    refetchInterval: (q) => (q.state.data?.scan?.running ? 3000 : false),
   });
 
 /** A call to the chat service through the dashboard: its status and JSON answer (a refusal's `message` and `ref`). */
@@ -90,6 +94,19 @@ function describe(busy: boolean, tools: Map<string, Tool>): string {
 
 /** A field of an event as text, or `fallback` when it is not one. */
 const str = (v: unknown, fallback = ''): string => (typeof v === 'string' ? v : fallback);
+
+/**
+ * Where an assistant's page action goes (spec 022 R6, `ui_action`): `open` a page of the console
+ * (a path on this site only), `highlight` an element on a recorded screen (the server draws the
+ * mark, so it also shows after a reload). The drawer stays open on the next page.
+ */
+export function pageOf(d: Record<string, unknown>): string | null {
+  const path = str(d.path);
+  if (d.action === 'open' && path.startsWith('/') && !path.startsWith('//')) return path;
+  const state = str(d.stateId);
+  if (d.action === 'highlight' && state) return `/states/${encodeURIComponent(state)}?hl=${encodeURIComponent(str(d.elementKey))}`;
+  return null;
+}
 
 const parse = (e: MessageEvent<string>): Record<string, unknown> => {
   try {
@@ -145,6 +162,10 @@ export function useChatStream(portal: string, conversation: AssistantConversatio
     on('refused', (d) => add({ kind: 'notice', text: `Not allowed: ${str(d.reason)}` }));
     on('error', (d) => add({ kind: 'error', text: str(d.message, 'The assistant failed.'), ref: str(d.ref) || null }));
     on('notice', (d) => add({ kind: 'notice', text: str(d.text) }));
+    on('ui_action', (d) => {
+      const to = pageOf(d);
+      if (to) window.location.assign(to);
+    });
     on('idle', () => {
       settle(false);
       refresh();

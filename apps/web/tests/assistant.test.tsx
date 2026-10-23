@@ -126,3 +126,48 @@ describe('The assistant drawer', () => {
     expect(within(drawer()).getByRole('button', { name: 'Send' }).hasAttribute('disabled')).toBe(true);
   });
 });
+
+const home = {
+  portal: 'shop',
+  environment: 'local-dev',
+  model_seq: 4,
+  model_built_at: '2026-10-22T20:00:00Z',
+  lanes: [],
+  last_scan: null,
+  needs: { total: 0, by_kind: [], top: [] },
+  changes: { all: 0, needs: 0, explained: 0, by_process: [] },
+  processes: 0,
+  proposed: 0,
+  rules: { total: 0, by_status: [] },
+};
+
+describe('The assistant on Home, the scan line and page actions (spec 070)', () => {
+  it('sends Home’s message in the drawer it opens', async () => {
+    const fetch = at('/app/portals/shop', { '/api/portals/shop/home': home, '/api/portals/shop/assistant': page(), [`POST ${CONV}/messages`]: {} }, 202);
+    const plate = await screen.findByRole('region', { name: 'Assistant' });
+    fireEvent.change(within(plate).getByLabelText('Message'), { target: { value: 'What changed?' } });
+    fireEvent.click(within(plate).getByRole('button', { name: 'Send' }));
+    expect(await screen.findByRole('complementary', { name: 'Assistant' })).toBeTruthy();
+    await vi.waitFor(() => expect(fetch.mock.calls.some((c) => c[0] === `${CONV}/messages`)).toBe(true));
+    const call = fetch.mock.calls.find((c) => c[0] === `${CONV}/messages`) as unknown as [string, { body: string }];
+    expect(JSON.parse(call[1].body)).toMatchObject({ text: 'What changed?' });
+    expect(sessionStorage.getItem('mudpuppy.assistant.say')).toBeNull();
+  });
+
+  it('shows the conversation’s scan in one line', async () => {
+    const scan = { status: { shape: 'running', word: 'Running' }, what: 'Scan run-p · 3 / 400 steps · 2 pages · 2 queued', scan: 'run-p', href: '/app/scans/run-p', running: false, quiet: { shape: 'needs', word: 'Nothing for 9m 00s' } };
+    at('/app/portals/shop/docs', routes(page({ scan })));
+    await open();
+    expect(await within(drawer()).findByText('Scan run-p · 3 / 400 steps · 2 pages · 2 queued')).toBeTruthy();
+    expect(within(drawer()).getByText('Nothing for 9m 00s')).toBeTruthy();
+    expect(within(drawer()).getByRole('link', { name: 'Open in Scans' }).getAttribute('href')).toBe('/app/scans/run-p');
+  });
+
+  it('turns the assistant’s page actions into addresses on this site', async () => {
+    const { pageOf } = await import('../src/app/api-assistant');
+    expect(pageOf({ action: 'open', path: '/app/portals/shop/rules' })).toBe('/app/portals/shop/rules');
+    expect(pageOf({ action: 'open', path: 'https://elsewhere.example' })).toBeNull();
+    expect(pageOf({ action: 'open', path: '//elsewhere.example' })).toBeNull();
+    expect(pageOf({ action: 'highlight', stateId: 'st-1', elementKey: 'button|dalej||' })).toBe('/states/st-1?hl=button%7Cdalej%7C%7C');
+  });
+});

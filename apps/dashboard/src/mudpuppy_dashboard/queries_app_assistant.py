@@ -5,11 +5,14 @@ the htmx drawer's own timeline (`web/views_chat.timeline`, passed in by the rout
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Any, Literal
 from urllib.parse import quote
 
 from pydantic import BaseModel
 
+from . import queries_chat
+from .formats import fmt_duration, short_id
 from .models import ChatConversation, ChatMessage
 from .queries_app import StatusOut, status_out
 from .queries_proposals import ProposalView
@@ -60,14 +63,50 @@ class Conversation(BaseModel):
     credentials: str
 
 
+class ScanLine(BaseModel):
+    """The conversation's run in one line (FE-C02): what it is doing, from the store."""
+
+    status: StatusOut
+    what: str  # "Scan 01a16624-db89 · 12 / 120 steps · 9 pages · 3 queued"
+    scan: str  # the run's id
+    href: str
+    running: bool
+    #: A running run with no recorded activity for five minutes (F-22).
+    quiet: StatusOut | None
+
+
 class AssistantPage(BaseModel):
     portal: str
     service_up: bool
     start_hint: str | None
     conversation: Conversation | None
     items: list[Item]
-    #: The full page of the conversation (htmx until spec 070).
+    #: The full chat page (the htmx 1.x Home with its step tracker and tools).
     full_page: str
+    scan: ScanLine | None
+
+
+#: A running run quiet this long is called out (the htmx chat's QUIET_WARN_MS).
+QUIET_MS = 5 * 60_000
+
+
+def scan_line(p: queries_chat.Progress | None, now: datetime) -> ScanLine | None:
+    if p is None:
+        return None
+    steps = f"{p.steps_used} / {p.max_steps}" if p.max_steps else str(p.steps_used)
+    kind = "Scan" if p.mode == "map" else "Trace"
+    quiet_ms = p.quiet_ms(now)
+    quiet = None
+    if quiet_ms is not None and quiet_ms >= QUIET_MS:
+        quiet = StatusOut(shape="needs", word=f"Nothing for {fmt_duration(quiet_ms)}")
+    return ScanLine(
+        status=status_out("run", p.status),
+        what=f"{kind} {short_id(p.run_id)} · {steps} steps · {p.pages} pages · {p.queued} queued",
+        scan=p.run_id,
+        href=f"/app/scans/{quote(p.run_id, safe='')}",
+        running=p.running,
+        quiet=quiet,
+    )
 
 
 def _message(m: ChatMessage) -> Item:
@@ -136,9 +175,10 @@ def assistant_page(
     conversation: ChatConversation | None,
     timeline: list[tuple[str, Any]],
     up: tuple[bool, str],
+    scan: ScanLine | None = None,
 ) -> AssistantPage:
     """`timeline` is `views_chat.timeline`'s (kind, item) pairs; `up` whether the chat service
-    answers and the command that starts it."""
+    answers and the command that starts it; `scan` the conversation's run in one line."""
     service_up, hint = up
     items = []
     for kind, item in timeline:
@@ -156,4 +196,5 @@ def assistant_page(
         conversation=_conversation(conversation) if conversation else None,
         items=items,
         full_page=f"/chat{query}",
+        scan=scan,
     )

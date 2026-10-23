@@ -6,6 +6,13 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 21: the assistant on Home, the scan line and page actions** (spec 070, v2.6.20,
+  2026-10-23). Home has the Assistant beside Changes by process: suggestions and a message box
+  that open the drawer and send there; a message waits in this browser until the drawer's
+  conversation is ready, also across a page change. The drawer's message box shows the
+  conversation's scan in one line (status, steps, pages, queued, "Nothing for …" when a running
+  scan has been quiet five minutes) and follows it while it runs. When the assistant opens a page
+  or highlights an element, the console goes there with the drawer still open.
 - **R-96 step 20: the assistant drawer in React** (spec 069, v2.6.19, 2026-10-23). Every
   portal page has "Ask the assistant" (and Ctrl+J): the drawer stays open from page to page and in
   view beside a long page. It shows the portal's conversation (your messages, the assistant's,

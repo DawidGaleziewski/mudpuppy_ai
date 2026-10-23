@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams } from 'react-router';
 import { AppShell, Button, Chip, Cluster, Text, type NavGroup } from '../design-system';
 import type { PageContext } from './api-assistant';
+import { AssistantContext, keepSay } from './assistant-context';
 import { AssistantDrawer } from './AssistantDrawer';
 
 const OPEN_KEY = 'mudpuppy.assistant.open';
@@ -47,6 +48,22 @@ function useAssistantOpen() {
   return { open, turn };
 }
 
+/** What a page can ask of the drawer (`useAssistantHandle`); `nudge` is bumped on every ask, so an open drawer looks for the waiting message again. */
+function useAsk(turn: (open: boolean) => void) {
+  const [nudge, setNudge] = useState(0);
+  const handle = useMemo(
+    () => ({
+      ask: (text?: string) => {
+        if (text) keepSay(text);
+        setNudge((n) => n + 1);
+        turn(true);
+      },
+    }),
+    [turn],
+  );
+  return { handle, nudge };
+}
+
 /** The console frame: the portal's sections in the 2.0 grouping, the current one marked, and the assistant. */
 export function Shell({
   current,
@@ -65,6 +82,7 @@ export function Shell({
   const portal = given ?? params.portal;
   const { open, turn } = useAssistantOpen();
   const close = useCallback(() => turn(false), [turn]);
+  const { handle, nudge } = useAsk(turn);
   const base = portal ? `/app/portals/${encodeURIComponent(portal)}` : null;
   const nav: NavGroup[] = [
     { items: [{ href: '/app/', label: 'Portals', current: current === 'portals' }] },
@@ -97,22 +115,24 @@ export function Shell({
       : []),
   ];
   return (
-    <AppShell
-      nav={nav}
-      header={portal ? <Text mono>{portal}</Text> : null}
-      headerEnd={
-        <Cluster>
-          {portal && (
-            <Button size="sm" variant={open ? 'default' : 'quiet'} aria-expanded={open} onClick={() => turn(!open)}>
-              Ask the assistant
-            </Button>
-          )}
-          <Chip variant="dashed">React preview</Chip>
-        </Cluster>
-      }
-      drawer={portal && open ? <AssistantDrawer portal={portal} context={context} onClose={close} /> : undefined}
-    >
-      {children}
-    </AppShell>
+    <AssistantContext.Provider value={handle}>
+      <AppShell
+        nav={nav}
+        header={portal ? <Text mono>{portal}</Text> : null}
+        headerEnd={
+          <Cluster>
+            {portal && (
+              <Button size="sm" variant={open ? 'default' : 'quiet'} aria-expanded={open} onClick={() => turn(!open)}>
+                Ask the assistant
+              </Button>
+            )}
+            <Chip variant="dashed">React preview</Chip>
+          </Cluster>
+        }
+        drawer={portal && open ? <AssistantDrawer portal={portal} context={context} onClose={close} nudge={nudge} /> : undefined}
+      >
+        {children}
+      </AppShell>
+    </AssistantContext.Provider>
   );
 }

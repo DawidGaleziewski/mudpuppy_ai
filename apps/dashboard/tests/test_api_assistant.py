@@ -6,7 +6,14 @@ from __future__ import annotations
 
 from .conftest import Store
 from .test_assistant_cards import FAKE_SECRET, NEEDED, STORED, system_row
-from .test_chat import CONV, Service, make_chat_client, seed_conversation, seed_message
+from .test_chat import (
+    CONV,
+    Service,
+    make_chat_client,
+    seed_conversation,
+    seed_message,
+    seed_progress_run,
+)
 
 API = "/api/portals/liveinsurer/assistant"
 
@@ -66,3 +73,24 @@ def test_another_portals_conversation_is_not_this_portals(empty_store: Store) ->
     with make_chat_client(empty_store, Service()) as c:
         assert c.get(API).json()["conversation"] is None
         assert c.get(f"{API}?conversation={CONV}").json()["conversation"]["portal"] == "shop"
+
+
+def test_the_scan_line_says_what_the_conversations_run_does(empty_store: Store) -> None:
+    """Spec 070 (FE-C02): the run in one line; a running run quiet five minutes is called out."""
+    seed_conversation(empty_store)
+    seed_progress_run(empty_store)
+    with make_chat_client(empty_store, Service()) as c:
+        scan = c.get(API).json()["scan"]
+    assert scan["what"] == "Scan run-p · 3 / 400 steps · 2 pages · 2 queued"
+    assert scan["running"] and scan["href"] == "/app/scans/run-p"
+    assert scan["quiet"]["word"].startswith("Nothing for")
+
+
+def test_a_finished_run_is_not_quiet_and_no_run_has_no_line(empty_store: Store) -> None:
+    seed_conversation(empty_store)
+    with make_chat_client(empty_store, Service()) as c:
+        assert c.get(API).json()["scan"] is None
+    seed_progress_run(empty_store, status="completed")
+    with make_chat_client(empty_store, Service()) as c:
+        scan = c.get(API).json()["scan"]
+    assert not scan["running"] and scan["quiet"] is None and scan["status"]["word"]

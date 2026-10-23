@@ -2,6 +2,7 @@ import { useParams } from 'react-router';
 import {
   Callout,
   Cluster,
+  Columns,
   Count,
   Facts,
   Grid,
@@ -20,6 +21,7 @@ import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
+import { HomeAssistant } from './HomeAssistant';
 
 type Item = PortalHomeData['needs']['top'][number];
 type ProcessRow = PortalHomeData['changes']['by_process'][number];
@@ -132,16 +134,21 @@ function Home({ h }: { h: PortalHomeData }) {
         </Plate>
         <Releases lanes={h.lanes} />
       </Grid>
-      <Plate title="Changes by process" flush actions={<Count muted>{h.changes.all}</Count>}>
-        <Table
-          caption={`Changes on ${h.portal} by process`}
-          columns={changeColumns}
-          rows={h.changes.by_process}
-          rowKey={(p) => p.key ?? p.name}
-          flush
-          empty="No change seen since the model was built."
-        />
-      </Plate>
+      <Columns
+        main={
+          <Plate title="Changes by process" flush actions={<Count muted>{h.changes.all}</Count>}>
+            <Table
+              caption={`Changes on ${h.portal} by process`}
+              columns={changeColumns}
+              rows={h.changes.by_process}
+              rowKey={(p) => p.key ?? p.name}
+              flush
+              empty="No change seen since the model was built."
+            />
+          </Plate>
+        }
+        side={<HomeAssistant />}
+      />
       {h.rules.by_status.length > 0 && (
         <Plate title="Rules">
           <Facts items={h.rules.by_status.map((r) => [<ShownStatus status={r.status} />, r.count] as const)} />

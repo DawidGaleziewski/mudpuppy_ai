@@ -1,7 +1,8 @@
-import { useState, type KeyboardEvent } from 'react';
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react';
 import { Button, Callout, ChatLog, Chips, Cluster, Code, Composer, Confirm, Drawer, Field, Message, Segmented, Split, Stack, Tag, Text, Textarea } from '../design-system';
 import { chatCall, useAssistant, useChatStream, type AssistantConversation, type AssistantPage, type PageContext } from './api-assistant';
-import { Failure, Item, Live } from './AssistantParts';
+import { takeSay } from './assistant-context';
+import { Failure, Item, Live, ScanLine } from './AssistantParts';
 import { QueryState } from './QueryState';
 
 const SUGGESTIONS = ['Explain this page', 'What changed since the last scan?', 'Draft a to-be for this screen'];
@@ -46,10 +47,12 @@ interface TurnProps {
   conversation: AssistantConversation;
   context: PageContext | null;
   seeing: 'page' | 'portal';
+  /** Changes when a page asks the assistant something: send the waiting message. */
+  nudge: number;
 }
 
 /** A turn's actions: say something (with what the assistant can see), stop it, reset the assistant. */
-function useTurn({ page, conversation, context, seeing }: TurnProps) {
+function useTurn({ page, conversation, context, seeing, nudge }: TurnProps) {
   const stream = useChatStream(page.portal, conversation, page.service_up);
   const [text, setText] = useState('');
   const [mine, setMine] = useState<string | null>(null);
@@ -78,6 +81,17 @@ function useTurn({ page, conversation, context, seeing }: TurnProps) {
   };
   // The person's message until the stored history has it.
   const shown = mine && !page.items.some((i) => i.kind === 'user' && i.text === mine) ? mine : null;
+  // A message a page asked the assistant (Home's box, a suggestion), once the assistant is free.
+  const ready = page.service_up && !stream.busy;
+  const latest = useRef(say);
+  useEffect(() => {
+    latest.current = say;
+  });
+  useEffect(() => {
+    if (!ready) return;
+    const waiting = takeSay();
+    if (waiting) void latest.current(waiting);
+  }, [ready, nudge]);
   return { stream, text, setText, say, stop, reset, shown };
 }
 
@@ -125,6 +139,7 @@ function Conversation(props: TurnProps) {
         </Chips>
       )}
       <Composer onSubmit={() => void say(text)}>
+        {page.scan && <ScanLine scan={page.scan} />}
         <Field label="Message" help="Enter sends · Shift+Enter new line">
           <Textarea rows={2} value={text} disabled={off} placeholder="Ask about this page" onChange={(e) => setText(e.target.value)} onKeyDown={keys} />
         </Field>
@@ -187,7 +202,7 @@ function Seeing({ portal, context, seeing, onSee }: { portal: string; context: P
 }
 
 /** The assistant drawer on every portal page (screen 02, spec 022 M3): the portal's conversation. */
-export function AssistantDrawer({ portal, context, onClose }: { portal: string; context: PageContext | null; onClose: () => void }) {
+export function AssistantDrawer({ portal, context, onClose, nudge }: { portal: string; context: PageContext | null; onClose: () => void; nudge: number }) {
   const q = useAssistant(portal, true);
   // This page by default once the page names itself (its data may arrive after the drawer opens).
   const [picked, setSeeing] = useState<'page' | 'portal' | null>(null);
@@ -213,7 +228,7 @@ export function AssistantDrawer({ portal, context, onClose }: { portal: string; 
       <QueryState query={q} what="the conversation">
         {(page) =>
           page.conversation ? (
-            <Conversation key={page.conversation.id} page={page} conversation={page.conversation} context={context} seeing={seeing} />
+            <Conversation key={page.conversation.id} page={page} conversation={page.conversation} context={context} seeing={seeing} nudge={nudge} />
           ) : (
             <Start page={page} onStarted={() => void q.refetch()} />
           )
