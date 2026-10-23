@@ -4,12 +4,16 @@ import { NotFound } from '../pages/NotFound';
 import { PortalHome } from '../pages/PortalHome';
 import { Portals } from '../pages/Portals';
 import { Scans } from '../pages/Scans';
+import { Screen } from '../pages/Screen';
+import { Screens } from '../pages/Screens';
 
 /** The console's routes, under `/app/` (served by the dashboard; Vite in development). */
 export const routes = [
   { path: '/app/', element: <Portals /> },
   { path: '/app/portals/:portal', element: <PortalHome /> },
   { path: '/app/portals/:portal/scans', element: <Scans /> },
+  { path: '/app/portals/:portal/screens', element: <Screens /> },
+  { path: '/app/portals/:portal/screens/:screenKey', element: <Screen /> },
   { path: '*', element: <NotFound /> },
 ];
 

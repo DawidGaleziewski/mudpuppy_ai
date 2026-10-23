@@ -13,6 +13,7 @@ from pydantic import BaseModel
 
 from .models import Run
 from .queries_chat import portals_by_environment
+from .queries_queue import QueueItem
 from .queries_scans import max_steps
 from .status_map import status_of
 
@@ -41,6 +42,42 @@ class StatusOut(BaseModel):
 def status_out(vocabulary: str, value: object) -> StatusOut:
     s = status_of(vocabulary, value)
     return StatusOut(shape=s.shape, word=s.word)
+
+
+class Chip(BaseModel):
+    """A mark beside a claim: the word and the chip variant (fail, tobe, dashed or none)."""
+
+    word: str
+    variant: str | None
+
+
+class NeedsItem(BaseModel):
+    """One thing that needs a person (`queries_queue.QueueItem`), as Home and a screen show it."""
+
+    kind: str
+    id: str
+    chip: Chip
+    claim: str
+    where: str | None
+    hint: str
+    at: str
+    status: StatusOut | None
+    #: The hypotheses a decision on it settles.
+    keys: list[str]
+
+
+def needs_item(kind: str, it: QueueItem) -> NeedsItem:
+    return NeedsItem(
+        kind=kind,
+        id=it.id,
+        chip=Chip(word=it.chip.word, variant=it.chip.chip or None),
+        claim=it.claim,
+        where=it.where,
+        hint=it.hint,
+        at=it.at,
+        status=status_out("rule", it.status) if it.status else None,
+        keys=list(it.keys),
+    )
 
 
 class ScanSummary(BaseModel):

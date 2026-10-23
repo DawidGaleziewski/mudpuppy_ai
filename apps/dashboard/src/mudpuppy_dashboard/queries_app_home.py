@@ -8,7 +8,7 @@ import sqlite3
 
 from pydantic import BaseModel
 
-from .queries_app import StatusOut, status_out
+from .queries_app import NeedsItem, StatusOut, needs_item, status_out
 from .queries_portal_home import portal_home
 from .queries_review import KINDS
 
@@ -31,22 +31,6 @@ class LastScan(BaseModel):
     #: "check" (a re-scan that checks the model) or "scan", the word the page shows.
     kind: str
     steps: int
-
-
-class Chip(BaseModel):
-    word: str
-    variant: str | None
-
-
-class NeedsItem(BaseModel):
-    kind: str
-    id: str
-    chip: Chip
-    claim: str
-    where: str | None
-    hint: str
-    at: str
-    status: StatusOut | None
 
 
 class KindCount(BaseModel):
@@ -150,19 +134,7 @@ def portal_home_data(conn: sqlite3.Connection, portal: str, env: str) -> PortalH
                 for k, label in KINDS
                 if h.inbox.count(k)
             ],
-            top=[
-                NeedsItem(
-                    kind=kind,
-                    id=it.id,
-                    chip=Chip(word=it.chip.word, variant=it.chip.chip or None),
-                    claim=it.claim,
-                    where=it.where,
-                    hint=it.hint,
-                    at=it.at,
-                    status=status_out("rule", it.status) if it.status else None,
-                )
-                for kind, it in h.top
-            ],
+            top=[needs_item(kind, it) for kind, it in h.top],
         ),
         changes=Changes(
             all=ch.counts.get("all", 0),

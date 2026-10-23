@@ -30,6 +30,11 @@ export const Variants: Story = {
       <Text block muted>
         A paragraph of secondary text.
       </Text>
+      <Text route>/kalkulator/pojazd</Text>
+      <Text asIs>Kalkulator OC/AC (a stored title, not in caps)</Text>
+      <Text>
+        <Text strong>anna.ba</Text>: same screen
+      </Text>
     </Stack>
   ),
 };

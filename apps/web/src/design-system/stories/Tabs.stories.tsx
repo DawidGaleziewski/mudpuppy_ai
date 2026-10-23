@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from '@storybook/react-vite';
 import { useState } from 'react';
-import { Tabs } from '../index.js';
+import { TabPanel, Tabs } from '../index.js';
 
 const meta = {
   title: 'Components/Tabs',
@@ -19,7 +19,7 @@ const meta = {
     docs: {
       description: {
         component:
-          'Tabs follow the WAI-ARIA tab pattern: arrow keys move, Home and End jump, only the selected tab is in the tab order. The caller holds the selection and renders the selected panel (`panelPrefix` ties the tabs to their panels).',
+          'Tabs follow the WAI-ARIA tab pattern: arrow keys move, Home and End jump, only the selected tab is in the tab order. The caller holds the selection and renders the selected panel in a `TabPanel` (`panelPrefix` ties the tabs to their panels).',
       },
     },
   },
@@ -32,5 +32,19 @@ export const Interactive: Story = {
   render: function Render(args) {
     const [tab, setTab] = useState(args.selected);
     return <Tabs {...args} selected={tab} onSelect={setTab} />;
+  },
+};
+
+export const WithPanel: Story = {
+  render: function Render(args) {
+    const [tab, setTab] = useState(args.selected);
+    return (
+      <>
+        <Tabs {...args} panelPrefix="demo" selected={tab} onSelect={setTab} />
+        <TabPanel prefix="demo" id={tab}>
+          The panel of the {tab} tab.
+        </TabPanel>
+      </>
+    );
   },
 };

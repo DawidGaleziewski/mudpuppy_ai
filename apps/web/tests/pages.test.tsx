@@ -1,29 +1,6 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render, screen } from '@testing-library/react';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import { screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { routes } from '../src/app/App';
-
-/** Render the app at `path` with the API answering `bodies[path]` (status 200) or `status`. */
-function at(path: string, bodies: Record<string, unknown>, status = 200) {
-  vi.stubGlobal(
-    'fetch',
-    vi.fn((url: string) =>
-      Promise.resolve(
-        new Response(JSON.stringify(bodies[url] ?? { detail: 'This address does not exist.' }), {
-          status: url in bodies ? status : 404,
-          headers: { 'content-type': 'application/json' },
-        }),
-      ),
-    ),
-  );
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(
-    <QueryClientProvider client={client}>
-      <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
-    </QueryClientProvider>,
-  );
-}
+import { at } from './render-at';
 
 afterEach(() => {
   vi.unstubAllGlobals();

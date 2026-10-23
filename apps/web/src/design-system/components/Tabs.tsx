@@ -70,3 +70,12 @@ export function Tabs({ items, selected, onSelect, label, panelPrefix }: TabsProp
     </div>
   );
 }
+
+/** The panel of the selected tab: named by its tab, reachable by keyboard (`Tabs`' `panelPrefix`). */
+export function TabPanel({ prefix, id, children }: { prefix: string; id: string; children: ReactNode }) {
+  return (
+    <div role="tabpanel" id={`${prefix}-${id}`} aria-labelledby={`tab-${id}`} tabIndex={0}>
+      {children}
+    </div>
+  );
+}

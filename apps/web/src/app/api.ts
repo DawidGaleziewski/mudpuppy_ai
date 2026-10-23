@@ -75,6 +75,26 @@ export const useScans = (portal: string) =>
       q.state.data?.scans.some((s) => s.status.shape === 'running') ? 2000 : false,
   });
 
+/** A mark beside a claim (`queries_app.Chip`). */
+export interface ChipOut {
+  word: string;
+  variant: 'fail' | 'ok' | 'tobe' | 'dashed' | null;
+}
+
+/** One thing that needs a person (`queries_app.NeedsItem`). */
+export interface NeedsItem {
+  kind: string;
+  id: string;
+  chip: ChipOut;
+  claim: string;
+  where: string | null;
+  hint: string;
+  at: string;
+  status: StatusOut | null;
+  /** The hypotheses a decision on it settles. */
+  keys: string[];
+}
+
 export interface PortalHomeData {
   portal: string;
   environment: string;
@@ -85,16 +105,7 @@ export interface PortalHomeData {
   needs: {
     total: number;
     by_kind: { kind: string; label: string; count: number }[];
-    top: {
-      kind: string;
-      id: string;
-      chip: { word: string; variant: 'fail' | 'ok' | 'tobe' | 'dashed' | null };
-      claim: string;
-      where: string | null;
-      hint: string;
-      at: string;
-      status: StatusOut | null;
-    }[];
+    top: NeedsItem[];
   };
   changes: {
     all: number;

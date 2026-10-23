@@ -3,7 +3,13 @@ import { useParams } from 'react-router';
 import { AppShell, Chip, Text, type NavGroup } from '../design-system';
 
 /** The console frame: the portal's sections in the 2.0 grouping, the current one marked. */
-export function Shell({ current, children }: { current: 'portals' | 'home' | 'scans'; children: ReactNode }) {
+export function Shell({
+  current,
+  children,
+}: {
+  current: 'portals' | 'home' | 'screens' | 'scans';
+  children: ReactNode;
+}) {
   const { portal } = useParams();
   const base = portal ? `/app/portals/${encodeURIComponent(portal)}` : null;
   const nav: NavGroup[] = [
@@ -11,6 +17,10 @@ export function Shell({ current, children }: { current: 'portals' | 'home' | 'sc
     ...(base
       ? [
           { items: [{ href: base, label: 'Home', current: current === 'home' }] },
+          {
+            label: 'Portal model',
+            items: [{ href: `${base}/screens`, label: 'Screens', current: current === 'screens' }],
+          },
           {
             label: 'Machine',
             items: [{ href: `${base}/scans`, label: 'Scans', current: current === 'scans' }],

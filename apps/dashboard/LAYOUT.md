@@ -112,3 +112,7 @@ card's "As" persona choice), `wb_frames.py` (frame,
 - Spec 051 (R-96, the React portal home): `GET /api/portals/{p}/home` in `web/api_app.py` over
   `queries_app_home.py` (the htmx home's `queries_portal_home.portal_home` as JSON); every status
   in the API is `queries_app.StatusOut` (`{shape, word}` from `status_map.py`).
+- Spec 052 (R-96, the React Screens): `web/api_screens.py` (`/api/portals/{p}/screens`, `…/{key}`)
+  over `queries_app_screens.py` (`queries_model_screens` and `queries_same_screen` as JSON);
+  `web/api_common.py` holds what the `api_*` routers share (`store`, `known_portal`); a thing
+  that needs a person is `queries_app.NeedsItem` everywhere.

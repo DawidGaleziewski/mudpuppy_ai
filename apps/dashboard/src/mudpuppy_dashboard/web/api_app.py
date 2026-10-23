@@ -5,7 +5,8 @@ from __future__ import annotations
 from fastapi import APIRouter, HTTPException, Request
 
 from .. import db, queries_app, queries_app_home
-from .deps import Ctx, Web, web_of
+from .api_common import known_portal, store
+from .deps import web_of
 
 router = APIRouter(prefix="/api")
 
@@ -27,25 +28,9 @@ def home(request: Request, portal: str, env: str | None = None) -> queries_app_h
     """A portal's home (v2-01): releases, the last scan, what needs you, the counts."""
     web = web_of(request)
     c = web.ctx(request, env)
-    _known(web, c, portal)
-    try:
-        with c.conn() as conn:
-            return queries_app_home.portal_home_data(conn, portal, c.env)
-    except db.StoreMissing as e:
-        raise HTTPException(404, "This store does not exist yet. Start a scan first.") from e
-
-
-def _known(web: Web, c: Ctx, portal: str) -> None:
-    """404 for a portal that is neither configured nor scanned in this store."""
-    if (web.settings.portals_dir / portal / "portal.yaml").is_file():
-        return
-    try:
-        with c.conn() as conn:
-            if queries_app_home.portal_scanned(conn, portal):
-                return
-    except db.StoreMissing:
-        pass
-    raise HTTPException(404, f"There is no portal {portal} here.")
+    known_portal(web, c, portal)
+    with store(c) as conn:
+        return queries_app_home.portal_home_data(conn, portal, c.env)
 
 
 @router.get("/portals/{portal}/scans")
@@ -53,11 +38,8 @@ def scans(request: Request, portal: str, env: str | None = None) -> queries_app.
     """The portal's newest scans."""
     web = web_of(request)
     c = web.ctx(request, env)
-    try:
-        with c.conn() as conn:
-            scans = queries_app.scan_list(conn, portal)
-    except db.StoreMissing as e:
-        raise HTTPException(404, "This store does not exist yet. Start a scan first.") from e
+    with store(c) as conn:
+        scans = queries_app.scan_list(conn, portal)
     configured = (web.settings.portals_dir / portal / "portal.yaml").is_file()
     if scans.total == 0 and not configured:
         raise HTTPException(404, f"There is no portal {portal} here.")

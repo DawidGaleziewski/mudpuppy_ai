@@ -13,15 +13,15 @@ export function Portals() {
         title="Portals"
         meta={data ? `${String(data.portals.length)} portals · environment ${data.environment}` : undefined}
       />
-      <QueryState loading={q.isPending} error={q.error} what="the portals">
-        {() => (
+      <QueryState query={q} what="the portals">
+        {(list) => (
           <Stack>
-            <Plate title="This environment" flush={data!.portals.length > 0}>
-              {data!.portals.length === 0 ? (
+            <Plate title="This environment" flush={list.portals.length > 0}>
+              {list.portals.length === 0 ? (
                 <Callout>No portal yet. Add one in the dashboard&apos;s Settings.</Callout>
               ) : (
                 <Rows label="Portals">
-                  {data!.portals.map((p) => (
+                  {list.portals.map((p) => (
                     <Row
                       key={p.id}
                       aside={
@@ -46,9 +46,9 @@ export function Portals() {
                 </Rows>
               )}
             </Plate>
-            {data!.other_environments.length > 0 && (
+            {list.other_environments.length > 0 && (
               <Plate title="Other environments">
-                {data!.other_environments.map((p) => (
+                {list.other_environments.map((p) => (
                   <Tag key={p} size="sm">
                     {p}
                   </Tag>

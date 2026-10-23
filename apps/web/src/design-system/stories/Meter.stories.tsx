@@ -19,6 +19,9 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 export const Running: Story = {};
+export const OwnName: Story = {
+  args: { label: 'Actions', srLabel: 'Actions checked on Kontakt', value: 3, max: 4, detail: '3 / 4' },
+};
 export const States: Story = {
   render: () => (
     <Stack>

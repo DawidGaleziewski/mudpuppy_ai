@@ -9,10 +9,12 @@ export interface MeterProps {
   /** The count at the right ("171 / 400 steps"); `value / max` when left out. */
   detail?: ReactNode;
   status?: StatusKind;
+  /** The track's name for assistive technology when the visible label is short or not text. */
+  srLabel?: string;
 }
 
 /** A progress meter with its numbers: counts first (voice). */
-export function Meter({ label, value, max, detail, status = 'running' }: MeterProps) {
+export function Meter({ label, value, max, detail, status = 'running', srLabel }: MeterProps) {
   const pct = max > 0 ? Math.min(100, Math.max(0, (value / max) * 100)) : 0;
   return (
     <div
@@ -30,7 +32,7 @@ export function Meter({ label, value, max, detail, status = 'running' }: MeterPr
         aria-valuemin={0}
         aria-valuemax={max}
         aria-valuenow={value}
-        aria-label={typeof label === 'string' ? label : undefined}
+        aria-label={srLabel ?? (typeof label === 'string' ? label : undefined)}
       >
         <div className="sy-meter__fill" />
       </div>

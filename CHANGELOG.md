@@ -6,6 +6,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 3: the Screens pages in React** (spec 052, v2.6.2, 2026-10-23).
+  `/app/portals/{p}/screens`: the model's screens, needs you first, filtered by status, text,
+  part, why and sort (kept in the address); one screen with what needs you on it, its variants
+  side by side with their pictures (screenshot or wireframe in a dialog), its actions and where
+  they lead, its history. New components in Storybook: Segmented, Timeline, Compare, Picture,
+  TabPanel. API: `/api/portals/{p}/screens` and `/api/portals/{p}/screens/{key}`.
 - **R-96 step 2: the portal home in React** (spec 051, v2.6.1, 2026-10-23). `/app/portals/{p}`:
   what needs you first, then the last scan, the model, each part's latest release and the changes
   by process, from the new `/api/portals/{p}/home`. Every status the API gives is mapped by the

@@ -1,7 +1,6 @@
 import { useParams } from 'react-router';
 import {
   Callout,
-  Chip,
   Cluster,
   Count,
   Facts,
@@ -18,6 +17,7 @@ import {
 import { usePortalHome, type PortalHomeData } from '../app/api';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
+import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
 
 type Item = PortalHomeData['needs']['top'][number];
@@ -34,7 +34,7 @@ function NeedsRow({ item }: { item: Item }) {
   return (
     <Row tone="intent" aside={item.status ? <ShownStatus status={item.status} /> : <Text muted small>{item.at}</Text>}>
       <Cluster>
-        <Chip {...(item.chip.variant ? { variant: item.chip.variant } : {})}>{item.chip.word}</Chip>
+        <ShownChip chip={item.chip} />
       </Cluster>
       {item.claim}
       {item.where && (
@@ -162,8 +162,8 @@ export function PortalHome() {
         title={portal}
         meta={q.data ? `environment ${q.data.environment}` : undefined}
       />
-      <QueryState loading={q.isPending} error={q.error} what="the portal">
-        {() => <Home h={q.data!} />}
+      <QueryState query={q} what="the portal">
+        {(h) => <Home h={h} />}
       </QueryState>
     </Shell>
   );

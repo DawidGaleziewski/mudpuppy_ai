@@ -4,19 +4,19 @@ import { ApiError } from './api';
 
 /**
  * The loading and error states every page shows the same way (skill rule 6): loading says what
- * it loads, an error gives the message and the next move.
+ * it loads, an error gives the message and the next move. Once the data is there, `children`
+ * gets it, so a page never asserts that it exists.
  */
-export function QueryState({
-  loading,
-  error,
+export function QueryState<T>({
+  query,
   what,
   children,
 }: {
-  loading: boolean;
-  error: unknown;
+  query: { data: T | undefined; isPending: boolean; error: unknown };
   what: string;
-  children: () => ReactNode;
+  children: (data: T) => ReactNode;
 }) {
+  const { data, isPending: loading, error } = query;
   if (loading)
     return (
       <div role="status">
@@ -25,7 +25,7 @@ export function QueryState({
         </Text>
       </div>
     );
-  if (error) {
+  if (error || data === undefined) {
     const message =
       error instanceof ApiError || error instanceof Error ? error.message : 'The request failed.';
     return (
@@ -34,5 +34,5 @@ export function QueryState({
       </Callout>
     );
   }
-  return <>{children()}</>;
+  return <>{children(data)}</>;
 }

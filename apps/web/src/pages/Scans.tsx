@@ -30,8 +30,8 @@ export function Scans() {
         title="Scans"
         meta={q.data ? `${String(q.data.total)} scans · ${String(running.length)} running` : undefined}
       />
-      <QueryState loading={q.isPending} error={q.error} what="the scans">
-        {() => (
+      <QueryState query={q} what="the scans">
+        {(list) => (
           <Stack>
             {running.map((s) => (
               <Plate key={s.id} title="Running now" label={`Scan ${s.id}`}>
@@ -47,7 +47,7 @@ export function Scans() {
               <Table
                 caption={`Scans of ${portal}`}
                 columns={columns}
-                rows={q.data!.scans}
+                rows={list.scans}
                 rowKey={(s) => s.id}
                 flush
                 empty="No scans yet. Start one from the chat."
