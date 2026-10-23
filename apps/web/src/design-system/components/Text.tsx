@@ -54,7 +54,12 @@ export function Text({ children, block, strong, href, ...looks }: TextProps) {
   return <Inline className={className}>{children}</Inline>;
 }
 
-/** The heading of a part inside a plate ("Variants · 3"): an `h3` in the label face. */
-export function SubHead({ children }: { children: ReactNode }) {
+/**
+ * The heading of a part inside a plate ("Variants · 3"): an `h3` in the label face. `section`: a
+ * section of the page outside a plate ("What differs", "3 changes"), an `h2`; with `asIs` it keeps
+ * the stored case (a finding's sentence, never in caps).
+ */
+export function SubHead({ children, section, asIs }: { children: ReactNode; section?: boolean; asIs?: boolean }) {
+  if (section) return <h2 className={asIs ? 'sy-h2 sy-case-normal' : 'sy-h2'}>{children}</h2>;
   return <h3 className="sy-label">{children}</h3>;
 }

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router';
 import { Button, Check, Cluster, Columns, Disclosure, Field, Note, PageHead, Plate, Row, Rows, Select, Stack, Table, Tag, Text, ViewNav } from '../design-system';
 import { useReviewKeys } from '../app/useReviewKeys';
+import { changeHref } from '../app/api-changes';
 import { reviewHref, reviewKey, useReview, type ReviewPage, type ReviewView } from '../app/api-review';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
@@ -145,7 +146,7 @@ function Explained({ page }: { page: ReviewPage }) {
           { header: 'Explanation', cell: (c) => <Stack><ShownChip chip={c.explanation} /><Text small muted>{c.explanation_text}</Text></Stack> },
           { header: 'Rule', cell: (c) => <Text mono>{c.rule ?? '—'}</Text> },
           { header: 'When', cell: (c) => <Text mono small muted>{c.at}</Text> },
-          { header: 'Open', cell: (c) => <Text small href={`/changes/${encodeURIComponent(c.id)}`}>Before / after</Text> },
+          { header: 'Open', cell: (c) => <Text small href={changeHref(page.portal, c.id)}>Before / after</Text> },
         ]}
         rows={page.explained}
         rowKey={(c) => c.id}

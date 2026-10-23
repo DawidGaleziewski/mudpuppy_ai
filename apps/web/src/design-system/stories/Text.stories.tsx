@@ -60,3 +60,14 @@ export const Heading: Story = {
     </Stack>
   ),
 };
+/** `SubHead section`: a section of the page outside a plate (an `h2`); `asIs` keeps a sentence's case. */
+export const SectionHeading: Story = {
+  render: () => (
+    <Stack>
+      <SubHead section>What differs</SubHead>
+      <SubHead section asIs>
+        Banner &quot;Oferta specjalna&quot; on 6 of 11 visits
+      </SubHead>
+    </Stack>
+  ),
+};

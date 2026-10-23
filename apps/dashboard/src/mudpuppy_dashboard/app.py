@@ -37,6 +37,7 @@ from .web import activity as activity_page
 from .web import amendments as amendments_page
 from .web import (
     api_app,
+    api_changes,
     api_map,
     api_process,
     api_processes,
@@ -204,6 +205,7 @@ def create_app(
     app.include_router(api_process.router)
     app.include_router(api_review.router)
     app.include_router(api_review_items.router)
+    app.include_router(api_changes.router)
     app.include_router(api_scan.router)
     app.include_router(api_scan_tabs.router)
     app.include_router(api_scan_trace.router)

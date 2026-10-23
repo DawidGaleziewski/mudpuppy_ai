@@ -33,7 +33,10 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
   review; an `Ask` may carry `undo`, the ask a decision's Undo opens; spec 063 adds
   `ReviewItems.tsx`: a difference, an amendment to re-anchor, a proposal (before → after);
   `ReviewSuite.tsx`: a probe suite edited and approved; `useReviewKeys.ts`: the single keys
-  J/K/C/R/U/? and the switch that turns them off)),
+  J/K/C/R/U/? and the switch that turns them off; Before / after adds Esc));
+  `api-changes.ts` is What changed (`Changes.tsx`: range, release lanes, filters, the groups) and
+  Before / after (`Change.tsx`: the sides as `Shot`s in three modes, what differs, the
+  explanation with the decision bar through Review's decide),
   `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
   first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
   link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the

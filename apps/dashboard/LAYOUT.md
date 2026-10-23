@@ -166,3 +166,10 @@ card's "As" persona choice), `wb_frames.py` (frame,
   proposal and a probe suite; `Option` lives there); `suite_form.py` now also holds `suite_calls`,
   `SUITE_DONE` and `form_of` (the console's JSON suite edit as the htmx form's fields), shared by
   `web/review.py` and the API; the Review query takes a `Viewer` (reviewer and persona attributes).
+- Spec 064 (R-96, Changes): `web/api_changes.py` (`GET /api/portals/{p}/changes` and
+  `…/changes/{id}`, read-only; a change's hypothesis is decided through `…/review/decide`) over
+  `queries_app_changes.py` (the range and its choices, the release lanes with the bracket, the
+  groups by process and screen, the legend) and `queries_app_change.py` (Before / after: both
+  sides with evidence URLs, the changed region from `visuals.region`, what differs, tests,
+  neighbours), built on the htmx page's `queries_changes`, `queries_change_detail` and
+  `queries_releases`.

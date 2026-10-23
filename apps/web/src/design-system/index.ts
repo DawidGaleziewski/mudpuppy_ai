@@ -31,7 +31,9 @@ export { Picture, type PictureItem, type PictureProps } from './components/Pictu
 export { Variant, Variants, type VariantProps } from './components/Variants.js';
 export { ScanId, shortScanId, type ScanIdProps } from './components/ScanId.js';
 export { Plate, type PlateProps } from './components/Plate.js';
+export { Releases, type ReleaseLane, type ReleaseScan, type ReleaseSpan, type ReleasesProps } from './components/Releases.js';
 export { Row, Rows, type RowProps } from './components/Rows.js';
+export { Shot, type ShotProps, type ShotRegion } from './components/Shot.js';
 export { Segmented, type SegmentedProps, type SegmentItem } from './components/Segmented.js';
 export { Status, type StatusProps } from './components/Status.js';
 export { Steps, type Step } from './components/Steps.js';

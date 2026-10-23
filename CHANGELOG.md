@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-96 step 15: What changed and Before / after in React** (spec 064, v2.6.14, 2026-10-23).
+  `/app/portals/{p}/changes`: choose the range (since the previous release, from a model version,
+  a date or a scan, to a version) over the release lanes, whose releases start the range at
+  them; the changes are grouped by process, then screen, what needs you first, with show, kind
+  and process filters and the explanations' legend. Before / after shows the two recorded pages
+  side by side, one over the other, or as wireframes, with the changed element marked where it
+  is and "Not here" where it is not; what differs between their visits; the explanation with its
+  tests; where the change shows. A change waiting for a person is confirmed or rejected there
+  (it asks first and offers Undo); J and K go to the next and previous change that needs you, Esc
+  back to the list. Changes is in the console's menu; Review's explained changes open here.
 - **R-96 step 14: the rest of Review in React** (spec 063, v2.6.13, 2026-10-23). An unexplained
   difference says who sees it and who does not, with each persona's attributes and the side-by-side
   link. An amendment that lost its place shows why and where it was, and is re-anchored on a screen

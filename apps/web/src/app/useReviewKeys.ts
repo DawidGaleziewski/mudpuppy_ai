@@ -1,5 +1,6 @@
 // Review's single keys (designer § 5.2, spec 063): J / K next and previous item, C confirm, R
-// reject (to the reason), U undo the last decision, ? the list of keys. Never while typing, with
+// reject (to the reason), U undo the last decision, ? the list of keys; Before / after (spec 064)
+// also Esc back to What changed. Never while typing, with
 // a modifier, or while a dialog is open. The controls they reach carry `data-review-key`; a
 // person can turn the keys off in this browser (a per-viewer convenience: storage may be missing).
 import { useEffect, useState } from 'react';
@@ -32,11 +33,15 @@ const marked = (key: string) => document.querySelector<HTMLElement>(`[data-revie
 export interface ReviewKeys {
   /** Go to the next (`1`) or previous (`-1`) item of the group. */
   move: (step: 1 | -1) => void;
-  /** Show the list of keys. */
-  help: () => void;
+  /** Show the list of keys (Review). */
+  help?: () => void;
+  /** Esc: back to the list (Before / after, spec 064). */
+  back?: () => void;
 }
 
-export function useReviewKeys({ move, help }: ReviewKeys) {
+const none = () => undefined;
+
+export function useReviewKeys({ move, help = none, back }: ReviewKeys) {
   const [on, setOn] = useState(storedOn);
   useEffect(() => {
     if (!on) return;
@@ -49,6 +54,7 @@ export function useReviewKeys({ move, help }: ReviewKeys) {
         r: () => marked('r')?.focus(),
         u: () => marked('u')?.click(),
         '?': help,
+        ...(back ? { escape: back } : {}),
       };
       const act = acts[e.key.toLowerCase()];
       if (!act) return;
@@ -57,7 +63,7 @@ export function useReviewKeys({ move, help }: ReviewKeys) {
     };
     document.addEventListener('keydown', press);
     return () => document.removeEventListener('keydown', press);
-  }, [on, move, help]);
+  }, [on, move, help, back]);
   const turn = (next: boolean) => {
     setOn(next);
     keep(next);
