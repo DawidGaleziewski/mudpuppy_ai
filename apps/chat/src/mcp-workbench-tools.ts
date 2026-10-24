@@ -18,6 +18,7 @@ import {
   type WbPath,
 } from '@mudpuppy/workbench-contract';
 import { CommandRefusal, proposeCommand, resolveScan } from './workbench-commands.js';
+import { AskChoiceInput, AskChoiceShape, storeChoice } from './workbench-choices.js';
 import { commandsAllowedOn, commandsOffReason } from './workbench-envs.js';
 import { currentTurn } from './workbench-turn.js';
 
@@ -28,6 +29,8 @@ export interface WorkbenchToolContext {
   phase: number;
   /** The chat's environment (D-6): a proposal is refused where commands are off; unset, the confirm checks. */
   environment?: string;
+  /** The live Workbench (spec 075): `ask_choice` too. */
+  live?: boolean;
 }
 
 type Ok = (value: unknown) => CallToolResult;
@@ -206,6 +209,26 @@ export function registerWorkbenchTools(
         if (error instanceof CommandRefusal) return refused(error.code, error.message);
         throw error;
       }
+    },
+  );
+  if (ctx.live === true) registerChoiceTool(server, ctx, ok, refused);
+}
+
+/** `ask_choice` (spec 075 FR-008): a drop-down on the person's screen; the answer is an event turn. */
+function registerChoiceTool(server: McpServer, ctx: WorkbenchToolContext, ok: Ok, refused: Refused): void {
+  server.registerTool(
+    'ask_choice',
+    {
+      description:
+        'Ask the person to pick one thing in a drop-down on their screen instead of asking in words. kind: portal (move to another portal), store (another data store), persona (which persona to scan as), answer (your own 2-6 options as {value, label}). The options for portal, store and persona come from the server. The answer comes back as an "[event] The person answered" message. One choice at a time.',
+      inputSchema: AskChoiceShape.shape,
+    },
+    (input) => {
+      const checked = AskChoiceInput.safeParse(input);
+      if (!checked.success)
+        return refused('INVALID', 'the choice is not valid', checked.error.issues.map((i) => i.message));
+      const choice = storeChoice(ctx.raw, ctx.conversationId, currentTurn(ctx.raw, ctx.conversationId), checked.data);
+      return ok({ choice_id: choice.id, message: 'The drop-down is on the person’s screen; wait for their answer.' });
     },
   );
 }

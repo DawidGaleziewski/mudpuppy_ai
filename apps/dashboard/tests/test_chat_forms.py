@@ -210,6 +210,19 @@ def test_credentials_post_forwards_values_and_never_echoes_them(mapped: Store) -
     }
 
 
+def test_credentials_take_any_declared_environment_local_dev_too(mapped: Store) -> None:
+    """Spec 075 F-02: the owner's local-dev store could not take a credential from the console."""
+    service = Service()
+    service.routes[("POST", f"/conversations/{CONV}/credentials")] = httpx2.Response(
+        200, json={"stored": True, "refs": ["A_LOGIN"]}
+    )
+    body = {"portal": "liveinsurer", "environment": "local-dev", "values": {"A_LOGIN": FAKE_SECRET}}
+    with make_client(mapped, service) as c:
+        r = c.post(f"/chat/conversations/{CONV}/credentials", json=body, headers=ORIGIN)
+    assert r.status_code == 200
+    assert json.loads(service.requests[-1].content)["environment"] == "local-dev"
+
+
 def test_credentials_vault_key_missing_409_is_passed_through(mapped: Store) -> None:
     service = Service()
     service.routes[("POST", f"/conversations/{CONV}/credentials")] = httpx2.Response(
@@ -230,7 +243,8 @@ def test_credentials_vault_key_missing_409_is_passed_through(mapped: Store) -> N
     ("payload", "message"),
     [
         ({"environment": "sandbox", "values": {"A": "x"}}, "Choose a portal"),
-        ({"portal": "liveinsurer", "environment": "prod", "values": {"A": "x"}}, "sandbox, staging"),
+        ({"portal": "liveinsurer", "environment": "Prod Env", "values": {"A": "x"}}, "environments"),
+        ({"portal": "liveinsurer", "values": {"A": "x"}}, "environments"),
         ({"portal": "liveinsurer", "environment": "sandbox", "values": {"A": ""}}, "at least one value"),
         (
             {"portal": "liveinsurer", "environment": "sandbox", "values": {"bad name": "x"}},

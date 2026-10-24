@@ -193,4 +193,31 @@ describe('Workbench tools', () => {
     });
     expect(off).toMatchObject({ isError: true, body: { error: { code: 'PAUSED' } } });
   });
+
+  it('the live Workbench also offers ask_choice, and keeps the choice (spec 075)', async () => {
+    await client.close();
+    const server = createChatMcpServer({
+      raw: opened.raw,
+      paths: { repoRoot: repo },
+      conversationId: CONV,
+      workbench: { phase: 1, live: true },
+    });
+    const [a, b] = InMemoryTransport.createLinkedPair();
+    client = new Client({ name: 'test', version: '0.0.0' });
+    await Promise.all([server.connect(a), client.connect(b)]);
+    const { tools } = await client.listTools();
+    expect(tools.map((t) => t.name).sort()).toEqual(['ask_choice', 'propose_command', 'render_view']);
+    const bad = await call('ask_choice', { kind: 'answer', question: 'Which?' });
+    expect(bad).toMatchObject({ isError: true, body: { error: { code: 'INVALID' } } });
+    const asked = await call('ask_choice', { kind: 'store', question: 'Which data store?' });
+    expect(asked.isError).toBe(false);
+    const kept = raw()
+      .prepare(`SELECT seq, role, tool_name, content FROM chat_messages WHERE conversation_id = ? ORDER BY seq`)
+      .all(CONV) as { seq: number; role: string; tool_name: string | null; content: string }[];
+    expect(kept.map((m) => [m.seq, m.role, m.tool_name])).toEqual([
+      [0, 'user', null],
+      [1, 'system', 'workbench_choice'],
+    ]);
+    expect(JSON.parse(kept[1]!.content)).toMatchObject({ id: asked.body.choice_id, turn: 1, kind: 'store' });
+  });
 });

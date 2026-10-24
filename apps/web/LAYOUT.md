@@ -58,6 +58,20 @@ map (G-30; moved out of `CLAUDE.md` in spec 074).
   moves made by code); `store.ts` and `asOf.ts` keep `?store=` and `?as_of=`;
   `listAddress.ts` (the query a list last had, for crumbs back to it).
 
+## The live Workbench (`src/workbench-live/`, spec 075, the R-96 spike)
+
+- `LiveWorkbench.tsx`: the page at `/app/portals/{p}/workbench/live` (loaded lazily: A2UI is
+  its own chunk): the conversation with each turn's A2UI surface, the stage with the scan live.
+- `useLiveWorkbench.ts`: the WebSocket (`LiveLink`: reconnect, heartbeat watchdog, a fresh
+  snapshot after a lost `seq`), AG-UI frames into the state (JSON Patch) and the surfaces' data
+  model (at the item, F-03); `protocol.ts`: the frames and the state's shape.
+- `catalog.tsx` (the designer's catalog id and names), `catalog-scan.tsx` (LiveMap with the graph
+  and route, ScanMeter, Narration, ErrorCard, PageDetail, PageMiniature), `catalog-cards.tsx`
+  (View, CommandCard, Choice, the record cards), `PersonaCreator.tsx` (persona.add: a sign-in to
+  the vault only), `context.ts` (the frame's state for the components).
+- `placeholder.css`: grey boxes (owner 2026-10-24) until the designer's look; the only place in
+  the app that styles outside the design system (spec 075 D-4).
+
 ## Pages and tests
 
 - `src/pages/`: one file per page.

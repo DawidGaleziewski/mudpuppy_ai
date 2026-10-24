@@ -16,6 +16,7 @@ import {
 } from './workbench-commands.js';
 import { failStarts, settleCommands } from './workbench-settle.js';
 import { asText, workbenchPortal, type Body, type WorkbenchDeps } from './workbench-service.js';
+import { liveConfirmedText } from './workbench-live.js';
 import { currentTurn } from './workbench-turn.js';
 
 const contract = loadContract();
@@ -46,6 +47,34 @@ function refusing<T>(work: () => T): T {
   }
 }
 
+const labelOf = (command: CommandRow): string =>
+  contract.commands.find((c) => c.name === command.command)?.label ?? command.command;
+
+/** Hand a confirmed scan over: to the scan runner for a live conversation, else to its assistant. */
+function launcher(deps: WorkbenchDeps) {
+  return (conversationId: string, prompt: string, command: CommandRow): void => {
+    deps.launches.allow(conversationId, prompt);
+    const text = launchText(labelOf(command), prompt);
+    // A failed hand-off is caught by the timer: no run starts, the command fails.
+    if (deps.runner !== undefined && deps.live?.(conversationId) === true) {
+      // spec 075: the scan runs in the background; the live assistant is only told
+      deps.runner.run(conversationId, text).catch(() => undefined);
+      deps.service.sendEvent(conversationId, liveConfirmedText(labelOf(command))).catch(() => undefined);
+      return;
+    }
+    deps.service.sendEvent(conversationId, text).catch(() => undefined);
+  };
+}
+
+/** The live assistant hears of a persona the person added (by name only). */
+function tellAdded(deps: WorkbenchDeps, row: CommandRow): void {
+  if (row.command !== 'persona.add' || row.state !== 'done' || deps.live?.(row.conversation_id) !== true) return;
+  const name = (JSON.parse(row.args_json) as { name?: unknown }).name;
+  deps.service
+    .sendEvent(row.conversation_id, `[event] The person added the persona ${String(name)}.`)
+    .catch(() => undefined);
+}
+
 export function cardActions(deps: WorkbenchDeps) {
   const { raw, service } = deps;
   const tell = (row: CommandRow): void => {
@@ -53,14 +82,7 @@ export function cardActions(deps: WorkbenchDeps) {
     service.inject(row.conversation_id, [event]);
     deps.telemetry('wb_cmd', { cmd: row.command, source: row.source, state: row.state });
   };
-  const launch = (conversationId: string, prompt: string, command: CommandRow): void => {
-    deps.launches.allow(conversationId, prompt);
-    const label = contract.commands.find((c) => c.name === command.command)?.label;
-    // A failed hand-off is caught by the timer: no run starts, the command fails.
-    service
-      .sendEvent(conversationId, launchText(label ?? command.command, prompt))
-      .catch(() => undefined);
-  };
+  const launch = launcher(deps);
 
   return {
     /** A card the person opened from a view's button (`source: 'button'`). */
@@ -113,6 +135,7 @@ export function cardActions(deps: WorkbenchDeps) {
       };
       const row = refusing(() => confirmCommand(confirmDeps, input));
       tell(row);
+      tellAdded(deps, row);
       return { state: row.state };
     },
 

@@ -82,7 +82,10 @@ function deny(text: string): PermissionDecision {
   return { allow: false, reason: `${REFUSAL.notAllowed}: ${text}` };
 }
 
-const READ_AND_COMPOSE: ReadonlySet<string> = new Set([...WORKBENCH_TOOLS, ...BA_READ_TOOLS]);
+/** The live Workbench's choice (spec 075; its server offers it only in live mode, F-06). */
+export const CHOICE_TOOL_NAME = 'mcp__mudpuppy-chat__ask_choice';
+
+const READ_AND_COMPOSE: ReadonlySet<string> = new Set([...WORKBENCH_TOOLS, CHOICE_TOOL_NAME, ...BA_READ_TOOLS]);
 
 /** The Workbench fence: one per conversation, over the chat's fence for the crawler's own calls. */
 export function createWorkbenchFence(

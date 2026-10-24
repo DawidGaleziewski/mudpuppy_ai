@@ -39,6 +39,7 @@ from .web import (
     api_settings,
     api_state,
     api_workbench,
+    api_workbench_live,
     api_writes,
     chat_relay,
     evidence,
@@ -94,6 +95,7 @@ def create_app(
     app.include_router(api_lists.router)
     app.include_router(api_glossary.router)
     app.include_router(api_workbench.router)
+    app.include_router(api_workbench_live.router)
     app.include_router(spa.router)
     # Last: the old addresses, each a redirect to its page in the console.
     app.include_router(legacy.router)

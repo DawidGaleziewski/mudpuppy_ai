@@ -5,8 +5,10 @@ description = "MudPuppy's console server: the JSON API over the crawl store and 
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
+    "ag-ui-protocol>=1.0.0",
     "fastapi>=0.141.1",
     "httpx2>=2.13.1",
+    "jsonpatch>=1.33",
     "markdown-it-py>=4.2.0",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",

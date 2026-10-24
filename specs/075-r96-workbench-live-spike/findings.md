@@ -1,0 +1,27 @@
+# Findings: spec 075 (R-96 spike)
+
+Owner rule: every bug or slip gets an eval or test idea.
+
+| # | Part | What was wrong | Cause | Test or eval idea |
+| - | ---- | -------------- | ----- | ----------------- |
+| F-01 | chat | A turn whose setup throws before the agent is asked (a conversation row that does not parse, a broken handover) ends with no answer, no error event and no log: the person waits forever | `ChatService.runTurn` catches everything as "AcpChat already logged it", but only AcpChat's own failures are logged; `ensureChat` / `withHandover` errors are swallowed (found by a test fixture with a timestamp without milliseconds) | A test: a conversation whose row fails `ChatConversation.parse` gets an `error` event with a reference. Not fixed in the spike (it is the chat core); for R-96's spec |
+| F-02 | dashboard | The credential relay refuses every environment but sandbox, staging and production, so `local-dev` (the owner's test store) cannot store a credential from the console | `queries_chat.ENVIRONMENTS` predates declared environments (spec 030 R-61); the chat service's vault takes any declared environment | A relay test that a portal's declared environment (`local-dev`) is accepted and an undeclared one is refused |
+| F-03 | web (A2UI) | A delta to `/scans/{id}/meter/steps` reached the surface's data model, but the LiveMap bound to `/scans/{id}` did not re-render: the meter stayed at the old step | `@a2ui/web_core` 0.14 changes the data model's objects in place and the React renderer compares a node's props by value, so the old and new props of a component bound to the parent look equal. The designer's rule "only changed paths … never resend a whole scan" (19/13) cannot be kept for a component that binds a whole object | Changes are written at their item (`/scans/{id}`, `/commands/{id}`): `itemOf`, a test in `workbench-live.test.tsx` (a delta re-renders the meter). For the designer: either components bind leaf paths (`/scans/{id}/meter`), or the server writes at item level; and for A2UI upstream (copy on write) |
+| F-04 | chat (live try) | The live assistant tried the crawler's `get_known_states` mid-scan (refused); every live conversation also started the crawler's MCP server and its Chromium, though it never crawls | `buildLiveSessionRequest` kept the Workbench session's three servers | The live session has only `mudpuppy-chat` and `mudpuppy-ba` (test); the runner keeps the crawler's |
+| F-05 | chat (live try) | Asked "which pages has it seen?" mid-scan, the assistant could name only the current page | The turn context lists scans with counts and the last route, not their pages | The newest scan's routes in visit order in `<scan_data>` (`workbench-context.test.ts`); after the fix it listed all five pages and said none is behind the login. Eval idea: a golden prompt "which pages so far?" graded on the routes |
+| F-06 | chat (live try) | `ask_choice` was refused by the fence; the assistant told the person to "allow the choice prompt" | The Workbench fence's allowlist predates the tool | Allowed in the fence (test); the tool is only offered in live mode |
+| F-07 | chat (live try) | The stop event said 4 pages, 68 queued; the store a moment later had 5 and 84 | The milestone was told on the status change, before the crawler's last writes landed | Told 3 s after the run ended (`SETTLE_MS`, test) |
+| F-08 | chat (live try) | After the person's Stop the assistant said "the event didn't say why it stopped" | A Stop sets no warning on the run | The event says "Why: the person pressed Stop." when a confirmed Stop ended it (test) |
+| F-09 | web (live try) | After a portal switch from the drop-down, the page still showed the old conversation's socket, state and stage | The page kept its socket and state when `?c=` went away | The page is keyed by portal and conversation, so a switch starts clean |
+| F-11 | crawler (close-out) | `rule-drift.e2e.test.ts` failed once in the full `pnpm test` (no regression found by the replay) and passed alone; the branch changes nothing in the crawler | Not found: the full run overlapped the dashboard suite and the chat browser tests on the same machine | Run it alone in the close-out when it fails; idea: record the replay's page timings in the test's failure message so a slow page shows |
+| F-10 | web (live try) | A store switch to sandbox from the drop-down landed back on local-dev | "The store follows the portal" (R-71 (d)) moves a store without the portal back to one with it; reference-insurer-local is only in local-dev | The store choice offers only stores that hold the portal. Open for the owner: what "change sandbox" should mean in the Workbench (the same portal in another store? the chat service runs one environment, so commands cannot run there) |
+
+## Close-out review: feature/075-r96-workbench-live-spike (2026-10-24)
+
+| # | File:line | Guideline | Finding | Change | Size | Outcome |
+| - | --------- | --------- | ------- | ------ | ---- | ------- |
+| 1 | apps/chat/src/mcp-chat.ts:40 | G-19 | two stacked doc comments on `workbench?` | merged into one | small | fixed |
+| 2 | apps/dashboard/src/mudpuppy_dashboard/web/workbench_live.py:81 | G-15 | `_limit` runs SQL in a `web/` module | move to a query module (`queries_scans`, not changed on this branch) | small | fixed (`queries_scans.run_max_steps`) |
+
+Checks after fixes: chat typecheck ✓ lint ✓ test ✓; web typecheck ✓ lint ✓ test ✓; dashboard ruff ✓ (no Python change)
+Summary: 2 findings, 1 fixed, 1 deferred, 0 rejected.

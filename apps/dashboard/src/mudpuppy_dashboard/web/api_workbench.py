@@ -84,11 +84,14 @@ async def send(request: Request, portal: str) -> JSONResponse:
     form = await read_json(request)
     text = str(form.get("text") or "").strip()
     conversation = str(form.get("c") or "")
+    # spec 075: the live Workbench's first message starts a live conversation
+    live = form.get("live") is True
     if not text:
         return write_answer(422, "Write a message first.")
     try:
         if not conversation:
-            status, reply = await chat(web, "POST", "/workbench/conversations", {"portal": portal})
+            new = {"portal": portal, **({"live": True} if live else {})}
+            status, reply = await chat(web, "POST", "/workbench/conversations", new)
             if status != 201 or not isinstance(reply, dict):
                 return write_answer(502, f"Not sent: {_message(reply, status)}.")
             conversation = str(reply["conversation_id"])
@@ -100,7 +103,8 @@ async def send(request: Request, portal: str) -> JSONResponse:
         return write_answer(503, chat_client.not_running(web.ctx(request, None).env))
     if status != 202 or not isinstance(reply, dict):
         return write_answer(502, f"Not sent: {_message(reply, status)}.")
-    href = f"/app/portals/{quote(portal, safe='')}/workbench?c={quote(conversation, safe='')}"
+    page = "workbench/live" if live else "workbench"
+    href = f"/app/portals/{quote(portal, safe='')}/{page}?c={quote(conversation, safe='')}"
     return write_answer(200, f"Sent as turn {reply.get('turn')}.", href)
 
 

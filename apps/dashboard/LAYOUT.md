@@ -47,6 +47,7 @@ files, and the console itself at `/app/`.
 | `api_portal_new`, `api_errors` | `+ new portal`; an `ERR-…` reference | through the chat service |
 | `api_amendments`, `api_writes` | amendments on a screen; marks, Skip, restarts | through the chat service |
 | `api_workbench` | the Workbench page model, Send, Path, command cards, feedback | `workbench_model`, `queries_wb`, `queries_wb_scan`, `wb_render`, `wb_frames` |
+| `api_workbench_live` | spec 075 (R-96 spike): the live Workbench's WebSocket (AG-UI state, words and runs; A2UI surfaces; actions up) and its page frame | `workbench_live` (the projection), `wb_a2ui` (a view spec as A2UI v0.9.1), `queries_run_graph`, `queries_wb_scan` |
 
 - `web/api_common.py`: what the routers share (`store`, `known_portal`, `scan_store`, `page_at`).
 - Every status leaves the API mapped (`status_map.py`: `{shape, word}`, `queries_app.StatusOut`).

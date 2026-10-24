@@ -49,6 +49,31 @@ describe('turn context', () => {
     expect(text.match(/<\/scan_data>/g)).toHaveLength(1);
   });
 
+  it("names the newest scan's pages in visit order, inside <scan_data> (spec 075 F-05)", () => {
+    const { opened } = memoryStore();
+    seed(opened.raw);
+    const NEWEST = '01a2aaaa-ffff-7000-8000-000000000002';
+    for (const [i, route] of ['/', '/kontakt', '/'].entries()) {
+      if (i < 2)
+        opened.raw
+          .prepare(
+            `INSERT INTO states (id, portal_id, fingerprint, cluster_id, route_template, title, first_seen_run,
+               evidence_ref, confidence, stabilization, created_at)
+             VALUES (?, ?, ?, ?, ?, 't', ?, 'ev', 'observed', 'settled', 'x')`,
+          )
+          .run(`s${route}`, P, `fp${route}`, `cl${route}`, `${route}<b>`, NEWEST);
+      opened.raw
+        .prepare(
+          `INSERT OR IGNORE INTO state_observations (run_id, state_id, persona_id, evidence_ref, observed_at)
+           VALUES (?, ?, 'guest', 'ev', ?)`,
+        )
+        .run(NEWEST, `s${route}`, `2026-10-07T10:01:0${String(i)}.000Z`);
+    }
+    const text = turnContext(opened.raw, { conversationId: 'c1', portal: P, phase: 1, chips: [] });
+    const data = text.slice(text.indexOf('<scan_data>'));
+    expect(data).toContain(`${NEWEST} pages in visit order: /&lt;b&gt;, /kontakt&lt;b&gt;`);
+  });
+
   it('chips are structured, checked, at most three; a route is escaped', () => {
     const chips = chipsOf([
       { kind: 'page', scan: SCAN, route: '/kontakt' },

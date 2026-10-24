@@ -10,6 +10,9 @@ import { HttpError } from './http-error.js';
 import type { ChatService } from './service.js';
 import { cardActions } from './workbench-cards.js';
 import { chipsOf, turnContext } from './workbench-context.js';
+import type { ScanRunner } from './scan-runner.js';
+import { liveAction } from './workbench-actions.js';
+import { LIVE_GOAL } from './workbench-live.js';
 import type { Launches } from './workbench-session.js';
 import type { Telemetry } from './workbench-telemetry.js';
 import { currentTurn } from './workbench-turn.js';
@@ -31,6 +34,9 @@ export interface WorkbenchDeps {
   commandsOn?: () => boolean;
   /** Why commands are off (D-6: the environment is not switched on). */
   offReason?: string;
+  /** Spec 075: the background scan runner of live conversations, and which conversations are live. */
+  runner?: ScanRunner;
+  live?: (conversationId: string) => boolean;
 }
 
 export type Body = Record<string, unknown>;
@@ -64,12 +70,14 @@ function createConversation(raw: BetterSqlite3.Database, body: Body): { conversa
   const portal = asText(body.portal, 'portal', 100);
   const id = newId();
   const now = nowIso();
+  // spec 075: a conversation of the live Workbench (its scans run in the background)
+  const goal = body.live === true ? LIVE_GOAL : 'workbench';
   raw
     .prepare(
       `INSERT INTO chat_conversations (id, portal_id, goal, status, created_at, updated_at, kind)
-       VALUES (?, ?, 'workbench', 'active', ?, ?, 'workbench')`,
+       VALUES (?, ?, ?, 'active', ?, ?, 'workbench')`,
     )
-    .run(id, portal, now, now);
+    .run(id, portal, goal, now, now);
   raw
     .prepare(`INSERT INTO workbench_conversations (conversation_id, updated_at) VALUES (?, ?)`)
     .run(id, now);
@@ -144,13 +152,16 @@ function feedback(deps: WorkbenchDeps, viewId: string, body: Body): { value: str
 }
 
 export function createWorkbenchService(deps: WorkbenchDeps) {
+  const cards = cardActions(deps);
   return {
     createConversation: (body: Body) => createConversation(deps.raw, body),
     turn: (id: string, body: Body) => turn(deps, id, body),
     setPath: (id: string, body: Body) => setPath(deps, id, body),
     feedback: (viewId: string, body: Body) => feedback(deps, viewId, body),
     usage: () => ({ turns_today: turnsToday(deps.raw), cap: TURN_CAP }),
-    ...cardActions(deps),
+    ...cards,
+    /** A live surface's action (spec 075): an answer to a choice, or a card the person asked for. */
+    action: (id: string, body: Body) => liveAction(deps, cards, id, body),
   };
 }
 

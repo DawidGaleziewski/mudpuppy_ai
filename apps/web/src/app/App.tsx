@@ -165,6 +165,11 @@ const pages = [
   { path: '/app/portals/:portal/screens/access', element: <Access /> },
   { path: '/app/search', element: <Search /> },
   { path: '/app/portals/:portal/workbench', element: <Workbench /> },
+  // spec 075: the live Workbench (A2UI, ~450 kB) loads only when opened
+  {
+    path: '/app/portals/:portal/workbench/live',
+    lazy: async () => ({ Component: (await import('../workbench-live/LiveWorkbench')).LiveWorkbench }),
+  },
   { path: '/app/glossary', element: <Glossary /> },
   { path: '/app/glossary/pages/:slug', element: <GlossaryArticle /> },
   { path: '/app/glossary/wiki', element: <Wiki /> },

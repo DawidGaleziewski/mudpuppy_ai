@@ -14,6 +14,7 @@ const POSTS: [RegExp, number, Handler][] = [
   [/^\/workbench\/conversations$/, 201, (wb, _id, body) => wb.createConversation(body)],
   [/^\/workbench\/conversations\/([^/]+)\/turns$/, 202, (wb, id, body) => wb.turn(id, body)],
   [/^\/workbench\/conversations\/([^/]+)\/path$/, 200, (wb, id, body) => wb.setPath(id, body)],
+  [/^\/workbench\/conversations\/([^/]+)\/actions$/, 200, (wb, id, body) => wb.action(id, body)],
   [/^\/workbench\/commands$/, 201, (wb, _id, body) => wb.proposeFromButton(body)],
   [/^\/workbench\/commands\/([^/]+)\/token$/, 200, (wb, id) => wb.token(id)],
   [/^\/workbench\/commands\/([^/]+)\/confirm$/, 200, (wb, id, body) => wb.confirm(id, body)],

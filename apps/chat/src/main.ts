@@ -13,6 +13,7 @@ import { createAmendmentService } from './amendments.js';
 import { createApi, listenLocal } from './api.js';
 import { createCredentialsHandler } from './credentials.js';
 import { findError, logError, sweepErrorLogs } from './error-log.js';
+import type { ChatEvent } from './events.js';
 import { createFence } from './fence.js';
 import { ChatService } from './service.js';
 import { StepRecorder } from './step-recorder.js';
@@ -46,6 +47,14 @@ import {
   Launches,
 } from './workbench-session.js';
 import { telemetryLog } from './workbench-telemetry.js';
+import { ScanRunner } from './scan-runner.js';
+import {
+  buildLiveSessionRequest,
+  buildRunnerSessionRequest,
+  createRunnerFence,
+  isLive,
+} from './workbench-live.js';
+import { Milestones } from './workbench-milestones.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(here, '..', '..', '..');
@@ -119,6 +128,7 @@ async function followSteps(
   recorder: StepRecorder,
   service: ChatService,
   workbench: WorkbenchService,
+  milestones: Milestones,
 ): Promise<NodeJS.Timeout> {
   const reconcile = async (): Promise<void> => {
     for (const [conversationId, events] of await recorder.reconcile()) {
@@ -126,6 +136,7 @@ async function followSteps(
       workbench.stepEvents(conversationId, events);
     }
     workbench.settle();
+    milestones.pass();
   };
   await reconcile();
   return setInterval(() => {
@@ -137,6 +148,63 @@ async function followSteps(
       }),
     );
   }, 2000);
+}
+
+/**
+ * Each conversation's kind decides its session and fence. Spec 043: a Workbench conversation gets
+ * its own prompt, tools and fence, and the crawler starts only with a confirmed command's prompt
+ * (F-10). Spec 075: a live one's scans run in the scan runner, so its assistant's fence allows no
+ * crawler start at all (an empty `Launches`).
+ */
+function conversationKinds(raw: Opened['raw'], environment: string, launches: Launches) {
+  const workbenchOf = (conversationId: string): boolean => isWorkbench(raw, conversationId);
+  const liveOf = (conversationId: string): boolean => isLive(raw, conversationId);
+  const noLaunches = new Launches();
+  return {
+    workbenchOf,
+    liveOf,
+    sessionRequest: (conversationId: string) => {
+      const opts = { repoRoot, conversationId, environment };
+      if (liveOf(conversationId)) return buildLiveSessionRequest(opts);
+      return workbenchOf(conversationId) ? buildWorkbenchSessionRequest(opts) : buildSessionRequest(opts);
+    },
+    policyFor: (conversationId: string) => {
+      if (!workbenchOf(conversationId)) return null;
+      return createWorkbenchFence({ repoRoot }, conversationId, liveOf(conversationId) ? noLaunches : launches);
+    },
+  };
+}
+
+/** Spec 075 FR-002: the scan runner; its tool events move the live conversation's steps, in order. */
+function createRunner(deps: {
+  environment: string;
+  launches: Launches;
+  recorder: StepRecorder;
+  steps: (conversationId: string, steps: ChatEvent[]) => void;
+}): ScanRunner {
+  let queue = Promise.resolve();
+  return new ScanRunner({
+    launch: spawnClaudeAgent({
+      cwd: runtimeDir,
+      onStderr: (text) => process.stderr.write(`[runner] ${text}`),
+    }),
+    sessionRequest: (conversationId) =>
+      buildRunnerSessionRequest({ repoRoot, conversationId, environment: deps.environment }),
+    policy: (conversationId) => createRunnerFence({ repoRoot }, conversationId, deps.launches),
+    onEvent: (conversationId, event) => {
+      queue = queue
+        .then(async () => deps.steps(conversationId, await deps.recorder.observe(conversationId, event)))
+        .catch(async (error: unknown) => {
+          await logError({
+            conversation_id: conversationId,
+            where: 'scan runner',
+            message: 'A scan step update failed.',
+            detail: error,
+          });
+        });
+    },
+    logError: (input) => logError(input),
+  });
 }
 
 async function main(): Promise<void> {
@@ -157,13 +225,13 @@ async function main(): Promise<void> {
     logError: (input) => logError(input),
     evidence,
   });
-  // Spec 043: a Workbench conversation gets its own prompt, tools and fence, and its words-lane
-  // events; the crawler starts only with a confirmed command's prompt (F-10).
   const launches = new Launches();
-  const workbenchOf = (conversationId: string): boolean => isWorkbench(opened.raw, conversationId);
+  const { workbenchOf, liveOf, sessionRequest, policyFor } = conversationKinds(opened.raw, environment, launches);
   const service = new ChatService({
     observe: async (conversationId, event) => {
-      const steps = await recorder.observe(conversationId, event);
+      // the live assistant never runs a subagent: its turn's end is not a scan's end (the runner's is)
+      const live = liveOf(conversationId);
+      const steps = live && event.type === 'idle' ? [] : await recorder.observe(conversationId, event);
       if (!workbenchOf(conversationId)) return steps;
       // spec 073 FR-001: a scan step that failed before its run fails its start card at once
       workbench.stepEvents(conversationId, steps);
@@ -179,16 +247,19 @@ async function main(): Promise<void> {
       cwd: runtimeDir,
       onStderr: (text) => process.stderr.write(`[agent] ${text}`),
     }),
-    sessionRequest: (conversationId) =>
-      workbenchOf(conversationId)
-        ? buildWorkbenchSessionRequest({ repoRoot, conversationId, environment })
-        : buildSessionRequest({ repoRoot, conversationId, environment }),
+    sessionRequest,
     policy: createFence({ repoRoot }),
-    policyFor: (conversationId) =>
-      workbenchOf(conversationId)
-        ? createWorkbenchFence({ repoRoot }, conversationId, launches)
-        : null,
+    policyFor,
     logError: (input) => logError(input),
+  });
+  const runner = createRunner({
+    environment,
+    launches,
+    recorder,
+    steps: (conversationId, steps) => {
+      service.inject(conversationId, steps);
+      workbench.stepEvents(conversationId, steps);
+    },
   });
   const workbench = createWorkbenchService({
     raw: opened.raw,
@@ -199,6 +270,8 @@ async function main(): Promise<void> {
     commandsOn: () => commandsAllowedOn(environment),
     offReason: commandsOffReason(environment),
     telemetry: telemetryLog(join(repoRoot, 'data', 'logs', 'workbench')),
+    runner,
+    live: liveOf,
     stopped: (runId) => {
       for (const conversationId of conversationsOfRun(opened.raw, runId))
         service.inject(conversationId, [
@@ -207,12 +280,14 @@ async function main(): Promise<void> {
     },
   });
   const server = buildApi({ opened, service, evidence, environment, workbench });
-  const timer = await followSteps(recorder, service, workbench);
+  const milestones = new Milestones(opened.raw, (conversationId, text) => service.sendEvent(conversationId, text));
+  const timer = await followSteps(recorder, service, workbench, milestones);
   const bound = await listenLocal(server, port);
   console.log(`mudpuppy-chat (${environment}) listening on http://127.0.0.1:${String(bound)}`);
 
   const stop = (): void => {
     clearInterval(timer);
+    runner.close();
     service.close();
     server.close();
     void opened.close();

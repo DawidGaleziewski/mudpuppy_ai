@@ -91,6 +91,18 @@ function summaryOf(raw: BetterSqlite3.Database, run: ScanRow): ScanSummary {
   };
 }
 
+/** The routes a scan recorded, each once, in the order it first saw them (at most 40). */
+function routesOf(raw: BetterSqlite3.Database, runId: string): string[] {
+  const rows = raw
+    .prepare(
+      `SELECT s.route_template AS route, min(o.observed_at) AS first FROM state_observations o
+       JOIN states s ON s.id = o.state_id WHERE o.run_id = ? GROUP BY s.route_template
+       ORDER BY first LIMIT 40`,
+    )
+    .all(runId) as { route: string }[];
+  return rows.map((r) => r.route);
+}
+
 /** The portal's newest runs, by their full ids (D-9): what the model may bind. */
 function scansOf(raw: BetterSqlite3.Database, portal: string, limit = 5): ScanRow[] {
   return raw
@@ -133,10 +145,14 @@ export function turnContext(raw: BetterSqlite3.Database, input: TurnContextInput
     ),
     '</workbench_context>',
   ];
-  const data = scans
-    .filter((s) => s.at !== null || s.error !== null)
-    .map((s) => `${s.id}: at ${s.at ?? '—'}${s.error === null ? '' : ` · stop: ${s.error}`}`)
-    .join('\n');
+  const newest = scans[0];
+  const data = [
+    ...scans
+      .filter((s) => s.at !== null || s.error !== null)
+      .map((s) => `${s.id}: at ${s.at ?? '—'}${s.error === null ? '' : ` · stop: ${s.error}`}`),
+    // spec 075: the newest scan's pages, so "which pages has it seen?" has an answer
+    ...(newest === undefined ? [] : [`${newest.id} pages in visit order: ${routesOf(raw, newest.id).join(', ') || 'none yet'}`]),
+  ].join('\n');
   const portalText = escapeData(data).slice(0, SCAN_DATA_LIMIT);
   return portalText === ''
     ? lines.join('\n')

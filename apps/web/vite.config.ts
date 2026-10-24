@@ -12,7 +12,8 @@ export default defineConfig({
     // `/evidence`: recorded screenshots and wireframes the pages show; `/chat`: the assistant's
     // relay to the chat service.
     proxy: {
-      '/api': 'http://127.0.0.1:8765',
+      // `ws`: the live Workbench's WebSocket (spec 075) goes through the same proxy
+      '/api': { target: 'http://127.0.0.1:8765', ws: true },
       '/evidence': 'http://127.0.0.1:8765',
       '/chat': 'http://127.0.0.1:8765',
     },

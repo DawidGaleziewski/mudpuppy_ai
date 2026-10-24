@@ -80,3 +80,13 @@ keeps the map (spec 042 T050, G-30).
   off the agent's tool events); `workbench-turn` (the turn counter); `workbench-telemetry` (JSON lines in `data/logs/workbench/`);
   `api-workbench` (routes). `ChatService.sendEvent` (an event turn) and `policyFor` (a fence per
   conversation). Evals: `evals/workbench/` (`pnpm eval:workbench`).
+
+- Spec 075 (the live Workbench, R-96 spike): `agents/workbench-live.md` (the live assistant's
+  prompt: the same views and commands, `ask_choice`, no subagent); `workbench-live` (live
+  conversations, `goal = 'workbench-live'`; the live and the runner's sessions; the runner's fence);
+  `scan-runner` (a confirmed scan in a background ACP session; its tool events to the step
+  recorder); `workbench-milestones` (started, finished, stopped told to the live assistant once
+  each, `result_json.told`); `workbench-choices` (`ask_choice`: a system message
+  `workbench_choice`; the answer's event line); `workbench-actions` (`POST
+  /workbench/conversations/{id}/actions`: `choice.answer`, `persona.new`, `scan.stop`,
+  `scan.resume`).

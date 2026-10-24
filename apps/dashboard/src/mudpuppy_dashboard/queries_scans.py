@@ -5,8 +5,15 @@ read models went with R-100's htmx pages (spec 074, R-102 (1)); the React Scans 
 from __future__ import annotations
 
 import json
+import sqlite3
 
 from .models import Run
+
+
+def run_max_steps(conn: sqlite3.Connection, run_id: str) -> int | None:
+    """A run's step limit by its id (the live Workbench's meter, spec 075); None when unknown."""
+    row = conn.execute("SELECT * FROM runs WHERE id = ?", (run_id,)).fetchone()
+    return max_steps(Run.model_validate(dict(row))) if row else None
 
 
 def max_steps(run: Run) -> int | None:

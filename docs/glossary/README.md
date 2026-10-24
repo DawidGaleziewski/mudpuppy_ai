@@ -3840,6 +3840,89 @@ its command cards arrive over the same stream (words lane), each checked before 
 
 <sub>Last changed in R-92, 2026-10-22.</sub>
 
+<a id="live-workbench"></a>
+
+#### Live Workbench (spike)
+
+**The Workbench where a confirmed scan runs in the background, so the assistant stays free to talk while the scan's graph and progress move on your screen.**
+
+The R-96 spike (spec 075), beside the beta Workbench, at Workbench ▸ Try the live Workbench.
+After you confirm a scan, the scan runner starts the crawler and the assistant's turn ends at
+once; it hears again when the scan starts, finishes or stops, and says what that means. The
+screen follows the scan over one WebSocket. It can ask you to pick in a drop-down (another
+portal, a data store, a persona) and add a persona in place. Its boxes are grey placeholders
+until the designer's look.
+
+*Example:* Start a map scan → Confirm → the graph grows while you ask "which pages so far?" → "Scan 01a16c99-b154 finished: 22 pages."
+
+*Seen in:* Workbench ▸ Try the live Workbench
+
+*Labels:* `live Workbench`, `Workbench live`
+
+*Related:* [Workbench (beta)](#workbench), [Scan runner](#scan-runner), [Shared state](#shared-state), [A2UI surface](#a2ui-surface)
+
+<sub>Last changed in R-96, 2026-10-24.</sub>
+
+<a id="scan-runner"></a>
+
+#### Scan runner
+
+**The chat service's own assistant session that runs one confirmed scan, so the assistant you talk to never waits for the crawler.**
+
+It starts the crawler with exactly the prompt of the command you confirmed, once, and nothing
+else. What it does moves the scan's step and the command card like before; its words are not
+shown. The assistant hears the scan's milestones instead.
+
+*Example:* Confirm on "Start a map scan" → the scan runner starts the crawler; the assistant says "It's starting" and is free.
+
+*Seen in:* live Workbench
+
+*Labels:* `scan runner`, `background scan`
+
+*Related:* [Live Workbench (spike)](#live-workbench), [Command card](#command-card)
+
+<sub>Last changed in R-96, 2026-10-24.</sub>
+
+<a id="shared-state"></a>
+
+#### Shared state
+
+**What the live Workbench's screen and the assistant both see of a conversation, the scan's progress, graph and pages, the command cards and your selection, kept the same on both sides.**
+
+The dashboard sends it as AG-UI events over a WebSocket: the whole state when you connect,
+then only what changed. Every number in it comes from the store. What you select on the map
+goes into it too, and your next message carries it.
+
+*Example:* /scans/01a16c99-b154…/meter: running · step 12 of 400 · 11 pages · 175 queued
+
+*Seen in:* live Workbench
+
+*Labels:* `shared state`, `AG-UI`, `state delta`
+
+*Related:* [Live Workbench (spike)](#live-workbench), [A2UI surface](#a2ui-surface), [Data lane and words lane](#data-lane)
+
+<sub>Last changed in R-96, 2026-10-24.</sub>
+
+<a id="a2ui-surface"></a>
+
+#### A2UI surface
+
+**One area of the live Workbench drawn from the components the assistant chose, in Google's A2UI format, filled from the shared state.**
+
+The assistant still picks components by id in a view spec; the server turns it into A2UI and
+adds where each component's data is. Each turn with a view, a command card or a choice gets
+its own surface; the stage is the server's own surface for the conversation's scan.
+
+*Example:* Surface t3: View → LiveMap (data /scans/…), Narration, CommandCard "Stop the scan".
+
+*Seen in:* live Workbench
+
+*Labels:* `A2UI`, `surface`, `stage`
+
+*Related:* [Live Workbench (spike)](#live-workbench), [View spec](#view-spec), [Shared state](#shared-state)
+
+<sub>Last changed in R-96, 2026-10-24.</sub>
+
 ### Building MudPuppy
 
 <a id="fast-tier"></a>

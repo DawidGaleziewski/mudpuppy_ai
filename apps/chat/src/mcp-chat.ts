@@ -40,8 +40,9 @@ export interface ChatMcpContext {
   /**
    * A Workbench session (spec 043): only `render_view` and `propose_command` are offered; the
    * chat's write tools never are (every Workbench write is a command card a person confirms).
+   * `live`: the live Workbench (spec 075) also offers `ask_choice`.
    */
-  workbench?: { phase: number; environment?: string } | null;
+  workbench?: { phase: number; environment?: string; live?: boolean } | null;
 }
 
 function ok(value: unknown): CallToolResult {
@@ -86,6 +87,7 @@ export function createChatMcpServer(ctx: ChatMcpContext): McpServer {
         conversationId: ctx.conversationId,
         phase: ctx.workbench.phase,
         ...(ctx.workbench.environment ? { environment: ctx.workbench.environment } : {}),
+        ...(ctx.workbench.live === true ? { live: true } : {}),
       },
       ok,
       refused,

@@ -5,7 +5,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Added
+- **R-96: the live Workbench, a spike** (spec 075, v2.9.0, 2026-10-24). Workbench ▸ Try the live
+  Workbench: after you confirm a scan it runs in the background, so the assistant answers while
+  the crawler works, and the screen follows the scan live (its graph with the crawler's page and
+  path, the step meter, the route pages, a line per step). The assistant hears when the scan
+  starts, finishes or stops (and that you pressed Stop) and says what it means. It can ask you to
+  pick in a drop-down (another portal, a data store, a persona) and add a persona in place: a new
+  sign-in's login and password go to the vault only. The boxes are grey placeholders until the
+  designer's look. Under the hood: the dashboard's WebSocket with AG-UI shared state, the
+  assistant's views as Google's A2UI drawn by `@a2ui/react`, loaded only on that page.
+
 ### Fixed
+- A credential can be stored from the console for any environment a portal declares, local-dev
+  too (spec 075 F-02).
 - **R-102: what the React port left behind** (spec 074, v2.8.2, 2026-10-24). Six things the htmx
   console did and the React console had lost are back: a Workbench record card names the
   record's type ("Business rule"); As of on one screen, rule or process offers only the versions

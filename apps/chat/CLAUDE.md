@@ -34,6 +34,8 @@ store, vault, workflow.
   fence starts the crawler only with a confirmed command's prompt (`workbench-session`). Commands
   run only on the environments in `MUDPUPPY_WORKBENCH_COMMAND_ENVS` (default `local-dev,sandbox`,
   spec 048).
+- A live Workbench conversation (spec 075) never starts the crawler itself: a confirmed scan runs
+  in the `scan-runner`, whose fence allows only that confirmed start.
 
 ## Where to add things
 - New HTTP route: a `<resource>Routes(req, res, method, path, deps)` in its `api-*` file, listed

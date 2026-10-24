@@ -13,6 +13,10 @@ from typing import Any
 from .queries_changes import rows_of
 
 EVENT = "workbench_event"  # chat_messages.tool_name of an event turn (apps/chat service.ts)
+# Spec 075 (the live Workbench): a choice the assistant asked (apps/chat workbench-choices.ts),
+# and the goal of a live conversation (workbench-live.ts).
+CHOICE = "workbench_choice"
+LIVE_GOAL = "workbench-live"
 
 
 @dataclass(frozen=True)
@@ -23,6 +27,7 @@ class WbConversation:
     path_source: str  # assistant · you
     title: str | None
     created_at: str
+    live: bool = False  # a live Workbench conversation (spec 075)
 
 
 @dataclass(frozen=True)
@@ -60,11 +65,12 @@ class WbTurn:
     notices: list[str] = field(default_factory=list)
     view: WbView | None = None
     commands: list[WbCommand] = field(default_factory=list)
+    choices: list[dict[str, Any]] = field(default_factory=list)  # ask_choice (spec 075)
 
 
 CONVERSATION_SQL = (
     "SELECT c.id, c.portal_id, c.created_at, COALESCE(w.path, 'chat') AS path,"
-    " COALESCE(w.path_source, 'assistant') AS path_source, w.title"
+    " COALESCE(w.path_source, 'assistant') AS path_source, w.title, c.goal"
     " FROM chat_conversations c LEFT JOIN workbench_conversations w ON w.conversation_id = c.id"
     " WHERE c.id = ? AND c.kind = 'workbench'"
 )
@@ -76,7 +82,13 @@ def conversation(conn: sqlite3.Connection, conversation_id: str) -> WbConversati
         return None
     r = rows[0]
     return WbConversation(
-        r["id"], r["portal_id"], r["path"], r["path_source"], r["title"], r["created_at"]
+        r["id"],
+        r["portal_id"],
+        r["path"],
+        r["path_source"],
+        r["title"],
+        r["created_at"],
+        r["goal"] == LIVE_GOAL,
     )
 
 
@@ -86,20 +98,30 @@ RECENT_SQL = (
     " (SELECT content FROM chat_messages m WHERE m.conversation_id = c.id AND m.role = 'user'"
     "  ORDER BY m.seq LIMIT 1) AS first"
     " FROM chat_conversations c LEFT JOIN workbench_conversations w ON w.conversation_id = c.id"
-    " WHERE c.kind = 'workbench' AND c.portal_id = ? ORDER BY c.created_at DESC LIMIT 20"
+    " WHERE c.kind = 'workbench' AND c.portal_id = ? AND (c.goal = ?) = ?"
+    " ORDER BY c.created_at DESC LIMIT 20"
 )
 
 
-def recent(conn: sqlite3.Connection, portal: str) -> list[tuple[WbConversation, str]]:
-    """The portal's last 20 Workbench conversations (WB-UI-42), each with its first message."""
+def recent(
+    conn: sqlite3.Connection, portal: str, live: bool = False
+) -> list[tuple[WbConversation, str]]:
+    """The portal's last 20 Workbench conversations (WB-UI-42), each with its first message;
+    the live Workbench's (spec 075) or the beta's."""
     return [
         (
             WbConversation(
-                r["id"], r["portal_id"], r["path"], r["path_source"], r["title"], r["created_at"]
+                r["id"],
+                r["portal_id"],
+                r["path"],
+                r["path_source"],
+                r["title"],
+                r["created_at"],
+                live,
             ),
             r["first"] or "",
         )
-        for r in rows_of(conn, RECENT_SQL, (portal,))
+        for r in rows_of(conn, RECENT_SQL, (portal, LIVE_GOAL, int(live)))
     ]
 
 
@@ -175,6 +197,8 @@ def turns(conn: sqlite3.Connection, conversation_id: str) -> list[WbTurn]:
             out.append(WbTurn(len(out) + 1, m["content"], m["tool_name"] == EVENT))
         elif out and m["role"] == "assistant":
             out[-1].answer.append(m["content"])
+        elif out and m["tool_name"] == CHOICE:
+            out[-1].choices.append(json.loads(m["content"]))
         elif out and m["role"] == "system":
             out[-1].notices.append(m["content"])
     by_turn = views(conn, conversation_id)

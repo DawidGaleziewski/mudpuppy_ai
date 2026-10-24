@@ -169,6 +169,7 @@ export function Workbench() {
   return (
     <Shell current="workbench">
       <PageHead title="Workbench" meta={`Beta · the assistant composes this screen for what you are doing · ${portal} · Now`} />
+      <Text small href={`/app/portals/${encodeURIComponent(portal)}/workbench/live`}>Try the live Workbench (spike: scans in the background, live over a WebSocket)</Text>
       <QueryState query={q} what="the Workbench">
         {(m) => <Body key={m.conversation?.id ?? 'new'} m={m} portal={portal} />}
       </QueryState>

@@ -5,6 +5,7 @@ and the conversation's event stream passed through."""
 from __future__ import annotations
 
 import json
+import re
 from collections.abc import AsyncIterable
 from typing import Annotated, Any
 from urllib.parse import quote
@@ -18,6 +19,9 @@ from .chat_forward import chat_down, chat_json, chat_refused, forward, invalid, 
 from .deps import same_origin, web_of
 
 router = APIRouter(prefix="/chat/conversations")
+
+# An environment's name as a portal declares it (`portal-schema.ts` Environment).
+ENVIRONMENT = re.compile(r"^[a-z][a-z0-9-]{0,39}$")
 
 
 def _path(conversation_id: str, *rest: str) -> str:
@@ -121,8 +125,10 @@ async def credentials(request: Request, conversation_id: str) -> JSONResponse:
     raw = fields.get("values")
     if not isinstance(portal, str) or not portal.strip():
         return invalid("Choose a portal in the chat first.")
-    if environment not in queries_chat.ENVIRONMENTS:
-        return invalid("Choose sandbox, staging or production.")
+    # any environment a portal can declare (spec 030 R-61), as the vault takes it: local-dev too
+    # (spec 075 F-02), not only sandbox, staging and production
+    if not isinstance(environment, str) or not ENVIRONMENT.match(environment):
+        return invalid("Choose one of the portal's environments.")
     values = (
         {k: v for k, v in raw.items() if isinstance(v, str) and v != ""}
         if isinstance(raw, dict)
