@@ -5,6 +5,7 @@
 import { createCommandChecker, loadContract } from '@mudpuppy/workbench-contract';
 import type { ChatEvent } from './events.js';
 import { HttpError } from './http-error.js';
+import { againCommand } from './workbench-again.js';
 import {
   cancelCommand,
   CommandRefusal,
@@ -13,6 +14,7 @@ import {
   proposeCommand,
   undoCommand,
   type CommandRow,
+  type ConfirmDeps,
 } from './workbench-commands.js';
 import { failStarts, settleCommands } from './workbench-settle.js';
 import { asText, workbenchPortal, type Body, type WorkbenchDeps } from './workbench-service.js';
@@ -83,6 +85,14 @@ export function cardActions(deps: WorkbenchDeps) {
     deps.telemetry('wb_cmd', { cmd: row.command, source: row.source, state: row.state });
   };
   const launch = launcher(deps);
+  const confirmDeps = (): ConfirmDeps => ({
+    raw,
+    paths: deps.paths,
+    commandsOn: deps.commandsOn?.() ?? true,
+    ...(deps.offReason === undefined ? {} : { offReason: deps.offReason }),
+    launch,
+    ...(deps.stopped === undefined ? {} : { stopped: deps.stopped }),
+  });
 
   return {
     /** A card the person opened from a view's button (`source: 'button'`). */
@@ -125,18 +135,17 @@ export function cardActions(deps: WorkbenchDeps) {
           ? { args: body.args as Record<string, unknown> }
           : {}),
       };
-      const confirmDeps = {
-        raw,
-        paths: deps.paths,
-        commandsOn: deps.commandsOn?.() ?? true,
-        ...(deps.offReason === undefined ? {} : { offReason: deps.offReason }),
-        launch,
-        ...(deps.stopped === undefined ? {} : { stopped: deps.stopped }),
-      };
-      const row = refusing(() => confirmCommand(confirmDeps, input));
+      const row = refusing(() => confirmCommand(confirmDeps(), input));
       tell(row);
       tellAdded(deps, row);
       return { state: row.state };
+    },
+
+    /** Start again on a start that did not start (designer T-13, D-4): one press runs the copy. */
+    again(id: string, body: Body): { id: string; state: string } {
+      const row = refusing(() => againCommand(confirmDeps(), { id, by: asText(body.by, 'by', 100) }));
+      tell(row);
+      return { id: row.id, state: row.state };
     },
 
     cancel(id: string): { state: string } {

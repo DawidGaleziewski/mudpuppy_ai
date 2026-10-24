@@ -3803,8 +3803,8 @@ You ask ("Map the OC/AC calculator", "Why did scan 01a110d5 stop?") and the assi
 the right pieces in front of you: a live map of the scan, the page that failed, the rules a
 process has. It picks the pieces and binds them to ids; the dashboard fills them from the
 store, so every number is recorded data. Each generated view says so (a "generated" mark,
-Why this view?, Right view? Yes / No). Phase 1 has two paths, Chat and Mapping. It is behind
-`MUDPUPPY_WORKBENCH` and works on Now only.
+Why this view?, Right view? Yes / No). Phase 1 has two paths, Chat and Mapping. It is always in
+the nav (`MUDPUPPY_WORKBENCH=0` hides it) and works on Now only.
 
 *Example:* Watch scan 01a110d5. → a live filmstrip of its six pages, the stop at /kontakt, Resume as a command card.
 
@@ -3967,6 +3967,27 @@ its own surface; the stage is the server's own surface for the conversation's sc
 
 <sub>Last changed in R-96, 2026-10-24.</sub>
 
+<a id="start-again"></a>
+
+#### Start again
+
+**One press on a scan card that didn't start runs the same confirmed scan once more, as the same persona.**
+
+A scan start the crawler refused before it opened a page says "Didn't start". Start again
+copies that card (what was confirmed, the persona included), checks again that the portal
+is idle, and runs the copy as confirmed by the person who pressed. The new card says it is
+a copy; the old card's button is gone, so it runs once.
+
+*Example:* Start a map scan · Didn't start · robots.txt could not be read → Start again
+
+*Seen in:* the Workbench; the live Workbench
+
+*Labels:* `Didn't start`, `Start again`
+
+*Related:* [React console](#react-console)
+
+<sub>Last changed in R-106, 2026-10-25.</sub>
+
 ### Building MudPuppy
 
 <a id="fast-tier"></a>
@@ -4119,17 +4140,19 @@ category `[battle-tested-scar]`.
 Every place that loads reserves its final size first (skeleton rows of the real height,
 pictures' boxes, a graph's box) and shows the loader, three beads and what loads, after
 300 ms. A list read again keeps its rows, dimmed. `pnpm --dir apps/dashboard cls:check`
-measures each page's cold load and each nav click with the API held back 1 s.
+measures each page's cold load and each nav click with the API held back 1 s;
+`pnpm --dir apps/dashboard cls:ci` does the same on its own seeded dashboard, in the
+close-out of every branch that changes the console.
 
 *Example:* ok 0.003 load /app/portals/reference-insurer-local/processes
 
-*Seen in:* cls:check; every page while it loads
+*Seen in:* cls:check; cls:ci; every page while it loads
 
 *Labels:* `CLS`, `loader`, `skeleton`
 
 *Related:* [React console](#react-console)
 
-<sub>Last changed in R-106, 2026-10-24.</sub>
+<sub>Last changed in R-106, 2026-10-25.</sub>
 
 ### Dashboard
 

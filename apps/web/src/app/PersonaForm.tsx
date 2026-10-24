@@ -50,6 +50,9 @@ export function draftOf(args: PersonaArgs, signIns: readonly string[]): PersonaD
   };
 }
 
+/** The credential a draft signs in with, when it is a new one (its values go to the vault first). */
+export const newCredential = (d: PersonaDraft): string | null => (d.signIn === NEW && d.newSignIn.trim() ? d.newSignIn.trim() : null);
+
 export function argsOf(d: PersonaDraft): PersonaArgs {
   const credential = d.signIn === NEW ? d.newSignIn.trim() : d.signIn;
   const rows = d.rows.filter((r) => r.label.trim() !== '');

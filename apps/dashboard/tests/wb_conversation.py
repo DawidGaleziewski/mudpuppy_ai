@@ -116,6 +116,8 @@ class Chat:
             return httpx2.Response(200, json={"state": "running", "value": "yes"})
         if path.endswith("/undo"):  # a done persona.add (spec 072)
             return httpx2.Response(200, json={"state": "undone"})
+        if path.endswith("/again"):  # Start again (spec 079 FR-002)
+            return httpx2.Response(201, json={"id": "cmd-0006", "state": "running"})
         return httpx2.Response(404, json={"message": "not mocked"})
 
 

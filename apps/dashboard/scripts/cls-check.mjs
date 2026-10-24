@@ -7,20 +7,9 @@
 //     [--budget 0.05] [--width 1280] [path ...]
 //
 // Exit 1 when any load or click goes over the budget; the report names the elements that moved.
+// `cls:ci` (cls-ci.mjs) imports `measure` and `printReport` to run it unattended on a seeded store.
+import { pathToFileURL } from 'node:url';
 import { chromium } from 'playwright';
-
-const args = process.argv.slice(2);
-const flag = (name, fallback) => {
-  const i = args.indexOf(name);
-  if (i === -1) return fallback;
-  const [value] = args.splice(i, 2).slice(1);
-  return value;
-};
-const base = flag('--base', 'http://127.0.0.1:8765');
-const delay = Number(flag('--delay', '1000'));
-const budget = Number(flag('--budget', '0.05'));
-const width = Number(flag('--width', '1280'));
-const paths = args.length ? args : ['/app/'];
 
 /** Sums the shifts no input caused, and keeps what moved (the designer's Playwright sketch). */
 const OBSERVE = () => {
@@ -45,7 +34,7 @@ const settle = async (page) => {
 
 const read = (page) => page.evaluate(() => ({ cls: window.__cls, moved: [...new Set(window.__moved)].slice(0, 5) }));
 
-async function newPage(browser) {
+async function newPage(browser, { width, delay }) {
   const page = await browser.newPage({ viewport: { width, height: 900 }, reducedMotion: 'reduce' });
   await page.addInitScript(OBSERVE);
   await page.route('**/api/**', async (route) => {
@@ -55,42 +44,69 @@ async function newPage(browser) {
   return page;
 }
 
-const browser = await chromium.launch();
-const report = [];
-for (const path of paths) {
-  const page = await newPage(browser);
-  await page.goto(base + path, { waitUntil: 'commit' });
-  await settle(page);
-  report.push({ what: `load ${path}`, ...(await read(page)) });
-  await page.close();
-}
-// each nav click from the first page: the shift after the click, once its 500 ms input window is over
-const page = await newPage(browser);
-await page.goto(base + paths[0], { waitUntil: 'commit' });
-await settle(page);
-// by place, not address: the links take `?store=` once the store follows the portal
-const count = await page.locator('.sy-nav__item[href]').count();
-for (let i = 0; i < count; i += 1) {
-  // each click from the first page (All portals has a nav of its own)
-  if (i > 0) {
+/** Measures every path's cold load and every nav click from the first path: `[{what, cls, moved}]`. */
+export async function measure({ base, paths, delay = 1000, width = 1280 }) {
+  const browser = await chromium.launch();
+  const report = [];
+  try {
+    for (const path of paths) {
+      const page = await newPage(browser, { width, delay });
+      await page.goto(base + path, { waitUntil: 'commit' });
+      await settle(page);
+      report.push({ what: `load ${path}`, ...(await read(page)) });
+      await page.close();
+    }
+    // each nav click from the first page: the shift after the click, once its 500 ms input window is over
+    const page = await newPage(browser, { width, delay });
     await page.goto(base + paths[0], { waitUntil: 'commit' });
     await settle(page);
+    // by place, not address: the links take `?store=` once the store follows the portal
+    const count = await page.locator('.sy-nav__item[href]').count();
+    for (let i = 0; i < count; i += 1) {
+      // each click from the first page (All portals has a nav of its own)
+      if (i > 0) {
+        await page.goto(base + paths[0], { waitUntil: 'commit' });
+        await settle(page);
+      }
+      const link = page.locator('.sy-nav__item[href]').nth(i);
+      const label = (await link.textContent())?.trim() ?? String(i);
+      const before = (await read(page)).cls;
+      await link.click();
+      await settle(page);
+      const after = await read(page);
+      report.push({ what: `click ${label}`, cls: after.cls - before, moved: after.moved });
+    }
+  } finally {
+    await browser.close();
   }
-  const link = page.locator('.sy-nav__item[href]').nth(i);
-  const label = (await link.textContent())?.trim() ?? String(i);
-  const before = (await read(page)).cls;
-  await link.click();
-  await settle(page);
-  const after = await read(page);
-  report.push({ what: `click ${label}`, cls: after.cls - before, moved: after.moved });
+  return report;
 }
-await browser.close();
 
-let failed = 0;
-for (const r of report) {
-  const over = r.cls > budget;
-  if (over) failed += 1;
-  console.log(`${over ? 'FAIL' : 'ok  '} ${r.cls.toFixed(3)}  ${r.what}${over && r.moved.length ? `  moved: ${r.moved.join(', ')}` : ''}`);
+/** Prints the report and returns the exit code: 1 when any row is over the budget. */
+export function printReport(report, { budget = 0.05, delay = 1000 } = {}) {
+  let failed = 0;
+  for (const r of report) {
+    const over = r.cls > budget;
+    if (over) failed += 1;
+    console.log(`${over ? 'FAIL' : 'ok  '} ${r.cls.toFixed(3)}  ${r.what}${over && r.moved.length ? `  moved: ${r.moved.join(', ')}` : ''}`);
+  }
+  console.log(`${String(report.length)} measured, ${String(failed)} over ${String(budget)} (API held back ${String(delay)} ms)`);
+  return failed ? 1 : 0;
 }
-console.log(`${String(report.length)} measured, ${String(failed)} over ${String(budget)} (API held back ${String(delay)} ms)`);
-process.exit(failed ? 1 : 0);
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  const args = process.argv.slice(2);
+  const flag = (name, fallback) => {
+    const i = args.indexOf(name);
+    if (i === -1) return fallback;
+    const [value] = args.splice(i, 2).slice(1);
+    return value;
+  };
+  const base = flag('--base', 'http://127.0.0.1:8765');
+  const delay = Number(flag('--delay', '1000'));
+  const budget = Number(flag('--budget', '0.05'));
+  const width = Number(flag('--width', '1280'));
+  const paths = args.length ? args : ['/app/'];
+  const report = await measure({ base, paths, delay, width });
+  process.exit(printReport(report, { budget, delay }));
+}

@@ -192,6 +192,16 @@ def command(conn: sqlite3.Connection, command_id: str) -> WbCommand | None:
     return _command_of(rows[0]) if rows else None
 
 
+AGAIN_SQL = (
+    "SELECT 1 FROM workbench_commands WHERE json_extract(args_json, '$.again_of') = ? LIMIT 1"
+)
+
+
+def started_again(conn: sqlite3.Connection, command_id: str) -> bool:
+    """Whether Start again copied this command already (spec 079 FR-002)."""
+    return bool(rows_of(conn, AGAIN_SQL, (command_id,)))
+
+
 MESSAGES_SQL = (
     "SELECT seq, role, content, tool_name FROM chat_messages WHERE conversation_id = ? ORDER BY seq"
 )

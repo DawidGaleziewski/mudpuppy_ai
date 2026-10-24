@@ -30,7 +30,8 @@ keeps the map (spec 042 T050, G-30).
   `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
   Spec 078 (R-106): `process-scope` (Add to process: a scope change, A rebuilt from what scans
   observed, screens no move reaches stay in the scope) and `process-merge` (merge two saved
-  processes of one persona, Undo for 10 s, Split back from History), both routed by `api-processes`.
+  processes of one persona, Undo for 10 s, Split back from History; spec 079: a review comment
+  on the absorbed one's PROC record), both routed by `api-processes`.
   Spec 027 (R-54): archive / unarchive (never delete), `models/A/edit` (a person's edit of A,
   an `edit` revision), sign-off records `as_is_rev`, and `process-from-record` (a PROC record
   opens a process linked by `record_key`; routes `…/processes/from-record`).
@@ -72,7 +73,8 @@ keeps the map (spec 042 T050, G-30).
   designer's schemas, checked with `@mudpuppy/workbench-contract`, one view per turn);
   `workbench-commands` (proposals, one-time tokens, Confirm, expiry; the audit row; spec
   044: a Start card's chosen persona, else the newest scan's; spec 072: `persona.add`, its edited
-  args on Confirm and Undo); `workbench-settle` (the timer's pass; a start follows its own scan step's run, and a step that
+  args on Confirm and Undo; spec 079: the chosen persona kept on the row); `workbench-again`
+  (spec 079, D-4: Start again copies a start that did not start and runs it, once); `workbench-settle` (the timer's pass; a start follows its own scan step's run, and a step that
   failed before its run fails the start, spec 073); `workbench-persona` (spec 044: the
   persona name check and the `guest`-else-first fallback); `workbench-envs` (spec 048, D-6: the
   environments where commands may run, `MUDPUPPY_WORKBENCH_COMMAND_ENVS`, default local-dev and

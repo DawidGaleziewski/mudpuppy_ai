@@ -6,6 +6,20 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-106 leftovers, the vault in the persona card, the live Workbench's look** (spec 079,
+  v2.10.1, 2026-10-25). Lists load small pictures (a 192 × 120 WebP per screenshot, made once by
+  the dashboard and kept on disk) instead of whole recordings. A scan that didn't start has one
+  press, Start again: the same confirmed scan, as the same persona, once. Add to process lists the
+  processes of the personas whose scans saw the screen. Merging two processes leaves a "merged
+  into" note on the absorbed process's PROC record for the BA (the merge plan says so); Split back
+  takes it back. A screen opened from a process's steps or from In no process has Previous / Next
+  (J / K) over that list. Add a persona's "Store a new credential…" opens the vault dialog, in the
+  Workbench and the live Workbench: the values go to the vault only. The live Workbench draws its
+  pages as the designer did (a filmstrip, page pictures, the visit's facts and status, records as
+  tags into Docs) and says "Didn't start" with Start again. `pnpm --dir apps/dashboard cls:ci`
+  checks layout shift on every console route against its own seeded dashboard; the eval harness
+  no longer leaves MCP configs in /tmp. A comparison with the designer's reference Workbench lists
+  what is still missing (`specs/079-react-leftovers/reference-compare.md`).
 - **R-106: the designer's round 4, navigation and canvases** (spec 078, v2.10.0, 2026-10-24).
   Pages open without a blink: the head at once, a skeleton at its final size with a loader (three
   beads and what loads) only after 300 ms, and nothing jumps when the data lands (checked by

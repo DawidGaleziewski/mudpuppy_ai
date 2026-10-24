@@ -95,6 +95,8 @@ export interface WbCommandCard {
   /** failed before it created anything (designer T-13): "Didn't start", and where to check the address. */
   not_started?: boolean;
   check_url?: string | null;
+  /** Start again was pressed already: the copy runs below (spec 079). */
+  started_again?: boolean;
 }
 
 export interface WbTurn {
@@ -129,6 +131,8 @@ export interface WbPageModel {
   live_card: string | null;
   ask: string;
   paused: string | null;
+  /** The store's environment: where a new sign-in's values go in the vault (spec 079). */
+  environment?: string;
   path_words: Record<string, string>;
   reasons: [string, string][];
   statuses: { wb_scan: Record<string, StatusOut>; wb_cmd: Record<string, StatusOut> };
@@ -185,6 +189,8 @@ export const wbWrites = {
     path: `${base}/commands/${encodeURIComponent(id)}/confirm`,
     body: { token, ...(persona ? { persona } : {}), ...(args ? { args } : {}) },
   }),
+  /** Start again a start that did not start (designer T-13, spec 079): one press runs the copy. */
+  again: (id: string): Write => ({ path: `${base}/commands/${encodeURIComponent(id)}/again`, body: {} }),
   /** Undo a done persona.add (spec 072). */
   undo: (id: string): Write => ({ path: `${base}/commands/${encodeURIComponent(id)}/undo`, body: {} }),
   /** An Add-a-persona card opened by the person, with a name to change (spec 072). */

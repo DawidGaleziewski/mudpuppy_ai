@@ -27,12 +27,13 @@ export function rememberAdded(id: string) {
 const plural = (n: number, w: string) => `${String(n)} ${w}${n === 1 ? '' : 's'}`;
 
 /**
- * The menu's entries for `states` as `persona`: `add(target)` adds them, `fresh()` opens New
- * process from these. Processes of another persona are not listed (a guest screen in a
- * client-only process is a different question: Edit scope on the process).
+ * The menu's entries for `states`, seen by `personas` (spec 079 D-6 (a): the personas whose scans
+ * recorded them, the default persona when none did): `add(target)` adds them, `fresh()` opens New
+ * process from these. A group per persona; processes of other personas are not listed (a guest
+ * screen in a client-only process is a different question: Edit scope on the process).
  */
-export function addEntries(targets: readonly Target[], persona: string, states: readonly string[], add: (t: Target) => void, fresh: () => void): MenuEntry[] {
-  const mine = targets.filter((t) => t.persona === persona);
+export function addEntries(targets: readonly Target[], personas: readonly string[], states: readonly string[], add: (t: Target) => void, fresh: () => void): MenuEntry[] {
+  const mine = targets.filter((t) => personas.includes(t.persona));
   const item = (t: Target, key: string): MenuEntry => {
     const all = states.length > 0 && states.every((s) => t.states.includes(s));
     return { key, label: t.name, note: `${t.persona} · ${plural(t.steps, 'step')}`, ...(all ? { aside: 'already in', disabled: true } : { onSelect: () => add(t) }) };
@@ -40,10 +41,20 @@ export function addEntries(targets: readonly Target[], persona: string, states: 
   const last = lastUsed()
     .map((id) => mine.find((t) => t.id === id))
     .filter((t): t is Target => t !== undefined);
+  const groups = personas.flatMap((p) => {
+    const of = mine.filter((t) => t.persona === p);
+    return of.length > 0 ? [{ label: `Processes · ${p}`, group: true as const }, ...of.map((t) => item(t, t.id))] : [];
+  });
   return [
     ...(last.length > 0 ? [{ label: 'Last used', group: true as const }, ...last.map((t) => item(t, `last-${t.id}`))] : []),
-    ...(mine.length > 0 ? [{ label: `Processes · ${persona}`, group: true as const }, ...mine.map((t) => item(t, t.id))] : []),
+    ...groups,
     { separator: true },
     { key: 'new', label: 'New process from these…', onSelect: fresh },
   ];
+}
+
+/** Who saw the screens (D-6 (a)): every persona a scan recorded one of them as, else the default. */
+export function seenBy(loose: readonly { state: string; personas?: string[] }[], states: readonly string[], fallback: string): string[] {
+  const seen = [...new Set(loose.filter((s) => states.includes(s.state)).flatMap((s) => s.personas ?? []))].sort();
+  return seen.length > 0 ? seen : [fallback];
 }

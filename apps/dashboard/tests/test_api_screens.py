@@ -39,7 +39,11 @@ def test_each_row_has_its_main_variants_picture(empty_store: Store) -> None:
     conn.close()
     with client(empty_store) as c:
         rows = {s["key"]: s for s in c.get(f"/api/portals/{P}/screens").json()["screens"]}
-    assert rows["SC-0001"]["picture"] == {"shot": f"/evidence/{shot}", "wire": None}
+    assert rows["SC-0001"]["picture"] == {
+        "shot": f"/evidence/{shot}",
+        "wire": None,
+        "thumb": f"/evidence/{shot}/thumb",
+    }
     assert rows["SC-0002"]["picture"] is None
 
 

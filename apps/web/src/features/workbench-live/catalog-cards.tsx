@@ -7,8 +7,10 @@ import { useId, useState } from 'react';
 import { z } from 'zod';
 import { CommonSchemas, type ComponentContext } from '@a2ui/web_core/v0_9';
 import { createComponentImplementation } from '@a2ui/react/v0_9';
-import { Button, Cluster, CommandCard as CommandCardView, Field, GenView, Plate, Select, Stack, Suggestions, Text } from '../../design-system';
+import { Button, Cluster, CommandCard as CommandCardView, Field, GenView, Plate, Select, Stack, Suggestions, Tag, Text } from '../../design-system';
+import { docHref } from '../../app/api-process';
 import { useGo } from '../../app/RouterAnchor';
+import { useLiveFrame } from './context';
 import { PersonaCommand } from './PersonaCreator';
 import type { LiveChoice, LiveCommand } from './protocol';
 
@@ -71,6 +73,7 @@ export const CommandCard = createComponentImplementation(
         errorRef={card.errorRef}
         onConfirm={(persona) => confirm(persona ? { persona } : {})}
         onCancel={cancel}
+        {...(card.notStarted ? { notStarted: { ...(!card.startedAgain && { onAgain: () => act(context, 'command.again', { command: id }) }), ...(card.check && { check: card.check }) } } : {})}
       />
     );
   },
@@ -126,8 +129,37 @@ export const Choice = createComponentImplementation(
 
 const Record = z.object({ record: z.string().optional(), records: z.array(z.string()).optional(), title: z.string().optional(), data: CommonSchemas.DynamicValue.optional() });
 
-export const RecordCard = createComponentImplementation({ name: 'RecordCard', schema: Record }, ({ props }) => <Text small>{`Record ${props.record ?? ''}`}</Text>);
+/** A record's key as a manila tag that opens it in Docs (designer 16 § 4.14). */
+function RecordTag({ record }: { record: string }) {
+  const portal = useLiveFrame().state?.portal.id;
+  return portal ? (
+    <Tag size="sm" href={docHref(portal, record)}>
+      {record}
+    </Tag>
+  ) : (
+    <Tag size="sm">{record}</Tag>
+  );
+}
 
+export const RecordCard = createComponentImplementation({ name: 'RecordCard', schema: Record }, ({ props }) =>
+  props.record ? (
+    <Cluster>
+      <RecordTag record={props.record} />
+      {props.title && <Text small>{props.title}</Text>}
+    </Cluster>
+  ) : null,
+);
+
+/** Records as tags under their title (designer 16 § 4.15). */
 export const RecordList = createComponentImplementation({ name: 'RecordList', schema: Record }, ({ props }) => (
-  <Text small>{`${props.title ?? 'Records'}: ${(props.records ?? []).map(childId).join(', ')}`}</Text>
+  <Stack>
+    <Text small strong>
+      {props.title ?? 'Records'}
+    </Text>
+    <Cluster>
+      {(props.records ?? []).map(childId).map((r) => (
+        <RecordTag key={r} record={r} />
+      ))}
+    </Cluster>
+  </Stack>
 ));

@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from . import pager, queries_process_doc, queries_process_scope, queries_processes
+from . import pager, queries_process_doc, queries_process_scope, queries_processes, thumbs
 from .queries_app import StatusOut, status_out
 
 
@@ -60,12 +60,17 @@ class LooseScreen(BaseModel):
     route: str
     shot: str | None
     wire: str | None
+    #: The row picture: the screenshot's small WebP (spec 079 FR-001); the dialog shows `shot`.
+    thumb: str | None = None
     scans: int
     #: The model screen it is a variant of (its page, its variants in the picture dialog), if any.
     screen_key: str | None = None
     #: When a scan last saw it, and how many variants its screen has (the sorting grid's line).
     last_seen: str | None = None
     variants: int = 1
+    #: The personas whose scans recorded it: the Add to process menu lists their processes
+    #: (spec 079 FR-003, D-6 (a)); empty: the default persona's.
+    personas: list[str] = []
 
 
 class TargetOut(BaseModel):
@@ -180,6 +185,7 @@ def process_list(
                 route=s.route_template,
                 shot=_evidence(pictures[s.id].shot),
                 wire=_evidence(pictures[s.id].wire),
+                thumb=thumbs.url(pictures[s.id].shot),
                 scans=pictures[s.id].scans,
                 **facts.get(s.id, {}),
             )

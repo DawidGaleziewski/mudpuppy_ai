@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "ui:check": "node scripts/ui-check.mjs",
-    "cls:check": "node scripts/cls-check.mjs"
+    "cls:check": "node scripts/cls-check.mjs",
+    "cls:ci": "node scripts/cls-ci.mjs"
   },
   "devDependencies": {
     "axe-core": "^4.14.0",

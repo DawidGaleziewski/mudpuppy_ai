@@ -22,7 +22,8 @@ export interface ScreenOut {
   parts: string[];
   process: { key: string; name: string } | null;
   /** The main variant's latest recording, on the list only (designer T-03); none recorded: null. */
-  picture?: { shot: string | null; wire: string | null } | null;
+  /** `thumb`: the screenshot's small WebP the row loads (spec 079); the dialog shows `shot`. */
+  picture?: { shot: string | null; wire: string | null; thumb?: string | null } | null;
 }
 
 /** The list's filters, as the URL carries them (empty: not set). */

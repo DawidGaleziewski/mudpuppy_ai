@@ -25,6 +25,28 @@
   a lazy route loads). Data loads inside the new page, so its body is empty (head drawn) for the
   first 300 ms, then the skeleton. The measured layout shift stays at most 0.016.
 
+### Owner review (2026-10-24)
+
+- **D-1 accepted:** Changes, Review and Settings stay shut on All portals ("as it is greyed out is
+  fine"). No cross-portal pages; the leftover is dropped.
+- **D-2 changed: build the thumbnails.** The designer's 192 × 120 WebP per screenshot, made once by
+  the server (Pillow) and cached on disk; the list loads it instead of the full recording (about
+  1 MB for 21 screens on reference-insurer-local, ~48 KB each, measured 2026-10-24).
+- **D-3 accepted:** "Updating" stays fixed under the header ("it is good as it is").
+- **D-4 changed: Start again re-runs the confirmed command, as the designer drew it**
+  ("definetly"). Nothing is lost between sessions (the command is a `workbench_commands` row); a
+  chat-service action allowed on a failed start card only copies the row (command, args, the
+  persona, which Confirm must now store on the row), re-checks the preconditions, confirms the
+  copy for the person and launches it; the new card links to the failed one. A Storybook story
+  for "Didn't start".
+- **D-5 accepted:** Add to process keeps its confirm, then Undo ("i like your version better").
+- **D-6 changed (a), accepted (b)** ("your proposition seems to make sense"): (a) the menu lists
+  the processes of the personas whose scans recorded the screen, grouped per persona when more
+  than one (the default persona only when no scan names one); (b) suggestions stay out of the
+  menu: save one first.
+- **D-7 accepted:** the new page's head at once, its body empty for up to 300 ms, then the
+  skeleton ("keep it as it is. It looks fine for now"). No route loaders.
+
 ## Findings
 
 - **F-01** The merge's "Docs" fact (the absorbed PROC record marked "merged into", Review ▸ Records
@@ -52,8 +74,8 @@
 
 ## Leftovers
 
-D-1 (cross-portal Changes, Review, Settings), D-2 (thumbnails), D-4 (re-run a confirmed command),
-D-6 (persona of loose screens, suggestions as targets), F-01 (docs record of an absorbed
+~~D-1 (cross-portal Changes, Review, Settings)~~ (dropped, owner 2026-10-24), D-2 (thumbnails), D-4 (re-run a confirmed command),
+D-6 (a) (the processes of the personas that saw the screen; (b) suggestions as targets dropped), F-01 (docs record of an absorbed
 process), F-05; the CLS check in CI; Previous / Next on a process's steps and In no process
 (T-02 names them; only the Screens list carries its list today).
 

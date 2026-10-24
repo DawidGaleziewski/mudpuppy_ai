@@ -35,6 +35,23 @@ export const Running: Story = { args: { state: 'running', status: { status: 'run
 export const Done: Story = { args: { state: 'done', status: { status: 'ok', children: 'Done' }, result: 'Started scan 01a110e7-2068.', resultLinks: [['Open in Scans', '/app/scans/01a110e7-2068']] } };
 export const Failed: Story = { args: { state: 'failed', status: { status: 'failed', children: 'Failed' }, error: 'The scan is already running.' } };
 export const Cancelled: Story = { args: { state: 'cancelled' } };
+/** Designer T-13, owner D-4: a start the crawler refused before a run existed; Start again runs the confirmed copy in one press. */
+export const DidntStart: Story = {
+  name: "Didn't start",
+  args: {
+    title: 'Start a map scan',
+    state: 'failed',
+    status: { status: 'failed', children: "Didn't start" },
+    error: 'The crawler could not start the scan: robots.txt could not be read.',
+    errorRef: 'ERR-DOWN',
+    notStarted: { onAgain: () => undefined, check: '/app/portals/reference-insurer/settings' },
+  },
+};
+/** After Start again: the copy runs below, so the button is gone. */
+export const DidntStartAgainPressed: Story = {
+  name: "Didn't start, started again",
+  args: { ...DidntStart.args, notStarted: { check: '/app/portals/reference-insurer/settings' } },
+};
 /** Add a persona (designer 19/04): the fields the assistant drafted, one changed by the person. */
 export const Editable: Story = {
   args: {

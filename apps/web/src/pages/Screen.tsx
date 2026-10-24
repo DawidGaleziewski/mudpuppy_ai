@@ -23,6 +23,7 @@ import {
 } from '../design-system';
 import { sameScreenHref } from '../app/api-same-screen';
 import { ScreenNeighbours } from '../app/ScreenNeighbours';
+import { StepNeighbours } from '../app/StepNeighbours';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
 import { useScreenRecordings, type ScreenRecordings } from '../app/api-state';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -353,7 +354,13 @@ export function Screen() {
           </>
         }
         meta={headMeta(q, (d) => meta(d, rec))}
-        actions={<ScreenNeighbours portal={portal} screenKey={screenKey} list={params.get('list')} />}
+        actions={
+          params.get('in') ? (
+            <StepNeighbours portal={portal} list={params.get('in') ?? ''} state={params.get('recording')} />
+          ) : (
+            <ScreenNeighbours portal={portal} screenKey={screenKey} list={params.get('list')} />
+          )
+        }
       />
       {view}
       <QueryState query={q} what="the screen">

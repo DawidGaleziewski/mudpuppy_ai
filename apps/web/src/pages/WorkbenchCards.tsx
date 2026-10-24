@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useWatch } from 'react-hook-form';
 import { Button, Cluster, CommandCard, Facts, Film, FilmItem, GenView, Loader, Meter, Mini, Narration, Reserve, Sheet, Stack, Table, Tag, Text, shortScanId } from '../design-system';
 import type { StatusOut } from '../app/api';
 import { stateHref } from '../app/api-state';
 import type { WbCard, WbCommandCard, WbPage, WbPageModel, WbScan, WbTurn } from '../app/api-workbench';
-import { argsOf, draftOf, PersonaFields, usePersonaForm, type PersonaArgs } from '../app/PersonaForm';
+import { argsOf, draftOf, newCredential, PersonaFields, usePersonaForm, type PersonaArgs, type PersonaDraft } from '../app/PersonaForm';
 import { ShownStatus } from '../app/ShownStatus';
+import { credentialsPath, useNewSignIn } from '../app/VaultDialog';
 
 /** What a card can do on the page: select a page, ask about something, open a command, switch path, answer feedback. */
 export interface WbActions {
@@ -20,6 +22,8 @@ export interface WbActions {
   cancel: (id: string) => void;
   /** Undo a done persona.add. */
   undo: (id: string) => void;
+  /** Start again a start that did not start: one press runs the confirmed copy (spec 079 D-4). */
+  again: (id: string) => void;
   /** Open an Add-a-persona card from a Start card (spec 072, designer 19/04). */
   addPersona: (turn: number, name: string) => void;
 }
@@ -206,6 +210,12 @@ function PersonaCommand({ c, a }: { c: WbCommandCard; a: WbActions }) {
   const signIns = c.sign_ins ?? [];
   const drafted = draftOf(c.args as PersonaArgs, signIns);
   const form = usePersonaForm(drafted, c.personas);
+  const draft = useWatch({ control: form.control }) as PersonaDraft;
+  const conv = a.model.conversation?.id;
+  const { portal, environment } = a.model;
+  const target = conv && portal && environment ? { path: credentialsPath(conv), portal, environment } : null;
+  // R-102 (5): Store a new credential… opens the vault dialog; Confirm waits for it
+  const signIn = useNewSignIn(newCredential(draft), target);
   return (
     <CommandCard
       title={c.title}
@@ -214,7 +224,15 @@ function PersonaCommand({ c, a }: { c: WbCommandCard; a: WbActions }) {
       facts={c.facts}
       reason={c.reason}
       proposedBy={c.proposed_by}
-      edit={{ body: <PersonaFields form={form} signIns={signIns} drafted={drafted} />, ready: form.formState.isValid }}
+      edit={{
+        body: (
+          <Stack>
+            <PersonaFields form={form} signIns={signIns} drafted={drafted} />
+            {signIn.part}
+          </Stack>
+        ),
+        ready: form.formState.isValid && signIn.ready,
+      }}
       runningWord={c.running_word}
       result={c.result}
       resultLinks={c.result_links}
@@ -250,13 +268,10 @@ export function Command({ c, a, turn }: { c: WbCommandCard; a: WbActions; turn: 
       onConfirm={(persona) => a.confirm(id, c.token ?? '', persona)}
       onCancel={() => a.cancel(id)}
       {...(c.ask_persona ? { onAddPersona: () => a.addPersona(turn, freeName(c.personas)) } : {})}
-      {...(c.not_started ? { notStarted: { onAgain: () => a.ask(START_AGAIN), ...(c.check_url && { check: c.check_url }) } } : {})}
+      {...(c.not_started ? { notStarted: { ...(!c.started_again && { onAgain: () => a.again(id) }), ...(c.check_url && { check: c.check_url }) } } : {})}
     />
   );
 }
-
-/** Start again (designer T-13): the same scan asked for once more; the new card is confirmed as every write (spec 078 D-4). */
-const START_AGAIN = 'Start the same scan again.';
 
 export function TurnNarration({ rt, a }: { rt: WbTurn; a: WbActions }) {
   if (!rt.narration.length) return null;

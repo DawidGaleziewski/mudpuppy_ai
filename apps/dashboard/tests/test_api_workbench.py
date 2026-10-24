@@ -165,6 +165,46 @@ def test_a_start_the_crawler_refused_did_not_start(
     (cmd,) = client.get(API, params={"c": CONV}).json()["turns"][1]["commands"]
     assert cmd["not_started"] is True and cmd["check_url"] == f"/app/portals/{PORTAL}/settings"
     assert cmd["error"] == "robots.txt could not be read (network error)."
+    assert cmd["started_again"] is False
+
+
+def test_start_again_goes_to_the_chat_service_and_the_copy_names_the_failed_card(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+    chat: Chat,  # noqa: F811
+) -> None:
+    """Spec 079 FR-002 (owner D-4): one press; the copy says it is one, the failed card hides the
+    button."""
+    again = client.post("/api/workbench/commands/cmd-0005/again", json={}, headers=ORIGIN)
+    assert again.json()["ok"] is True
+    assert again.json()["message"] == "Started again · the new card follows it."
+    assert next(b for _, p, b in chat.calls if p.endswith("/again")) == {"by": "dawid"}
+    conn = empty_store.connect()
+    at = "2026-10-06T10:48:00.000Z"
+    common = dict(
+        conversation_id=CONV, turn=2, command="scan.start", reason="you asked for a map scan.",
+        source="button", token_hash="0" * 64, precondition_hash="z",
+        expires_at="2999-01-01T00:00:00Z", confirmed_by="dawid", confirmed_at=at,
+        created_at=at, updated_at=at,
+    )  # fmt: skip
+    insert(
+        conn, "chat_messages", id="m2", conversation_id=CONV, seq=2, role="user",
+        content="Start a map scan.", created_at=at,
+    )  # fmt: skip
+    insert(
+        conn, "workbench_commands", id="cmd-0005", args_json=json.dumps({"type": "full_map"}),
+        state="failed", idempotency_key="k5", error_ref="ERR-T",
+        result_json=json.dumps({"message": "down"}), **common,
+    )  # fmt: skip
+    insert(
+        conn, "workbench_commands", id="cmd-0006", state="running", idempotency_key="k6",
+        args_json=json.dumps({"type": "full_map", "again_of": "cmd-0005"}), **common,
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    failed, copy = client.get(API, params={"c": CONV}).json()["turns"][1]["commands"]
+    assert failed["started_again"] is True
+    assert ["Again", "of the start above that didn't start"] in copy["facts"]
 
 
 def test_a_record_card_carries_its_type_word_in_the_json() -> None:

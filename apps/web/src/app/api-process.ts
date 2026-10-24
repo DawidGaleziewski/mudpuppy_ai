@@ -131,5 +131,5 @@ const processApi = api.injectEndpoints({
   }),
 });
 
-export const useProcessPage = (portal: string, key: string, model: string, step: string) =>
-  processApi.useProcessPageQuery({ portal, key, model, step });
+export const useProcessPage = (portal: string, key: string, model: string, step: string, enabled = true) =>
+  processApi.useProcessPageQuery({ portal, key, model, step }, { skip: !enabled });

@@ -168,7 +168,8 @@ export function RecordingRedirect() {
   const q = useStateView(state);
   const hl = params.get('hl');
   const pair = pairOf(params);
-  const keep = `${hl !== null ? `&hl=${encodeURIComponent(hl)}` : ''}${pair ? `&${pair}` : ''}`;
+  const inList = params.get('in'); // the list it was opened from (spec 079 FR-007)
+  const keep = `${hl !== null ? `&hl=${encodeURIComponent(hl)}` : ''}${pair ? `&${pair}` : ''}${inList ? `&in=${encodeURIComponent(inList)}` : ''}`;
   if (q.data) {
     const v = q.data;
     const to = v.place ? recordingHref(v.place, state) : `/app/scans/${encodeURIComponent(v.page.head.first_seen_run)}/states?recording=${encodeURIComponent(state)}`;

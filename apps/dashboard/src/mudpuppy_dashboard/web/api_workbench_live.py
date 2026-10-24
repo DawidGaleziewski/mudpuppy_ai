@@ -237,12 +237,13 @@ class Live:
             await self.notice("failure", f"The action {name} is not known.")
 
     async def command(self, verb: str, context: dict[str, Any]) -> None:
-        """Confirm (the card's one-time token fetched now), Cancel or Undo, by the card's id."""
+        """Confirm (the card's one-time token fetched now), Cancel, Undo or Start again (a start
+        that did not start, spec 079 FR-002), by the card's id."""
         card = (self.state or {}).get("commands", {}).get(str(context.get("command")))
-        if card is None or verb not in ("confirm", "cancel", "undo"):
+        if card is None or verb not in ("confirm", "cancel", "undo", "again"):
             await self.notice("failure", "This card is out of date.")
             return
-        if verb == "confirm" and (why := paused(self.web, self.c)):
+        if verb in ("confirm", "again") and (why := paused(self.web, self.c)):
             await self.notice("failure", why)
             return
         command_id = card["commandId"]

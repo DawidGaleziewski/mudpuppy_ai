@@ -8,7 +8,7 @@ import json
 
 import httpx2
 
-from .conftest import Store
+from .conftest import Store, insert
 from .test_chat import ORIGIN, Service
 from .test_processes_pages import P, client, seed
 
@@ -46,6 +46,20 @@ def test_the_list_has_processes_suggestions_and_loose_screens(empty_store: Store
     assert body["stages"][0]["word"] == "Suggested" and body["total"] == 1
     assert archived["archived"] is True and archived["rows"] == []
     assert missing.status_code == 404
+
+
+def test_a_loose_screen_names_the_personas_whose_scans_recorded_it(empty_store: Store) -> None:
+    """Spec 079 FR-003 (owner D-6 (a)): the Add to process menu lists those personas' processes."""
+    seed(empty_store)
+    conn = empty_store.connect()
+    insert(conn, "runs", id="run-p2", portal_id=P, persona_id="client")
+    for run, persona in (("run-p1", "guest"), ("run-p2", "client")):
+        insert(conn, "state_observations", run_id=run, state_id="st-faq", persona_id=persona)
+    conn.commit()
+    conn.close()
+    with client(empty_store) as c:
+        (faq,) = c.get(f"/api/portals/{P}/processes").json()["loose"]
+    assert faq["personas"] == ["client", "guest"]
 
 
 def test_accepting_a_suggestion_is_signed_and_answers_the_new_process(empty_store: Store) -> None:

@@ -44,7 +44,7 @@ function columns(portal: string, list: string, open: (key: string) => void) {
       rowHeader: true,
       // designer T-03: the main variant's picture left of the name; it opens the dialog browsing this list
       cell: (s: ScreenOut) => (
-        <RowPicture src={s.picture?.shot ?? s.picture?.wire} alt={s.title || s.key} missing="not recorded yet" onOpen={() => open(s.key)} pick={s.key}>
+        <RowPicture src={s.picture?.thumb ?? s.picture?.shot ?? s.picture?.wire} alt={s.title || s.key} missing="not recorded yet" onOpen={() => open(s.key)} pick={s.key}>
           <Cluster>
             <Tag size="sm" href={screenHref(portal, s.key, list)}>
               {s.key}

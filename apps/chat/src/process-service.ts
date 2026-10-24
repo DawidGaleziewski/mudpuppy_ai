@@ -400,7 +400,7 @@ async function saveChangeSpec(
 export function createProcessService(deps: { db: MudPuppyDb; raw?: OpenedDb['raw'] }) {
   const { db, raw: rawDb } = deps;
   // spec 078: the scope change (T-05) and merging two processes (T-06) come first
-  return { ...scopeAndMergeService(db),
+  return { ...scopeAndMergeService(db, rawDb),
     /** Spec 027 US6.2; needs the raw handle (the record's steps come from @mudpuppy/docs). */
     fromRecord: (portal: string, raw: unknown) => {
       if (rawDb === undefined) throw new HttpError(404, 'This address does not exist.');

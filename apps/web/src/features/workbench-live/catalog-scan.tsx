@@ -7,7 +7,7 @@
 import { z } from 'zod';
 import { CommonSchemas, type ComponentContext } from '@a2ui/web_core/v0_9';
 import { createComponentImplementation } from '@a2ui/react/v0_9';
-import { Button, Callout, Facts, Graph, GraphNode, Meter, Narration, Path, Stack, Status, Text } from '../../design-system';
+import { Button, Callout, Facts, Film, FilmItem, Graph, GraphNode, Meter, Mini, Narration, Path, Stack, Status, Text } from '../../design-system';
 import { useLiveFrame } from './context';
 import type { LivePage, LiveScan } from './protocol';
 
@@ -70,6 +70,38 @@ function ScanGraph({ scan, pick }: { scan: LiveScan; pick: (route: string, state
   );
 }
 
+/** A visit's status in the designer's words (16 § 4.1): Crawler here, Failed here, Visited. */
+const VISIT = {
+  here: { status: 'running', children: 'Crawler here' },
+  failed: { status: 'failed', children: 'Failed here' },
+  ok: { status: 'ok', children: 'Visited' },
+} as const;
+const visitStatus = (p: LivePage) => VISIT[p.status];
+
+/** The filmstrip form (designer 16 § 4.1, § 6.3: inline cards): one picture per page, in visit order. */
+function Filmstrip({ pages, queued, pick }: { pages: LivePage[]; queued: number; pick: (route: string, state: number) => void }) {
+  const { state } = useLiveFrame();
+  const selected = state?.ui.selected;
+  return (
+    <Film>
+      {pages.map((p) => (
+        <FilmItem
+          key={`${p.route}:${String(p.state)}`}
+          order={p.order}
+          route={`${p.route}${p.state > 1 ? ` · step ${String(p.state)}` : ''}`}
+          picture={p.thumb ?? null}
+          state={p.status === 'ok' ? null : p.status}
+          status={visitStatus(p)}
+          sidePages={p.sideTrips}
+          pressed={selected?.route === p.route && (selected.state ?? 1) === p.state}
+          onSelect={() => pick(p.route, p.state)}
+        />
+      ))}
+      {queued > 0 && <FilmItem route={`+${String(queued)} queued`} state="frontier" status={{ status: 'queued', children: 'Queued' }} />}
+    </Film>
+  );
+}
+
 /** The route pages in visit order. */
 function Route({ pages, pick }: { pages: LivePage[]; pick: (route: string, state: number) => void }) {
   return (
@@ -95,8 +127,15 @@ export const LiveMap = createComponentImplementation(
     return (
       <Stack>
         <ScanMeterView meter={scan.meter} />
-        {props.view !== 'filmstrip' && <ScanGraph scan={scan} pick={pick} />}
-        <Route pages={scan.pages} pick={pick} />
+        {scan.pages.length === 0 && <Text small muted>No pages yet. The first page appears when the crawler opens it.</Text>}
+        {props.view === 'filmstrip' ? (
+          <Filmstrip pages={scan.pages} queued={scan.meter.queued} pick={pick} />
+        ) : (
+          <>
+            <ScanGraph scan={scan} pick={pick} />
+            <Route pages={scan.pages} pick={pick} />
+          </>
+        )}
       </Stack>
     );
   },
@@ -158,15 +197,17 @@ const PageSchema = z.object({ ...Scan, page: z.unknown(), size: z.string().optio
 export const PageDetail = createComponentImplementation({ name: 'PageDetail', schema: PageSchema }, ({ props }) => {
   const { state } = useLiveFrame();
   const page = pageOf((props.data as LivePage[] | undefined) ?? [], props.page, state?.ui.selected);
-  if (!page) return <Text small muted>Pick a page on the map to see it here.</Text>;
+  if (!page) return <Text small muted>Select a page on the map.</Text>;
+  // designer 16 § 4.4: when, which step, its status; the picture of the page
   return (
     <Stack>
-      <Text strong>{`${page.route} — ${page.title}`}</Text>
+      <Text strong asIs>{`${page.route}${page.state > 1 ? ` · step ${String(page.state)}` : ''} — ${page.title}`}</Text>
+      <Mini src={page.shot ?? null} height={120} />
       <Facts
         items={[
-          ['Visited', `#${String(page.order)} at step ${String(page.step)}`],
-          ['At', page.at],
-          ['Side pages', String(page.sideTrips)],
+          ['Visited', <Text key="v" mono small>{`#${String(page.order)} · step ${String(page.step)} · ${page.at.slice(11, 19)}Z`}</Text>],
+          ['Status', <Status key="s" {...visitStatus(page)} />],
+          ...(page.sideTrips ? [['Side trips', `${String(page.sideTrips)} page${page.sideTrips === 1 ? '' : 's'} opened from here`] as const] : []),
         ]}
       />
       <Text small muted>Your next message carries this page as context.</Text>
@@ -174,7 +215,15 @@ export const PageDetail = createComponentImplementation({ name: 'PageDetail', sc
   );
 });
 
+/** One page at a glance (designer 16 § 4.3): its picture, route and status; `sm` 46 px, `md` 80 px. */
 export const PageMiniature = createComponentImplementation({ name: 'PageMiniature', schema: PageSchema }, ({ props }) => {
   const page = pageOf((props.data as LivePage[] | undefined) ?? [], props.page, null);
-  return <Text small>{page ? `${page.route} — ${page.title}` : 'Page not visited'}</Text>;
+  if (!page) return <Text small muted>Page not visited in this scan.</Text>;
+  return (
+    <Stack>
+      <Mini src={page.thumb ?? null} height={props.size === 'sm' ? 46 : 80} />
+      <Text mono small>{`${page.route}${page.state > 1 ? ` · step ${String(page.state)}` : ''}`}</Text>
+      <Status {...visitStatus(page)} />
+    </Stack>
+  );
 });

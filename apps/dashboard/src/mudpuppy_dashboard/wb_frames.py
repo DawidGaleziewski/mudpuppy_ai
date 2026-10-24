@@ -106,3 +106,5 @@ class CommandCard:
     #: card says "Didn't start", what was created (nothing), and where to check the address.
     not_started: bool = False
     check_url: str | None = None
+    #: Start again pressed already (spec 079 FR-002): the copy runs below, no second press.
+    started_again: bool = False

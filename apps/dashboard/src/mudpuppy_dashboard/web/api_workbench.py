@@ -64,6 +64,7 @@ async def page(
     model.blocked = await blocked_reason(web)
     body = jsonable_encoder(model)
     body["paused"] = _paused(web, ctx)
+    body["environment"] = ctx.env  # where a new sign-in's values are stored (spec 079 FR-009)
     body["path_words"] = PATH_WORDS
     body["reasons"] = REASONS
     body["statuses"] = {"wb_scan": _statuses("wb_scan"), "wb_cmd": _statuses("wb_cmd")}
@@ -159,17 +160,20 @@ async def open_card(request: Request) -> JSONResponse:
 @router.post("/commands/{command_id}/{action}")
 async def card_action(request: Request, command_id: str, action: str) -> JSONResponse:
     """Confirm (with the card's one-time token, a Start card's persona, an editable card's
-    args), Cancel, or Undo a done persona.add (spec 072)."""
+    args), Cancel, Undo a done persona.add (spec 072), or Start again a start that did not
+    start (spec 079 FR-002: one press, the copy runs as confirmed)."""
     if not same_origin(request):
         return write_answer(403, "Cross-origin request refused.")
     if action not in DONE_WORDS:
-        return write_answer(404, "Confirm, cancel or undo.")
+        return write_answer(404, "Confirm, cancel, undo or start again.")
     web = web_of(request)
     c = web.ctx(request, None)
-    if action == "confirm" and (paused := _paused(web, c)):
+    if action in ("confirm", "again") and (paused := _paused(web, c)):
         return write_answer(409, paused)
     form = await read_json(request)
-    body: dict[str, Any] = {"token": str(form.get("token") or ""), "by": web.settings.reviewer}
+    body: dict[str, Any] = {"by": web.settings.reviewer}
+    if action != "again":
+        body["token"] = str(form.get("token") or "")
     if form.get("persona"):
         body["persona"] = str(form["persona"])
     if isinstance(form.get("args"), dict):
@@ -187,6 +191,7 @@ DONE_WORDS = {
     "confirm": "Confirmed.",
     "cancel": "Cancelled · nothing changed.",
     "undo": "Undone.",
+    "again": "Started again · the new card follows it.",
 }
 
 

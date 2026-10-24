@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import { useParams } from 'react-router';
 import { Button, Columns, Field, Menu, PageHead, Plate, RowPicture, Segmented, Select, SelectionBar, Skeleton, SortGrid, Split, Stack, Table, Text, ViewNav } from '../design-system';
-import { addEntries, rememberAdded } from '../app/addToProcess';
+import { addEntries, rememberAdded, seenBy } from '../app/addToProcess';
 import { looseHref, processesKey, useProcesses, type LooseScreen, type ProcessList, type Target } from '../app/api-processes';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { headMeta, QueryState } from '../app/QueryState';
 import { ScreenBrowser, useScreenBrowser } from '../app/ScreenBrowser';
 import { Shell } from '../app/Shell';
+import { IN_LOOSE, stateIn } from '../app/StepNeighbours';
 import { NewProcess } from './NewProcess';
 
 const SORTS = [
@@ -69,7 +70,7 @@ function ListView({ rows, open }: { rows: readonly LooseScreen[]; open: (key: st
       header: 'Screen',
       rowHeader: true,
       cell: (s: LooseScreen) => (
-        <RowPicture src={s.shot ?? s.wire} alt={s.title || s.route} missing="not recorded yet" onOpen={() => open(s.state)} pick={s.state}>
+        <RowPicture src={s.thumb ?? s.shot ?? s.wire} alt={s.title || s.route} missing="not recorded yet" onOpen={() => open(s.state)} pick={s.state}>
           <Text asIs>{s.title || '(untitled page)'}</Text>
           <Text route>{s.route}</Text>
         </RowPicture>
@@ -90,9 +91,9 @@ function Body({ d }: { d: ProcessList }) {
   const byState = new Map(rows.map((s) => [s.state, s]));
   const names = (states: readonly string[]) => states.map((s) => byState.get(s)?.title || s).join(', ');
   const fresh = () => document.querySelector<HTMLInputElement>('form[aria-label="New process from these"] input')?.focus();
-  const menu = (states: readonly string[]) => addEntries(d.targets, d.default_persona, states, (t) => ask(addAsk(d.portal, t, states, names(states), () => setTicked([]))), fresh);
+  const menu = (states: readonly string[]) => addEntries(d.targets, seenBy(d.loose, states, d.default_persona), states, (t) => ask(addAsk(d.portal, t, states, names(states), () => setTicked([]))), fresh);
   const open = (key: string) => browser.open(rows.findIndex((s) => s.state === key));
-  const items = rows.map((s) => ({ key: s.state, title: s.title || s.route, route: s.route, shot: s.shot, wire: s.wire, ...(s.screen_key && { href: `/app/portals/${encodeURIComponent(d.portal)}/screens/${encodeURIComponent(s.screen_key)}` }) }));
+  const items = rows.map((s) => ({ key: s.state, title: s.title || s.route, route: s.route, shot: s.shot, wire: s.wire, ...(s.screen_key && { href: stateIn(s.state, IN_LOOSE) }) }));
   const pick = { tickLabel: 'In the new process', ticked: (k: string) => ticked.includes(k), step: (k: string) => (ticked.includes(k) ? ticked.indexOf(k) + 1 : null), onTick: (k: string) => tick(k, false), addEntries: (k: string) => menu([k]) };
   return (
     <Stack>
@@ -113,7 +114,7 @@ function Body({ d }: { d: ProcessList }) {
       <Columns
         main={
           layout === 'grid' ? (
-            <SortGrid label="Screens in no process" items={rows.map((s) => ({ key: s.state, title: s.title || s.route, route: s.route, meta: meta(s), src: s.shot ?? s.wire, ticked: ticked.includes(s.state), step: pick.step(s.state) }))} onTick={tick} onOpen={open} menuFor={(k) => menu([k])} />
+            <SortGrid label="Screens in no process" items={rows.map((s) => ({ key: s.state, title: s.title || s.route, route: s.route, meta: meta(s), src: s.thumb ?? s.shot ?? s.wire, ticked: ticked.includes(s.state), step: pick.step(s.state) }))} onTick={tick} onOpen={open} menuFor={(k) => menu([k])} />
           ) : (
             <ListView rows={rows} open={open} />
           )

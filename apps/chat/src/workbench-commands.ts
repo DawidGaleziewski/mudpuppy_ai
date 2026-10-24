@@ -260,7 +260,7 @@ export function getCommand(raw: BetterSqlite3.Database, id: string): CommandRow 
   return row;
 }
 
-const portalOf = (raw: BetterSqlite3.Database, conversationId: string): string => {
+export const portalOf = (raw: BetterSqlite3.Database, conversationId: string): string => {
   const row = raw
     .prepare(`SELECT portal_id FROM chat_conversations WHERE id = ?`)
     .get(conversationId) as { portal_id: string | null } | undefined;
@@ -339,6 +339,14 @@ function takeEdited(raw: BetterSqlite3.Database, row: CommandRow, args: Record<s
   return getCommand(raw, row.id);
 }
 
+/** The persona the person picked on a Start card, kept on the row (spec 079 FR-002: Start again reuses it). */
+function takePersona(raw: BetterSqlite3.Database, row: CommandRow, persona: string | undefined): CommandRow {
+  if (persona === undefined || row.command !== 'scan.start') return row;
+  const args = { ...(JSON.parse(row.args_json) as Record<string, unknown>), persona };
+  raw.prepare(`UPDATE workbench_commands SET args_json = ?, updated_at = ? WHERE id = ?`).run(JSON.stringify(args), nowIso(), row.id);
+  return getCommand(raw, row.id);
+}
+
 /** Confirm (WB-UI-21, -23): nothing reaches a scan before this, and only with the card's token. */
 export function confirmCommand(
   deps: ConfirmDeps,
@@ -356,7 +364,7 @@ export function confirmCommand(
     throw new CommandRefusal('NOT_PROPOSED', `the command is ${found.state}`);
   if (!tokenMatches(found, input.token))
     throw new CommandRefusal('BAD_TOKEN', 'this card is out of date; reload it');
-  const row = takeEdited(raw, found, input.args);
+  const row = takePersona(raw, takeEdited(raw, found, input.args), input.persona);
   const proposal: CommandProposal = {
     command: row.command,
     args: JSON.parse(row.args_json) as Record<string, unknown>,
@@ -389,7 +397,8 @@ function expiryReason(
   }
 }
 
-function run(
+/** Run a confirmed command (Confirm, and Start again in `workbench-again`). */
+export function run(
   deps: ConfirmDeps,
   row: CommandRow,
   prepared: Prepared,

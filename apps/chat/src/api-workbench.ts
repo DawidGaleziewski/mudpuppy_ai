@@ -18,6 +18,7 @@ const POSTS: [RegExp, number, Handler][] = [
   [/^\/workbench\/commands$/, 201, (wb, _id, body) => wb.proposeFromButton(body)],
   [/^\/workbench\/commands\/([^/]+)\/token$/, 200, (wb, id) => wb.token(id)],
   [/^\/workbench\/commands\/([^/]+)\/confirm$/, 200, (wb, id, body) => wb.confirm(id, body)],
+  [/^\/workbench\/commands\/([^/]+)\/again$/, 201, (wb, id, body) => wb.again(id, body)],
   [/^\/workbench\/commands\/([^/]+)\/cancel$/, 200, (wb, id) => wb.cancel(id)],
   [/^\/workbench\/commands\/([^/]+)\/undo$/, 200, (wb, id) => wb.undo(id)],
   [/^\/workbench\/views\/([^/]+)\/feedback$/, 200, (wb, id, body) => wb.feedback(id, body)],

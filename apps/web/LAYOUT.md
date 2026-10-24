@@ -57,9 +57,11 @@ map (G-30; moved out of `CLAUDE.md` in spec 074).
   Reword, decision table, tests, history, the export).
 - Docs: `api-docs.ts` (`Docs.tsx`: sections, records, pages); `api-doc.ts` one record
   (`DocRecord.tsx`, its parts in `DocContent.tsx`) and a session (`DocSession.tsx`).
-- Settings: `api-settings.ts` (`Settings.tsx`, `SettingsModel.tsx`, `PersonaForm.tsx`).
+- Settings: `api-settings.ts` (`Settings.tsx`, `SettingsModel.tsx`, `PersonaForm.tsx`);
+  `VaultDialog.tsx` (spec 079: Store a new credential… from a persona card, beta and live).
 - Screens: `api-screens.ts`; `ScreenNeighbours.tsx` (Prev / Next between screens over the list
-  they came from).
+  they came from); `StepNeighbours.tsx` (spec 079: Prev / Next over a process's steps or In no
+  process, `in=` in the address, kept through `/app/states/{id}`).
 - Scans: `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
   address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
   section's address).
@@ -92,10 +94,11 @@ style (lint), like pages.
   snapshot after a lost `seq`), AG-UI frames into the state (JSON Patch) and the surfaces' data
   model (at the item, F-03); `protocol.ts`: the frames and the state's shape.
 - `catalog.tsx` (the designer's catalog id and names), `catalog-scan.tsx` (LiveMap: Meter, Graph
-  with GraphNode, Path; ScanMeter, Narration, ErrorCard, PageDetail, PageMiniature),
-  `catalog-cards.tsx` (View on GenView, CommandCard, Choice on Plate and Field, the record cards),
-  `PersonaCreator.tsx` (persona.add: CommandCard with PersonaFields; a new sign-in to the vault
-  only), `context.ts` (the frame's state for the components). No CSS of its own (spec 076).
+  with GraphNode, Path, or Film as the filmstrip; ScanMeter, Narration, ErrorCard, PageDetail and
+  PageMiniature with the page's picture), `catalog-cards.tsx` (View on GenView, CommandCard with
+  Didn't start and Start again, Choice on Plate and Field, the record cards as Tags into Docs),
+  `PersonaCreator.tsx` (persona.add: CommandCard with PersonaFields; a new sign-in through the
+  vault dialog only), `context.ts` (the frame's state for the components). No CSS of its own (spec 076).
 
 ## Pages and tests
 

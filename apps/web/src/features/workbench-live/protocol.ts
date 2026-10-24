@@ -17,6 +17,9 @@ export interface LivePage {
   step: number;
   status: 'ok' | 'here' | 'failed';
   sideTrips: number;
+  /** The page's small WebP and its recording (spec 079). */
+  thumb?: string | null;
+  shot?: string | null;
 }
 
 export interface LiveNode {
@@ -71,6 +74,10 @@ export interface LiveCommand {
   persona: string | null;
   askPersona: boolean;
   undo: boolean;
+  /** Designer T-13 (spec 079): a start that didn't start; Start again once; where to check the address. */
+  notStarted?: boolean;
+  startedAgain?: boolean;
+  check?: string | null;
 }
 
 export interface Option {

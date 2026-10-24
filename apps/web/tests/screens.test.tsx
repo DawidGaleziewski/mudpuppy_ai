@@ -186,6 +186,18 @@ describe('Screen', () => {
     expect(last.hasAttribute('href')).toBe(false);
   });
 
+  it("steps through a process's steps when opened from them (spec 079 FR-007)", async () => {
+    const step = (state: string, title: string) => ({ state, title });
+    const page = { key: 'PRC-001', steps: [step('st-1', 'Start'), { state: null, title: 'Designed' }, step('st-2', 'Kalkulator'), step('st-3', 'Offer')] };
+    at('/app/portals/shop/screens/SC-0001?variant=r1&recording=st-2&in=process%3APRC-001%3AA', {
+      '/api/portals/shop/screens/SC-0001': detail,
+      '/api/portals/shop/processes/PRC-001?model=A': page,
+    });
+    expect(await screen.findByText('2 of 3')).toBeTruthy(); // designed steps have no screen
+    const pager = screen.getByRole('navigation', { name: 'Steps of PRC-001 A' });
+    expect(within(pager).getByRole('link', { name: 'Next: Offer' }).getAttribute('href')).toBe('/app/states/st-3?in=process%3APRC-001%3AA');
+  });
+
   it('has no Prev / Next when opened from elsewhere', async () => {
     at('/app/portals/shop/screens/SC-0001', { '/api/portals/shop/screens/SC-0001': detail });
     expect(await screen.findByRole('region', { name: /Needs you on this screen/ })).toBeTruthy();

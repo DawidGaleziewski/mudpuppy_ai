@@ -33,6 +33,7 @@ const AGENT_SERVER: Record<AgentName, string> = {
 
 /** The eval process removes its MCP config file when it exits (set on the first write). */
 let cleanupSet = false;
+let configPath: string | undefined;
 
 interface McpConfig {
   mcpServers: Record<string, { env?: Record<string, string> } & Record<string, unknown>>;
@@ -52,12 +53,19 @@ export function evalMcpConfig(root: string, ws: string, env: string): string {
     ]),
   );
   // Not in `ws`: with `--in-place` that is the repo root. One file per eval process, removed when
-  // it exits (R-97 (8)).
+  // its session ends (`removeMcpConfig`); the exit hook is the backstop (R-97 (8), spec 078 F-07).
   const path = join(tmpdir(), `pf-eval-mcp-${String(process.pid)}.json`);
-  if (!cleanupSet) process.once('exit', () => rmSync(path, { force: true }));
+  if (!cleanupSet) process.once('exit', removeMcpConfig);
   cleanupSet = true;
   writeFileSync(path, JSON.stringify({ mcpServers: servers }, null, 2));
+  configPath = path;
   return path;
+}
+
+/** Remove the MCP config file this process wrote, if any. */
+export function removeMcpConfig(): void {
+  if (configPath) rmSync(configPath, { force: true });
+  configPath = undefined;
 }
 
 function cliArgs(
@@ -91,12 +99,17 @@ export function runAgent(
   prompt: string,
   sessionId: string,
 ): AgentRun {
-  const r = spawnSync('claude', cliArgs(config, ws, agent, prompt, sessionId), {
-    cwd: config.root,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-    env: { ...process.env, MUDPUPPY_ENV: config.env, MUDPUPPY_ROOT: ws },
-  });
+  let r;
+  try {
+    r = spawnSync('claude', cliArgs(config, ws, agent, prompt, sessionId), {
+      cwd: config.root,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      env: { ...process.env, MUDPUPPY_ENV: config.env, MUDPUPPY_ROOT: ws },
+    });
+  } finally {
+    removeMcpConfig();
+  }
   let out: CliOut;
   try {
     out = JSON.parse(r.stdout) as CliOut;

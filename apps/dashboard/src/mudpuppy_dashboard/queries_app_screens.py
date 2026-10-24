@@ -10,6 +10,7 @@ from dataclasses import replace
 from pydantic import BaseModel
 
 from . import queries_model_screens as qms
+from . import thumbs
 from .queries_app import Chip, NeedsItem, StatusOut, needs_item, status_out
 from .queries_model_screens import ScreenRow
 from .queries_same_screen import WORDS, screen_labels
@@ -25,6 +26,8 @@ class RowPictureOut(BaseModel):
 
     shot: str | None
     wire: str | None
+    #: The screenshot's small WebP the row loads (spec 079 FR-001); the dialog shows `shot`.
+    thumb: str | None = None
 
 
 class ScreenOut(BaseModel):
@@ -129,7 +132,7 @@ def _row_pictures(conn: sqlite3.Connection, portal: str) -> dict[str, RowPicture
     """Each screen's main variant (its first member) and that state's latest recording."""
     found = qms.main_pictures(conn, portal)
     return {
-        key: RowPictureOut(shot=_evidence(p.shot), wire=_evidence(p.wire))
+        key: RowPictureOut(shot=_evidence(p.shot), wire=_evidence(p.wire), thumb=thumbs.url(p.shot))
         for key, p in found.items()
         if p.shot or p.wire
     }

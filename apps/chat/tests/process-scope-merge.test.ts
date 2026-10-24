@@ -74,7 +74,7 @@ describe('Scope and merge over HTTP', () => {
       logError: () => Promise.resolve({ ref: 'ERR-T', logged: true }),
       findError: () => Promise.resolve(null),
       version: 'test',
-      processes: createProcessService({ db: t.opened.db }),
+      processes: createProcessService({ db: t.opened.db, raw: t.opened.raw }),
     });
     base = `http://127.0.0.1:${String(await listenLocal(server, 0))}`;
   });
@@ -140,6 +140,38 @@ describe('Scope and merge over HTTP', () => {
     expect(get('SELECT archived_at FROM ba_processes WHERE id = ?', absorb.id).archived_at).toBeNull();
     expect(all(`SELECT label FROM process_models WHERE process_id = ? ORDER BY label`, absorb.id)).toEqual([{ label: 'A' }, { label: 'B' }]);
     expect((await call(`/merges/${done.body.merge.id as string}/undo`, { author: 'anna' })).status).toBe(409);
+  });
+
+  it("tells the absorbed process's PROC record, and Split back takes the note back (spec 079 FR-004)", async () => {
+    const keep = (await make('Oblicz składkę', ['home', 'car'])).process;
+    const absorb = (await make('Test process', ['car', 'driver'])).process;
+    sql(
+      `INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json, started_at, ended_at)
+       VALUES ('sess-1', ?, 'completed', '[]', 's', '[]', ?, ?)`,
+      P,
+      T,
+      T,
+    );
+    sql(
+      `INSERT INTO doc_records (id, portal_id, kind, key, seq, title, latest_rev, created_at, updated_at, process_id)
+       VALUES ('rec-1', ?, 'process', 'PROC-002', 2, 'Test process', 1, ?, ?, ?)`,
+      P,
+      T,
+      T,
+      absorb.id,
+    );
+    sql(
+      `INSERT INTO doc_revisions (id, record_id, rev_no, session_id, change, content_json, confidence, status, created_at)
+       VALUES ('rev-1', 'rec-1', 1, 'sess-1', 'create', '{"title":"Test process"}', 'observed', 'draft', ?)`,
+      T,
+    );
+    const done = await call('/processes/merge', { keep: keep.id, absorb: absorb.id, author: 'anna' });
+    expect(done.status).toBe(200);
+    await call(`/merges/${done.body.merge.id as string}/undo`, { author: 'ola' });
+    expect(all(`SELECT action, reviewer, text FROM doc_reviews WHERE revision_id = 'rev-1' ORDER BY created_at, rowid`)).toEqual([
+      { action: 'comment', reviewer: 'anna', text: `Merged into ${keep.key as string} Oblicz składkę by anna: this process is archived; revise or withdraw this record.` },
+      { action: 'comment', reviewer: 'ola', text: `Split back from ${keep.key as string} Oblicz składkę: the merge note above no longer applies.` },
+    ]);
   });
 
   it("refuses to merge processes of two personas, with the reason the dialog shows", async () => {

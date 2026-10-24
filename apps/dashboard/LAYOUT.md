@@ -19,7 +19,8 @@ files, and the console itself at `/app/`.
   `?portal=` or the old `pf_portal` cookie).
 - `web/health.py` (`/healthz`, the code fingerprint of `version.py`), `web/evidence.py`
   (`/evidence/{ref}`: screenshots, wireframes, layouts by content address, from the main store and
-  every eval workspace), `smoke.py` (`mudpuppy-dashboard-smoke`: a running dashboard's API
+  every eval workspace; spec 079: `/evidence/{ref}/thumb`, a PNG's 192 x 120 WebP made by
+  `thumbs.py` and cached in `<data>/thumbs`), `smoke.py` (`mudpuppy-dashboard-smoke`: a running dashboard's API
   addresses answer).
 - `settings.py`: runtime settings (`MUDPUPPY_*`); `stores.py`: the stores a request may open
   (main data dir + eval workspaces, chosen by key; `portals_in` cached per file write).
@@ -89,6 +90,6 @@ files, and the console itself at `/app/`.
   `queries_all_portals.py`.
 - Helpers: `pager.py` (25 a page), `neighbours.py` (Prev / Next), `formats.py` (durations,
   timestamps, short ids), `visuals.py` (screenshots, layouts, highlights), `diagrams.py`
-  (Mermaid source), `glossary.py` (+ `glossary_cli.py`: `mudpuppy-glossary --write`),
+  (Mermaid source), `thumbs.py` (row thumbnails, spec 079), `glossary.py` (+ `glossary_cli.py`: `mudpuppy-glossary --write`),
   `servers.py` (live `mudpuppy` servers on another environment or checkout, spec 031 R-61).
 - `models.py`: read-only models of the SQLite schema; drift test vs. `data/schema/schema.sql`.

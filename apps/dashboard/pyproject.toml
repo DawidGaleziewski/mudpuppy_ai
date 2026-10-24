@@ -10,6 +10,7 @@ dependencies = [
     "httpx2>=2.13.1",
     "jsonpatch>=1.33",
     "markdown-it-py>=4.2.0",
+    "pillow>=13.0.0",
     "pydantic>=2.13.5",
     "pydantic-settings>=2.15.0",
     "pyyaml>=6.0.3",

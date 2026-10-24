@@ -34,10 +34,14 @@ export interface LooseScreen {
   route: string;
   shot: string | null;
   wire: string | null;
+  /** The row picture: the screenshot's small WebP (spec 079); the dialog shows `shot`. */
+  thumb?: string | null;
   scans: number;
   /** The model screen it is a variant of (its page, its variants in the dialog). */
   screen_key?: string | null;
   last_seen?: string | null;
+  /** The personas whose scans recorded it (spec 079, D-6 (a)); empty: the default persona's. */
+  personas?: string[];
   variants?: number;
 }
 

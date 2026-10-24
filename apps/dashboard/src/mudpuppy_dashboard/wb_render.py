@@ -412,8 +412,11 @@ def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> Com
     # designer T-13: a start the crawler refused before a run existed
     starts = cmd.command in ("scan.start", "scan.resume")
     not_started = starts and cmd.state == "failed" and not cmd.result.get("run_id")
+    if cmd.args.get("again_of"):  # spec 079 FR-002: the copy Start again ran
+        facts = (*facts, ("Again", "of the start above that didn't start"))
     return CommandCard(
         not_started=not_started,
+        started_again=not_started and queries_wb.started_again(rc.conn, cmd.id),
         check_url=f"/app/portals/{rc.portal}/settings" if not_started else None,
         dom_id=f"cmd-{cmd.id}",
         title=LABELS.get(cmd.command, cmd.command),

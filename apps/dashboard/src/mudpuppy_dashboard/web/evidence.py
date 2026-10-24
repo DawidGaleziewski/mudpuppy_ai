@@ -9,7 +9,7 @@ from fastapi import APIRouter, Request
 from fastapi.responses import Response
 from starlette.exceptions import HTTPException
 
-from .. import stores, visuals
+from .. import stores, thumbs, visuals
 from .deps import web_of
 
 router = APIRouter()
@@ -23,6 +23,22 @@ def _find(data_dir: Path, eval_root: Path | None, ref: str) -> Path | None:
         if path is not None and path.is_file():
             return path
     return None
+
+
+@router.get("/evidence/{ref}/thumb")
+def evidence_thumb(request: Request, ref: str) -> Response:
+    """A screenshot's 192 x 120 WebP for a list's row picture (spec 079 FR-001); PNGs only."""
+    settings = web_of(request).settings
+    match = visuals.EVIDENCE_IMAGE.match(ref)
+    path = _find(settings.data_dir, settings.eval_root, ref) if match else None
+    if match is None or match.group(1) != "png" or path is None:
+        raise HTTPException(404)
+    try:
+        data = thumbs.thumbnail(path, settings.data_dir / "thumbs")
+    except OSError as error:  # not an image Pillow reads
+        raise HTTPException(404) from error
+    headers = {"Cache-Control": "public, max-age=31536000, immutable"}
+    return Response(data, media_type="image/webp", headers=headers)
 
 
 @router.get("/evidence/{ref}")

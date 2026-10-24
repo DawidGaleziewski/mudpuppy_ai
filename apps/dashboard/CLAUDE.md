@@ -11,7 +11,7 @@ Layer: app (Python, FastAPI, uv; outside the TS layers)
   http://127.0.0.1:8765/app/.
 - Dev mode: `uv run mudpuppy-dashboard --dev` (with `pnpm --dir apps/web dev` on 5173).
 - Env: `MUDPUPPY_DATA_DIR`, `MUDPUPPY_DEFAULT_ENV`, `MUDPUPPY_PORT`, `MUDPUPPY_DEV`; chat service URL `MUDPUPPY_CHAT_URL` (see README).
-- Workbench beta (spec 043): `MUDPUPPY_WORKBENCH=1` shows it; `MUDPUPPY_WORKBENCH_MODEL=0`
+- Workbench beta (spec 043): on by default, `MUDPUPPY_WORKBENCH=0` hides it; `MUDPUPPY_WORKBENCH_MODEL=0`
   turns the assistant off (live views stay), `MUDPUPPY_WORKBENCH_COMMANDS=0` pauses the cards;
   `MUDPUPPY_WORKBENCH_COMMAND_ENVS` (default `local-dev,sandbox`, read by the chat service too)
   lists the environments where commands may run (spec 048, D-6).
@@ -56,6 +56,8 @@ Layer: app (Python, FastAPI, uv; outside the TS layers)
 
 ## Other commands
 - `uv run mudpuppy-glossary --write`: glossary sync. `mudpuppy-dashboard-smoke`: smoke tests.
+  `pnpm --dir apps/dashboard cls:ci`: layout-shift check of every console route against its own
+  seeded dashboard (spec 079; `cls:check` is the same measure against a running one).
 
 ## See also
 - `LAYOUT.md`; specs/003-dashboard-ui (R-12), specs/004-ba-documentation (R-15),

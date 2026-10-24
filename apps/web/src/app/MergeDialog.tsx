@@ -14,6 +14,8 @@ interface MergePlan {
   ends: string[];
   as_is_rev: number;
   moves: { model_id: string; from_label: string; to_label: string }[];
+  /** The absorbed process's PROC record, which gets a "merged into" note for the BA (spec 079). */
+  record?: string | null;
 }
 
 const DIFFERENT = "Processes for different personas can't be merged: compare them instead.";
@@ -44,6 +46,7 @@ function PlanFacts({ p, titleOf }: { p: MergePlan; titleOf: (s: string) => strin
         ['Scope', `${String(p.scope.states.length + p.scope.off_path.length)} screens: the ${String(p.keep.steps)} of ${p.keep.name}${extra.length ? ` + ${extra.join(', ')} from ${p.absorb.name}` : ''}`],
         ['As-is', `Rebuilt from what scans observed → A r${String(p.as_is_rev)}. No hand edits${p.scope.off_path.length ? `; ${String(p.scope.off_path.length)} not on the observed path yet` : ''}`],
         ['To-be', p.moves.length ? p.moves.map((m) => `${p.absorb.name}'s ${m.from_label} moves over as ${m.to_label}, marked "branched from another as-is"`).join('; ') : `${p.absorb.name} has no to-be model`],
+        ...(p.record ? [['Docs', `${p.record} gets a note "merged into ${p.keep.key}" for the BA to revise or withdraw`] as const] : []),
         ['Undo', 'Undo for 10 s; later, Split back on the process page'],
       ]}
     />

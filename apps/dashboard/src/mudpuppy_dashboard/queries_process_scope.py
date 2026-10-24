@@ -58,14 +58,16 @@ LOOSE_FACTS_SQL = (
     "  WHERE m.state_id = st.id AND m.to_model_version IS NULL) AS screen_key,"
     " (SELECT count(*) FROM screen_members x WHERE x.to_model_version IS NULL AND x.screen_id ="
     "  (SELECT m.screen_id FROM screen_members m WHERE m.state_id = st.id"
-    "   AND m.to_model_version IS NULL)) AS variants"
+    "   AND m.to_model_version IS NULL)) AS variants,"
+    " (SELECT json_group_array(p) FROM (SELECT DISTINCT so.persona_id AS p"
+    "  FROM state_observations so WHERE so.state_id = st.id ORDER BY p)) AS personas"
     " FROM states st WHERE st.id IN ({marks})"
 )
 
 
 def loose_facts(conn: sqlite3.Connection, states: list[str]) -> dict[str, dict[str, Any]]:
-    """For the sorting grid (designer T-05): each screen's model screen, last sighting and how many
-    variants that screen has."""
+    """For the sorting grid (designer T-05): each screen's model screen, last sighting, how many
+    variants that screen has, and the personas whose scans recorded it (spec 079 FR-003, D-6)."""
     if not states:
         return {}
     sql = LOOSE_FACTS_SQL.format(marks=",".join("?" * len(states)))
@@ -74,6 +76,7 @@ def loose_facts(conn: sqlite3.Connection, states: list[str]) -> dict[str, dict[s
             "screen_key": r["screen_key"],
             "last_seen": r["seen"],
             "variants": max(1, int(r["variants"] or 0)),
+            "personas": json.loads(r["personas"] or "[]"),
         }
         for r in _rows(conn, sql, tuple(states))
     }

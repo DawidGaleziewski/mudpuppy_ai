@@ -126,6 +126,7 @@ function Body({ m, portal }: { m: WbPageModel; portal: string }) {
     confirm: (id, token, persona, args) => post(wbWrites.confirm(id, token, persona, args)),
     cancel: (id) => post(wbWrites.cancel(id)),
     undo: (id) => post(wbWrites.undo(id)),
+    again: (id) => post(wbWrites.again(id)),
     addPersona: (turn, name) => conv && post(wbWrites.addPersona(conv, turn, name)),
   };
   const send = () => {

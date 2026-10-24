@@ -49,10 +49,11 @@ class Settings(BaseSettings):
     # The local chat service (apps/chat, spec 010), called server-side only.
     chat_url: str = "http://127.0.0.1:4310"
     chat_timeout_s: float = 10.0
-    # The Workbench beta (spec 043 D-4, designer 14-workbench.md § 9.3): off hides it from the nav
-    # and its API answers 404; `workbench_model` off keeps the live views and disables the
-    # composer; `workbench_commands` off pauses the command cards.
-    workbench: bool = False
+    # The Workbench beta (spec 043 D-4, designer 14-workbench.md § 9.3): on by default (owner
+    # 2026-10-24: "i always want to see it in nav"); off hides it from the nav and its API answers
+    # 404; `workbench_model` off keeps the live views and disables the composer;
+    # `workbench_commands` off pauses the command cards.
+    workbench: bool = True
     workbench_model: bool = True
     workbench_commands: bool = True
     # Spec 043 D-6 (owner 2026-10-22, R-94 (8)): the environments where commands may run, a comma

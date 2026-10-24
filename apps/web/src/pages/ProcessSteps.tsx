@@ -7,7 +7,7 @@ import { ShownStatus } from '../app/ShownStatus';
 import { stepOps } from '../app/stepOps';
 import type { Draft } from '../app/useDraft';
 import { titleError, useStepForm } from '../app/useStepForm';
-import { stateHref } from './RecordedInspector';
+import { inProcess, stateIn } from '../app/StepNeighbours';
 
 function Records({ portal, s }: { portal: string; s: ProcessStep }) {
   if (!s.documented)
@@ -187,7 +187,7 @@ function StepBody({ d, s, i }: { d: ProcessPage; s: ProcessStep; i: number }) {
           {change && <ShownStatus status={change} />}
         </Cluster>
         {s.state ? (
-          <Text asIs href={stateHref(s.state)}>
+          <Text asIs href={stateIn(s.state, inProcess(d.key, d.model.label))}>
             {s.title}
           </Text>
         ) : (

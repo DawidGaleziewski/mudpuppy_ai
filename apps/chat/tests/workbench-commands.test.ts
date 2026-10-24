@@ -7,6 +7,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { migrateUp, openDb, type OpenedDb } from '@mudpuppy/store';
+import { againCommand } from '../src/workbench-again.js';
 import {
   CommandRefusal,
   cancelCommand,
@@ -266,6 +267,41 @@ describe('workbench commands', () => {
     const token = issueToken(raw(), row.id);
     confirmCommand(deps(), { id: row.id, token, by: 'dawid', persona: 'tester' });
     expect(launches[0]?.prompt).toContain('tester');
+  });
+
+  it('Start again runs the failed start once more as confirmed, persona included (spec 079 FR-002, D-4)', () => {
+    cpSync(join(root, 'personas', P, 'guest.yaml'), join(root, 'personas', P, 'tester.yaml'));
+    const first = propose('scan.start', { type: 'full_map' });
+    confirmCommand(deps(), { id: first.id, token: issueToken(raw(), first.id), by: 'dawid', persona: 'tester' });
+    expect(JSON.parse(getCommand(raw(), first.id).args_json)).toEqual({ type: 'full_map', persona: 'tester' });
+    raw()
+      .prepare(`UPDATE workflow_steps SET status = 'failed', error_ref = 'ERR-DOWN', updated_at = ? WHERE conversation_id = ?`)
+      .run(new Date(Date.now() + 1000).toISOString(), CONV);
+    failStarts(raw(), CONV, [{ type: 'step_changed', step: 'scan', status: 'failed', errorRef: 'ERR-DOWN', message: 'down' }]);
+    launches = [];
+
+    const copy = againCommand(deps(), { id: first.id, by: 'ola' });
+    expect(copy).toMatchObject({ state: 'running', confirmed_by: 'ola', source: 'button', turn: first.turn, command: 'scan.start' });
+    expect(JSON.parse(copy.args_json)).toEqual({ type: 'full_map', persona: 'tester', again_of: first.id });
+    expect(launches).toHaveLength(1);
+    expect(launches[0]?.prompt).toContain('as persona "tester"');
+    expect(getCommand(raw(), first.id).state).toBe('failed');
+    expect(() => againCommand(deps(), { id: first.id, by: 'ola' })).toThrow('started again already');
+  });
+
+  it('Start again refuses anything but a start that did not start, and checks its preconditions anew', () => {
+    addRun(STOPPED, 'running');
+    const stop = propose('scan.stop', { scan: STOPPED });
+    expect(() => againCommand(deps(), { id: stop.id, by: 'dawid' })).toThrow('only a scan that did not start');
+    raw().prepare(`UPDATE runs SET status = 'completed' WHERE id = ?`).run(STOPPED);
+    const start = propose('scan.start', { type: 'full_map' });
+    raw()
+      .prepare(`UPDATE workbench_commands SET state = 'failed', error_ref = 'WB-1', confirmed_by = 'dawid', confirmed_at = ? WHERE id = ?`)
+      .run(new Date().toISOString(), start.id);
+    expect(() => againCommand(deps({ commandsOn: false }), { id: start.id, by: 'dawid' })).toThrow('paused');
+    raw().prepare(`UPDATE runs SET status = 'running' WHERE id = ?`).run(STOPPED);
+    expect(() => againCommand(deps(), { id: start.id, by: 'dawid' })).toThrow('is running');
+    expect(launches).toEqual([]);
   });
 
   it('a picked persona the portal does not have fails and names what is missing (FR-004, FR-005)', () => {

@@ -3,7 +3,7 @@
 // the components dispatch their actions up the socket; the persona creator sends a sign-in to the
 // vault only, and Confirm carries names; a portal choice moves the page.
 
-import { act, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { A2uiSurface } from '@a2ui/react/v0_9';
@@ -138,8 +138,14 @@ describe('the persona creator', () => {
     render(<Shown link={link} id="t2" />);
     fireEvent.change(await screen.findByLabelText(/Signs in with/), { target: { value: '__new' } });
     fireEvent.change(screen.getByLabelText(/Credential name/), { target: { value: 'AGENT_ANNA' } });
-    fireEvent.change(screen.getByLabelText(/^Login/), { target: { value: 'test-login-not-real' } });
-    fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'test-password-not-real' } });
+    // spec 079 FR-009 (designer 19/04): the values are asked in the vault dialog, not in the card
+    expect(screen.getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Store AGENT_ANNA in the vault…' }));
+    const vault = await screen.findByRole('dialog', { name: 'Store AGENT_ANNA in the vault' });
+    fireEvent.change(within(vault).getByLabelText(/^Login/), { target: { value: 'test-login-not-real' } });
+    fireEvent.change(within(vault).getByLabelText(/^Password/), { target: { value: 'test-password-not-real' } });
+    fireEvent.click(within(vault).getByRole('button', { name: 'Store in the vault' }));
+    expect(await screen.findByText('AGENT_ANNA is in the vault.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     await waitFor(() => expect(sent).toHaveLength(1));
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
@@ -166,6 +172,34 @@ describe('the persona creator', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(sent).toEqual([]);
     expect(fetch).not.toHaveBeenCalled();
+  });
+});
+
+describe("a start that didn't start (spec 079 FR-005, designer T-13)", () => {
+  it('says so and Start again sends command.again; after the press the button is gone', async () => {
+    const failed = (startedAgain: boolean): LiveState => ({
+      ...state(),
+      commands: {
+        'cmd-0000000000d2': {
+          ...state().commands['cmd-0000000000d1']!,
+          commandId: '0199a000-0000-7000-8000-0000000000d2', command: 'scan.start', label: 'Start a map scan', state: 'failed',
+          shown: { shape: 'failed' as const, word: 'Failed' }, editable: false, error: 'robots.txt could not be read.', errorRef: 'ERR-T',
+          notStarted: true, startedAgain, check: '/app/portals/reference-insurer/settings',
+        }, // prettier-ignore
+      },
+    });
+    const link = new LiveLink(liveCatalog);
+    onFrame(link, setters(), { seq: 1, type: EventType.STATE_SNAPSHOT, snapshot: failed(false) });
+    onFrame(link, setters(), { seq: 2, type: EventType.CUSTOM, ...surface('t3', [{ id: 'cmd-0000000000d2', component: 'CommandCard', command: 'scan.start', data: { path: '/commands/cmd-0000000000d2' } }]) });
+    const sent = attachSent(link);
+    render(<Shown link={link} id="t3" />);
+    expect(await screen.findByText('nothing: no scan, no pages, nothing in Scans')).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', { name: 'Start again' }));
+    expect(sent[0]).toMatchObject({ action: { name: 'command.again', context: { command: 'cmd-0000000000d2' } } });
+    act(() => {
+      onFrame(link, setters(), { seq: 3, type: EventType.STATE_SNAPSHOT, snapshot: failed(true) });
+    });
+    await waitFor(() => expect(screen.queryByRole('button', { name: 'Start again' })).toBeNull());
   });
 });
 

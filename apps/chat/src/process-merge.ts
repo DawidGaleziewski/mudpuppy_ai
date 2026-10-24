@@ -7,13 +7,16 @@
 
 import { newId, nowIso } from '@mudpuppy/core';
 import { type BaProcess, ProcessMerge, ProcessModel } from '@mudpuppy/chat-model';
-import type { MudPuppyDb } from '@mudpuppy/store';
+import { applyReview } from '@mudpuppy/docs';
+import type { MudPuppyDb, OpenedDb } from '@mudpuppy/store';
 import { z } from 'zod';
 import { HttpError } from './http-error.js';
 import { parseBody } from './http-io.js';
 import { linksBetween, keepOffPath, offPath, placeStates, scopeService } from './process-scope.js';
 import { editedSteps, nextLabel } from './process-steps.js';
 import { loadModel, loadProcess, loadRevision, parseRow, statesOf, usedStepIds, writeModel, writeProcess } from './process-store.js';
+
+type RawDb = OpenedDb['raw'];
 
 const Author = z.string().trim().min(1).max(200).default('BA');
 const MergeBody = z.object({
@@ -43,6 +46,8 @@ export interface MergePlan {
   as_is_rev: number;
   /** The absorbed process's to-be models and the letters they get. */
   moves: { model_id: string; from_label: string; to_label: string }[];
+  /** The absorbed process's PROC record, which gets a "merged into" note for the BA (spec 079). */
+  record: string | null;
 }
 
 async function modelsOf(db: MudPuppyDb, processId: string): Promise<ProcessModel[]> {
@@ -94,6 +99,7 @@ async function plan(db: MudPuppyDb, portal: string, body: z.infer<typeof MergeBo
     ends: [...new Set([inKeep.at(-1), stateIds(other.steps).at(-1)].filter((s): s is string => s !== undefined))],
     as_is_rev: keepA.rev + 1,
     moves,
+    record: (await db.selectFrom('doc_records').select('key').where('process_id', '=', absorb.id).where('kind', '=', 'process').where('withdrawn', '=', 0).executeTakeFirst())?.key ?? null,
     order: withEnds(placed.order, body.start, body.end),
     keepA,
   };
@@ -158,12 +164,40 @@ async function unmerge(db: MudPuppyDb, portal: string, mergeId: string, raw: unk
   });
 }
 
-function mergeService(db: MudPuppyDb) {
+/**
+ * The absorbed process's PROC record hears of it (spec 078 F-01, spec 079 FR-004): a review
+ * comment on its latest revision, the only way a person writes to a record, so the BA's next
+ * session revises or withdraws it (its pending feedback). Split back says the note no longer
+ * applies. A process without a PROC record has nothing to tell.
+ */
+function noteOnRecord(raw: RawDb | undefined, portal: string, processId: string, text: string, reviewer: string): void {
+  if (raw === undefined) return;
+  const record = raw
+    .prepare(`SELECT key, latest_rev FROM doc_records WHERE portal_id = ? AND process_id = ? AND kind = 'process' AND withdrawn = 0`)
+    .get(portal, processId) as { key: string; latest_rev: number } | undefined;
+  if (record === undefined) return;
+  applyReview(raw, { portal_id: portal, key: record.key, rev_no: record.latest_rev, action: 'comment', text, reviewer });
+}
+
+function mergeService(db: MudPuppyDb, raw: RawDb | undefined) {
   return {
-    mergeProcesses: (portal: string, raw: unknown) => merge(db, portal, raw),
-    unmerge: (portal: string, mergeId: string, raw: unknown) => unmerge(db, portal, mergeId, raw),
+    mergeProcesses: async (portal: string, body: unknown) => {
+      const done = await merge(db, portal, body);
+      const { merge: m, process } = 'merge' in done ? done : {};
+      if (m !== undefined && process !== undefined) {
+        const why = `Merged into ${process.key} ${process.name} by ${m.author}: this process is archived; revise or withdraw this record.`;
+        noteOnRecord(raw, portal, m.absorbed_process_id, why, m.author);
+      }
+      return done;
+    },
+    unmerge: async (portal: string, mergeId: string, body: unknown) => {
+      const done = await unmerge(db, portal, mergeId, body);
+      const why = `Split back from ${done.process.key} ${done.process.name}: the merge note above no longer applies.`;
+      noteOnRecord(raw, portal, done.absorbed.id, why, parseBody(UndoBody, body).author);
+      return done;
+    },
   };
 }
 
 /** Spec 078's process writes for the process service: Add to process as a scope change (T-05), merging two processes (T-06). */
-export const scopeAndMergeService = (db: MudPuppyDb) => ({ ...scopeService(db), ...mergeService(db) });
+export const scopeAndMergeService = (db: MudPuppyDb, raw?: RawDb) => ({ ...scopeService(db), ...mergeService(db, raw) });

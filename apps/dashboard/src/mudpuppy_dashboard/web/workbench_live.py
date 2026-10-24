@@ -19,6 +19,7 @@ from .. import (
     queries_wb,
     status_map,
     stores,
+    thumbs,
     wb_a2ui,
     wb_render,
 )
@@ -53,6 +54,9 @@ def _page(p: Any, scan: ScanLive) -> dict[str, Any]:
         "step": p.step,
         "status": status,
         "sideTrips": p.side_pages,
+        # spec 079 FR-005: the page's picture (the small WebP in a strip, the recording in detail)
+        "thumb": thumbs.url(p.screenshot_ref),
+        "shot": f"/evidence/{p.screenshot_ref}" if p.screenshot_ref else None,
     }
 
 
@@ -146,6 +150,10 @@ def _command(card: CommandCard, command_id: str, name: str) -> dict[str, Any]:
         "persona": card.persona,
         "askPersona": card.ask_persona,
         "undo": card.undo_url is not None,
+        # designer T-13, spec 079 FR-005: a start that didn't start, and Start again
+        "notStarted": card.not_started,
+        "startedAgain": card.started_again,
+        "check": card.check_url,
     }
 
 
