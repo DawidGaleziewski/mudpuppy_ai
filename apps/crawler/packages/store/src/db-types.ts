@@ -15,8 +15,10 @@ import type {
   GroupingSuggestionsTable,
   ProcessDraftsTable,
   ProcessLiveTable,
+  ProcessMergesTable,
   ProcessModelRevisionsTable,
   ProcessModelsTable,
+  ProcessScopeScreensTable,
   ProcessScopesTable,
   WorkbenchCommandsTable,
   WorkbenchConversationsTable,
@@ -185,6 +187,8 @@ export interface Database {
   process_explorations: ProcessExplorationsTable;
   process_drafts: ProcessDraftsTable;
   process_live: ProcessLiveTable;
+  process_scope_screens: ProcessScopeScreensTable;
+  process_merges: ProcessMergesTable;
   change_spec_revisions: ChangeSpecRevisionsTable;
   form_steps: FormStepsTable;
   probe_outcomes: ProbeOutcomesTable;

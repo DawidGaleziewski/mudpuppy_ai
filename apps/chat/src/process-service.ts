@@ -45,6 +45,7 @@ import {
   writeModel,
   type ProcessOutcome,
 } from './process-store.js';
+import { scopeAndMergeService } from './process-merge.js';
 import * as suggestions from './process-suggestions.js';
 
 /** "New process" from chosen screens, in the given order. */
@@ -398,7 +399,8 @@ async function saveChangeSpec(
 /** The service the HTTP routes and the MCP tools call; each method is one transaction. */
 export function createProcessService(deps: { db: MudPuppyDb; raw?: OpenedDb['raw'] }) {
   const { db, raw: rawDb } = deps;
-  return {
+  // spec 078: the scope change (T-05) and merging two processes (T-06) come first
+  return { ...scopeAndMergeService(db),
     /** Spec 027 US6.2; needs the raw handle (the record's steps come from @mudpuppy/docs). */
     fromRecord: (portal: string, raw: unknown) => {
       if (rawDb === undefined) throw new HttpError(404, 'This address does not exist.');

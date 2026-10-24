@@ -65,6 +65,9 @@ class Frame:
     why: WhyFacts | None = None  # lead frame only
     feedback: Feedback | None = None  # lead frame only
     stale_since: str | None = None  # the last event time when the stream dropped
+    #: Placed by the server, not the model (the live map at a scan's start, designer T-13): no
+    #: "generated" mark and no Why this view?
+    placed: bool = False
 
 
 @dataclass(frozen=True)
@@ -99,3 +102,7 @@ class CommandCard:
     sign_ins: tuple[str, ...] = ()
     #: done persona.add: Undo removes the persona while no scan used it.
     undo_url: str | None = None
+    #: failed before it created anything (a scan start the crawler refused, designer T-13): the
+    #: card says "Didn't start", what was created (nothing), and where to check the address.
+    not_started: bool = False
+    check_url: str | None = None

@@ -36,6 +36,7 @@ files, and the console itself at `/app/`.
 | `api_scan`, `api_scan_tabs`, `api_scan_trace` | `/api/scans/{id}`, `…/graph`, its sections, trace (`…/trace/phases`: the phase bar) and process | `queries_app_scan`, `queries_app_scan_tabs`, `queries_app_trace`, `queries_app_trace_events`, `queries_app_trace_phases` over `queries_trace_phases` |
 | `api_plan` | `…/scans/plan` (+ start), `/api/scans/{id}/recovery` | `queries_app_plan` |
 | `api_processes`, `api_process`, `api_process_export` | the list and its writes; one process, Compare, History, the editor; the export | `queries_app_processes`, `queries_app_process`, `queries_app_process_editor`, `queries_app_process_compare`, `process_export` |
+| `api_process_scope` | Add to process (+ Undo), merging two processes (dry run, merge, Undo, Split back), spec 078; calls the chat service | `queries_process_scope` (loose screens, merges), `queries_app_process_scope` (the process page's scope and merges) |
 | `api_review`, `api_review_items` | `…/review` and its decisions, records, amendments, proposals, probe suites | `queries_app_review`, `queries_app_review_rows`, `queries_app_review_detail` |
 | `api_changes` | `…/changes[/{id}]` | `queries_app_changes`, `queries_app_change` |
 | `api_rules` | `…/rules[/{key}]`, Reword, the export | `queries_app_rules`, `rules_export` |

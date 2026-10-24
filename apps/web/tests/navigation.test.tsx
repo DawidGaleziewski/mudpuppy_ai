@@ -14,7 +14,7 @@ afterEach(() => {
 describe('Navigation', () => {
   it('opens the next page in place when a link is clicked, keeping what was fetched', async () => {
     const fetch = at('/app/', {
-      '/api/portals': { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] },
+      '/api/portals': { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }, { id: 'bank', scans: 0, running: 0, last_scan_at: null }], other_environments: [] },
       '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] },
     });
     const link = await within(screen.getByRole('main')).findByRole('link', { name: 'shop' });
@@ -48,11 +48,14 @@ describe('Navigation', () => {
     const list = { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }, { id: 'bank', scans: 0, running: 0, last_scan_at: null }], other_environments: [] };
     at('/app/portals/shop/processes?store=main:local-dev', { '/api/portals': list });
     expect(await screen.findByRole('heading', { level: 1, name: /Processes/ })).toBeTruthy();
-    const picker = within(screen.getByRole('banner')).getByRole('list', { name: 'Switch portal' });
-    fireEvent.click(await within(picker).findByRole('link', { name: 'bank' }));
-    // the same section in the other portal, the data store kept
-    await screen.findByText('Portal: bank');
-    expect(within(screen.getByRole('banner')).getByRole('link', { name: 'bank' }).getAttribute('href')).toBe('/app/portals/bank/processes?store=main%3Alocal-dev');
+    const banner = screen.getByRole('banner');
+    fireEvent.click(within(banner).getByRole('button', { name: 'Portal: shop' }));
+    const picker = within(banner).getByRole('menu', { name: 'Switch portal' });
+    expect((await within(picker).findByRole('menuitemradio', { name: 'bank' })).getAttribute('href')).toBe('/app/portals/bank/processes?store=main%3Alocal-dev');
+    fireEvent.click(within(picker).getByRole('menuitemradio', { name: 'bank' }));
+    // the same section in the other portal, the data store kept; the menu closed
+    await within(banner).findByRole('button', { name: 'Portal: bank' });
+    expect(within(banner).queryByRole('menu')).toBeNull();
     expect(screen.getByRole('link', { name: 'Processes' }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByRole('link', { name: 'Processes' }).getAttribute('href')).toContain('/app/portals/bank/processes');
   });
@@ -66,14 +69,21 @@ describe('Navigation', () => {
     expect(switchHref('/app/', '', 'bank')).toBe('/app/portals/bank');
   });
 
-  it('keeps the whole nav on All portals, for the portal used last (designer v2-15)', async () => {
+  it('shows every section on All portals, the portal ones shut with the reason (designer T-12)', async () => {
     const list = { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] };
     at('/app/portals/shop/scans', { '/api/portals': list, '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] } });
     expect(await screen.findByRole('heading', { level: 1, name: /Scans/ })).toBeTruthy();
-    fireEvent.click(within(screen.getByRole('navigation', { name: 'Portal sections' })).getByRole('link', { name: 'Portals' }));
-    expect(await screen.findByRole('heading', { level: 1, name: 'Portals' })).toBeTruthy();
+    fireEvent.click(within(screen.getByRole('navigation', { name: 'Portal sections' })).getByRole('link', { name: 'All portals' }));
+    // a click inside the app: no first-visit move to the only portal
+    expect(await screen.findByRole('heading', { level: 1, name: 'All portals' })).toBeTruthy();
     const nav = screen.getByRole('navigation', { name: 'Portal sections' });
-    expect(within(nav).getByRole('link', { name: 'Processes' }).getAttribute('href')).toContain('/app/portals/shop/processes');
+    expect(within(nav).getByRole('link', { name: 'Home' }).getAttribute('aria-current')).toBe('page');
+    const processes = within(nav).getByRole('link', { name: 'Processes' });
+    expect(processes.getAttribute('aria-disabled')).toBe('true');
+    expect(processes.hasAttribute('href')).toBe(false);
+    expect(document.getElementById(processes.getAttribute('aria-describedby') ?? '')?.textContent).toBe('Pick a portal to open these.');
+    // the store half reads "per portal": each portal has its own
+    expect(within(screen.getByRole('banner')).getByRole('button', { name: 'Data store: per portal' }).getAttribute('aria-disabled')).toBe('true');
   });
 
   it('keeps files, downloads and new tabs plain links', () => {

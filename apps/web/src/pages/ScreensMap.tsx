@@ -21,7 +21,7 @@ import {
 } from '../design-system';
 import { mapQuery, useMap, type MapData, type MapFilter, type MapNode } from '../app/api-map';
 import { MapControls } from '../app/MapControls';
-import { QueryState } from '../app/QueryState';
+import { GraphSkeleton, QueryState } from '../app/QueryState';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
@@ -317,7 +317,7 @@ function ModelMap() {
         meta={q.data?.has_model ? meta(q.data) : undefined}
       />
       <ScreensViews portal={portal} current="map" />
-      <QueryState query={q} what="the map">
+      <QueryState query={q} what="the map" skeleton={<GraphSkeleton />}>
         {(m) => <MapBody m={m} v={v} set={set} />}
       </QueryState>
     </Shell>

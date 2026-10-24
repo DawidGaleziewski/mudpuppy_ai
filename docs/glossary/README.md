@@ -2390,6 +2390,50 @@ lead to a follow-up task or an open question.
 
 <sub>Last changed in R-22, 2026-10-03.</sub>
 
+<a id="scope-change"></a>
+
+#### Scope change (Add to process)
+
+**Adding screens to a saved process; its as-is follows what scans observed, never a hand edit.**
+
+Add to process (Processes ▸ In no process, a screen's picture, the selection bar) puts the
+screens in the process's scope. A screen a recorded move links to the as-is's screens joins
+its steps where the move puts it, in a new A revision "scope change"; one no scan reached
+from its steps waits as "Not on the observed path yet", in no step, with Explore from here.
+To-be models never change. Undo takes the screens out again.
+
+*Example:* Kontakt added to Napisz do nas · its as-is follows what scans saw
+
+*Seen in:* Processes ▸ In no process; process page
+
+*Labels:* `Add to process`, `Not on the observed path yet`, `In no process`
+
+*Related:* [Process model (A as-is, B to-be)](#process-model), [Grouping suggestion](#grouping-suggestion), [Merge (two processes)](#process-merge)
+
+<sub>Last changed in R-106, 2026-10-24.</sub>
+
+<a id="process-merge"></a>
+
+#### Merge (two processes)
+
+**Two saved processes of one persona become one; the kept one absorbs the other, and Split back undoes it.**
+
+The kept process keeps its key, links and history; its as-is is rebuilt over both scopes
+from what scans observed. The absorbed process's to-be models move over with the next
+letters, marked "branched from another as-is" (re-base before Compare), and it is archived
+as "Merged into …". The dialog shows the server's dry run first. Undo lasts 10 s; later,
+Split back on the process page puts both back. Processes of two personas can't be merged.
+
+*Example:* Merged into PRC-001 Oblicz składkę OC/AC: Undo for 10 s, or Split back later.
+
+*Seen in:* Processes (tick two); process page → Merge with…
+
+*Labels:* `Merge 2 processes`, `Merge with…`, `Split back`, `Merged into`
+
+*Related:* [Scope change (Add to process)](#scope-change), [Process model (A as-is, B to-be)](#process-model), [Draft (process draft)](#process-draft)
+
+<sub>Last changed in R-106, 2026-10-24.</sub>
+
 ### Records and review
 
 <a id="record-key"></a>
@@ -4066,6 +4110,27 @@ category `[battle-tested-scar]`.
 
 <sub>Last changed in R-56, 2026-10-16.</sub>
 
+<a id="layout-shift"></a>
+
+#### Layout shift (CLS)
+
+**How much of a page moves because content arrived late; the console holds every page at 0.05 or less.**
+
+Every place that loads reserves its final size first (skeleton rows of the real height,
+pictures' boxes, a graph's box) and shows the loader, three beads and what loads, after
+300 ms. A list read again keeps its rows, dimmed. `pnpm --dir apps/dashboard cls:check`
+measures each page's cold load and each nav click with the API held back 1 s.
+
+*Example:* ok 0.003 load /app/portals/reference-insurer-local/processes
+
+*Seen in:* cls:check; every page while it loads
+
+*Labels:* `CLS`, `loader`, `skeleton`
+
+*Related:* [React console](#react-console)
+
+<sub>Last changed in R-106, 2026-10-24.</sub>
+
 ### Dashboard
 
 <a id="react-console"></a>
@@ -4247,6 +4312,48 @@ scan reads the same in every place.
 *Related:* [Run](#run), [Workbench (beta)](#workbench)
 
 <sub>Last changed in R-101, 2026-10-24.</sub>
+
+<a id="came-from"></a>
+
+#### Came from
+
+**The link above a page's crumbs back to the exact page you opened it from, "← Process Oblicz składkę".**
+
+After a link from another section (a screen's process, a rule from Review) the page offers
+one step back, to the same tab, filter and scroll. From the page's own list there is no such
+link: the list's crumb keeps its filter instead. The nav, search and a typed address start
+fresh. Opened from a list, a page also has Previous / Next (J / K) through that list.
+
+*Example:* ← Screen Kalkulator OC/AC — dane kierowcy
+
+*Seen in:* every detail page's head
+
+*Labels:* `Back to`, `Previous / Next`
+
+*Related:* [React console](#react-console)
+
+<sub>Last changed in R-106, 2026-10-24.</sub>
+
+<a id="canvas-engage"></a>
+
+#### Engaged canvas
+
+**A map or diagram you clicked into; only then does the mouse wheel zoom it instead of scrolling the page.**
+
+Every graph and diagram moves the same way: a drag pans it (from anywhere, without
+selecting text), Ctrl or ⌘ + wheel and a pinch zoom at the pointer. A click, a drag or Tab
+engages it (a ring and the hint "Wheel zooms · Drag pans · Esc to leave"); then the wheel
+zooms. Esc, a click outside or Tab out releases it. Full screen keeps the zoom and place.
+
+*Example:* Screens ▸ Map: click the map, scroll to zoom in at the pointer, Esc.
+
+*Seen in:* Screens ▸ Map; a scan's graph; the recorded map; diagrams
+
+*Labels:* `Full screen`, `Wheel zooms`
+
+*Related:* [React console](#react-console)
+
+<sub>Last changed in R-106, 2026-10-24.</sub>
 
 ### Personas
 

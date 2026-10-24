@@ -143,7 +143,7 @@ How mapping works now: what the crawler records beyond the happy path, how to re
 Designed for the 2.0 brief (spec 039 · R-81). They replace v1 screens as follows once 2.0 ships:
 Home 01 → **v2-01** · Review 09 → **v2-04/05** · Screen detail 08 → **v2-07** · Map 12 → **v2-08** (map runs' marks and plan
 stay: Plan next scan, recovery and reconciliation 13–16 keep working on the 2.0 model) · Processes 04 → **v2-09/10**.
-New: Changes (**v2-02/03**), Rules (**v2-11/12**), Same screen? (**v2-14**), All portals (**v2-15**), States (**v2-13**), Review ▸ Decided (**v2-16**).
+New: Changes (**v2-02/03**), Rules (**v2-11/12**), Same screen? (**v2-14**), All portals (**v2-15**), States (**v2-13**), Review ▸ Decided (**v2-16**); round 4 (**v2-17…v2-24**).
 The 2.0 page skeleton adds the grouped nav and the **As of** picker (markup in the skill's SKILL.md, behaviour in `12-v2-ux.md` §1–2).
 What each screen must satisfy: `07-requirements.md` §F. The data on them: `13-v2-fixtures.md`.
 Widths (brief §7): 1280 px reference, checked at **1024 px** with no page-level horizontal scroll (the header wraps to two rows there).
@@ -167,6 +167,14 @@ Phones are out of scope for 2.0; acceptance criterion 2 below (390 px) applies t
 | Same screen? | `v2-14-same-screen.html` |
 | Review · Decided | `v2-16-review-decided.html` |
 | Home, All portals | `v2-15-all-portals.html` |
+| Screen opened from a process (came from, pager) | `v2-17-screen-from-process.html` |
+| Processes ▸ In no process (sorting grid) | `v2-18-loose-screens.html` |
+| In no process ▸ picture dialog browsing the list | `v2-19-picture-browse.html` |
+| Merge 2 processes | `v2-20-merge-processes.html` |
+| Capabilities (List) | `v2-21-capabilities.html` |
+| Capabilities (Diagram, engaged) | `v2-22-capabilities-diagram.html` |
+| Screens, loading (at 300 ms) | `v2-23-loading-screens.html` |
+| Screen, loading part by part | `v2-24-loading-screen.html` |
 
 ## Workbench (gen UI beta) · `screens/wb-*`
 
@@ -210,6 +218,20 @@ Component gallery with markup: `design-system/genui-components.html`. Runnable r
 - **02 Screen with assistant (v1):** the drawer is one window high and sticky; the log scrolls inside.
 - **New parts without a screen of their own:** the phase bar (Trace), the map overview, the recording dialog, the scan line words: `design-system/components.html#c-22`; the persona card: `genui-components.html#g-persona`.
 
+
+## 2.3 updates (`20-navigation-and-canvases/`, as tasks T-01…T-14)
+
+- **All v2-* and wb-* screens:** the header's Portal group carries the data store (`.sy-portal--store`); the assistant's
+  status sits in Ask; the nav foot is gone (T-11).
+- **v2-06 Screens:** a picture per row (`.sy-rowpic`, 72 px in the dense table; "No picture" with its reason) (T-03).
+- **v2-15 All portals:** the portal sections are disabled with "Pick a portal to open these." (T-12).
+- **New:** v2-17 came from + pager (T-01, T-02) · v2-18 In no process grid, selection bar and Add to process menu (T-05) ·
+  v2-19 the dialog browsing the list (T-04) · v2-20 merge (T-06) · v2-21 / v2-22 capabilities List and Diagram (T-07, T-09) ·
+  v2-23 / v2-24 loading with the loader and reserved sizes (T-10, T-14).
+- **Every screen:** where content loads, it arrives into a box of its final size with `.sy-loader` after 300 ms (FE-V45).
+- **Without a screen of their own:** full screen, the canvas engaged, the loader variants: `components.html#c-23`; the
+  command that didn't start and the live card placed at once: `genui-components.html#g-start`; today vs the rule:
+  `loading-lab.html`.
 ---
 
 ## Screen-level acceptance criteria (all screens)

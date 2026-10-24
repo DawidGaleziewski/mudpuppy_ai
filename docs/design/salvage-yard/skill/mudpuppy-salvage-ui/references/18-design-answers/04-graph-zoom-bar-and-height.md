@@ -48,6 +48,10 @@ is in the classes.
 - **Open:** Fit if the canvas is larger than the box, otherwise 100%. Zoom steps: 50 · 67 · 80 · 100 · 125 · 150 %.
 - **Keys** when focus is in the graph: **+** / **−** zoom, **0** back to 100 %. Ctrl + wheel (or pinch) zooms around the pointer;
   the wheel alone scrolls the graph box. (In the Workbench, **F** stays focus mode; Fit has no key.)
+
+  > **Changed 24 Oct (round 4, D-71):** the wheel and drag rules are replaced by
+  > `../20-navigation-and-canvases/T-07-canvas-movement.md`: the wheel zooms once the canvas is **engaged** (click or focus),
+  > goes to the page otherwise; drag pans; the canvas moves by transform. The zoom bar, its place and the heights here stay.
 - Zooming keeps the selected node in view. Fit turns off (`aria-pressed="false"`) as soon as the person zooms or pans.
 - The level is announced only when the person changes it ("Zoom 80%"), through the page's one polite live region.
 

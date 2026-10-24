@@ -9,8 +9,10 @@ import {
   Meter,
   PageHead,
   Plate,
+  RowPicture,
   Segmented,
   Select,
+  Skeleton,
   Stack,
   Status,
   Table,
@@ -18,7 +20,8 @@ import {
   Text,
 } from '../design-system';
 import { screenFilter, useScreens, type ScreenFilter, type ScreenOut, type ScreensData } from '../app/api-screens';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
+import { ScreenBrowser, useScreenBrowser } from '../app/ScreenBrowser';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
@@ -34,13 +37,14 @@ const STATUSES = [
 const screenHref = (portal: string, key: string, list: string) =>
   `/app/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}?list=${encodeURIComponent(list)}`;
 
-function columns(portal: string, list: string) {
+function columns(portal: string, list: string, open: (key: string) => void) {
   return [
     {
       header: 'Screen',
       rowHeader: true,
+      // designer T-03: the main variant's picture left of the name; it opens the dialog browsing this list
       cell: (s: ScreenOut) => (
-        <Stack>
+        <RowPicture src={s.picture?.shot ?? s.picture?.wire} alt={s.title || s.key} missing="not recorded yet" onOpen={() => open(s.key)} pick={s.key}>
           <Cluster>
             <Tag size="sm" href={screenHref(portal, s.key, list)}>
               {s.key}
@@ -48,7 +52,7 @@ function columns(portal: string, list: string) {
           </Cluster>
           <Text asIs>{s.title || '(untitled page)'}</Text>
           <Text route>{s.route}</Text>
-        </Stack>
+        </RowPicture>
       ),
     },
     {
@@ -165,18 +169,22 @@ function Filters({ data, f, set }: { data: ScreensData; f: ScreenFilter; set: (n
 }
 
 function List({ portal, data, f, set }: { portal: string; data: ScreensData; f: ScreenFilter; set: (next: Partial<ScreenFilter>) => void }) {
+  const browser = useScreenBrowser();
   if (!data.has_model) {
     return <Callout>No model yet: the first scan builds it. Start one from the chat.</Callout>;
   }
   const label = STATUSES.find(([v]) => v === f.status)?.[1] ?? 'All';
   const list = new URLSearchParams(Object.entries(f).filter(([, v]) => v)).toString();
+  const items = data.screens.map((s) => ({ key: s.key, title: s.title || s.key, route: s.route, shot: s.picture?.shot ?? null, wire: s.picture?.wire ?? null, href: screenHref(portal, s.key, list) }));
+  const open = (key: string) => browser.open(items.findIndex((i) => i.key === key));
   return (
     <Stack>
       <Filters data={data} f={f} set={set} />
+      <ScreenBrowser portal={portal} items={items} label="in this list" index={browser.index} onIndex={browser.open} onClose={browser.close} />
       <Plate title={`${label} screens · ${String(data.screens.length)}`} flush>
         <Table
           caption={`${label} screens of ${portal}`}
-          columns={columns(portal, list)}
+          columns={columns(portal, list, open)}
           rows={data.screens}
           rowKey={(s) => s.key}
           dense
@@ -185,6 +193,16 @@ function List({ portal, data, f, set }: { portal: string; data: ScreensData; f: 
         />
       </Plate>
     </Stack>
+  );
+}
+
+/** The list at its final size while it loads (designer v2-23): the filter row, then rows of the picture's height. */
+function ListSkeleton() {
+  return (
+    <>
+      <Skeleton.Block height={56} />
+      <Skeleton.Rows rows={8} rowHeight={61} />
+    </>
   );
 }
 
@@ -198,7 +216,6 @@ export function Screens() {
     setParams(Object.fromEntries(Object.entries(merged).filter(([, v]) => v)), { replace: true });
   };
   const q = useScreens(portal, f);
-  const c = q.data?.counts;
   return (
     <Shell current="screens">
       <PageHead
@@ -208,14 +225,10 @@ export function Screens() {
           { label: 'Screens' },
         ]}
         title="Screens"
-        meta={
-          c
-            ? `${String(c.active ?? 0)} active · ${String(c.merged ?? 0)} merged · ${String(c.retired ?? 0)} retired`
-            : undefined
-        }
+        meta={headMeta(q, (d) => `${String(d.counts.active ?? 0)} active · ${String(d.counts.merged ?? 0)} merged · ${String(d.counts.retired ?? 0)} retired`)}
       />
       <ScreensViews portal={portal} current="list" {...(q.data ? { total: q.data.screens.length } : {})} />
-      <QueryState query={q} what="the screens">
+      <QueryState query={q} what="the screens" skeleton={<ListSkeleton />}>
         {(data) => <List portal={portal} data={data} f={f} set={set} />}
       </QueryState>
     </Shell>

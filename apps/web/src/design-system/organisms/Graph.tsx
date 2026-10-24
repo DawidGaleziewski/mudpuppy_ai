@@ -1,16 +1,7 @@
-import {
-  useCallback,
-  useId,
-  useLayoutEffect,
-  useRef,
-  useState,
-  type CSSProperties,
-  type KeyboardEvent,
-  type ReactNode,
-} from 'react';
+import { useId, type CSSProperties, type KeyboardEvent, type MouseEvent, type ReactNode } from 'react';
 import { cx } from '../cx.js';
 import { Anchor } from '../atoms/Anchor.js';
-import { clamp, OVERVIEW, pct, READABLE, stepIn, stepOut, usePointerZoom, ZoomBar } from '../molecules/zoom.js';
+import { CanvasFrame, type DrawingBox } from './CanvasFrame.js';
 
 /** One edge, drawn by the caller's data (the dashboard lays the graph out, never the app). */
 export interface GraphEdge {
@@ -79,6 +70,10 @@ export interface GraphProps {
   /** Inside another page (a scan's graph, the recorded map): at most 520 px tall. By default the
    * graph is a page's map, as tall as the screen below the header. */
   embedded?: boolean;
+  /** The full-screen dialog's heading ("Scan 01a110d5-2028 · map"); default `label`. */
+  title?: string;
+  /** In the Workbench F is focus mode: full screen is the button only (T-08). */
+  noFKey?: boolean;
 }
 
 /** The arrow keys' directions. */
@@ -123,115 +118,57 @@ function focusNode(el: HTMLElement) {
   );
 }
 
-/** Scroll the box so `node` is in view; `centre`: centred even when it already is. */
-function bringIntoView(el: HTMLElement, node: HTMLElement | null | undefined, centre = false) {
-  if (!node) return;
-  const [b, n] = [el.getBoundingClientRect(), node.getBoundingClientRect()];
-  if (centre || n.left < b.left || n.right > b.right) el.scrollLeft += n.left + n.width / 2 - (b.left + b.width / 2);
-  if (centre || n.top < b.top || n.bottom > b.bottom) el.scrollTop += n.top + n.height / 2 - (b.top + b.height / 2);
-}
+/** A node's box in the drawing's coordinates (its place is its `left` / `top`). */
+const boxOf = (node: HTMLElement): DrawingBox => ({ x: node.offsetLeft, y: node.offsetTop, w: node.offsetWidth, h: node.offsetHeight });
 
-/** Opening zoom (round-3 Q3): fit, but never below readable and never above 100 %. */
-const openZoom = (fit: number) => (fit >= READABLE ? Math.min(fit, 1) : READABLE);
-
-/** The graph's keys: + / − zoom, 0 back to 100 %, an arrow moves to the neighbour that way. */
-const graphKeys = (scale: number, zoom: (s: number) => void) => (e: KeyboardEvent<HTMLDivElement>) => {
-  const to = { '+': stepIn(scale), '=': stepIn(scale), '-': stepOut(scale), '0': 1 }[e.key];
-  if (to !== undefined) {
-    e.preventDefault();
-    zoom(to);
-    return;
-  }
+/** An arrow moves to the neighbour that way (Shift + arrows pan, the canvas's own). */
+function arrowKey(e: KeyboardEvent<HTMLElement>): boolean {
   const dir = DIRS[e.key];
   const node = e.target instanceof HTMLElement ? e.target.closest<HTMLElement>('[data-node]') : null;
-  if (!dir || !node) return;
+  if (!dir || !node || e.shiftKey) return false;
   const next = neighbour(e.currentTarget, node, dir);
-  if (!next) return;
-  e.preventDefault();
-  next.focus();
-};
+  next?.focus();
+  return next !== null;
+}
+
+/** In overview a click on a node also zooms to 100 % centred on it (the node's own click selects it). */
+function overviewClick(e: MouseEvent<HTMLDivElement>, show: (r: DrawingBox, z: number) => void) {
+  const node = e.target instanceof HTMLElement ? e.target.closest<HTMLElement>('button[data-node]') : null;
+  if (node) show(boxOf(node), 1);
+}
 
 /**
  * A graph whose layout the API made (the portal map): edges as SVG paths in their state, nodes as
  * `GraphNode` buttons at their place, in a `.sy-graphview` frame (design answer Q4): as tall as
  * the graph, at most the screen below the header (520 px when `embedded`), with a zoom bar that
- * stays in view while the graph does. It opens readable (round-3 Q3): fitted when that is 80 %
- * or more, else at 80 % scrolled to the selected node or the start page (top-left). Fit shows the
- * whole map at any zoom; under 50 % it is an overview (`.sy-graph--overview`: the boxes keep their
- * state, their words fade but stay for screen readers), where clicking a node zooms to 100 % on
- * it. Keys in the graph: + / − zoom, 0 back to 100 %, arrows move to the neighbour that way. The
+ * stays in view while the graph does. It moves as every canvas does (`CanvasFrame`, T-07): drag
+ * pans, the wheel zooms once the graph is engaged (a click or Tab in; Esc leaves), full screen
+ * keeps the view (T-08). It opens readable (round-3 Q3): fitted when that is 80 % or more, else
+ * at 80 % on the selected node or the start page (top-left). Under 50 % it is an overview
+ * (`.sy-graph--overview`: the boxes keep their state, their words fade but stay for screen
+ * readers), where clicking a node zooms to 100 % on it. Arrows move to the neighbour that way. The
  * text version (a table) is the caller's: a graph is never the only way to the facts.
  */
-export function Graph({ label, width, height, edges, children, embedded = false }: GraphProps) {
-  const id = useId();
-  const arrowId = markerId(id);
-  const box = useRef<HTMLElement>(null);
-  const [scale, setScale] = useState(1);
-  const [fitted, setFitted] = useState(false);
-  const [said, setSaid] = useState('');
-  // The node to centre after the next zoom: the open's start page, or the node clicked in overview.
-  const centreOn = useRef<HTMLElement | null>(null);
-  const fitScale = () => {
-    const el = box.current;
-    return el && width > 0 && el.clientWidth > 0 ? clamp((el.clientWidth - 32) / width) : 1;
+export function Graph({ label, title, width, height, edges, children, embedded = false, noFKey = false }: GraphProps) {
+  const arrowId = markerId(useId());
+  const openOn = (canvas: HTMLElement) => {
+    const node = focusNode(canvas);
+    return node ? boxOf(node) : null;
   };
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const target = focusNode(el);
-    if (el.clientWidth > 0 && width > el.clientWidth) {
-      const fit = fitScale();
-      setScale(openZoom(fit));
-      setFitted(fit >= READABLE);
-    }
-    centreOn.current = target ?? null;
-    bringIntoView(el, target, true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- only on open: later the person zooms and pans
-  }, []);
-  const zoom = useCallback((s: number) => {
-    setScale(s);
-    setFitted(false);
-    setSaid(`Zoom ${pct(s)}`);
-  }, []);
-  // after a zoom from the bar or the keys: the node to centre, else keep the selected one in view
-  // (a wheel or pinch zoom keeps the point under the pointer instead)
-  const afterZoom = useCallback((el: HTMLElement) => {
-    if (centreOn.current) bringIntoView(el, centreOn.current, true);
-    else bringIntoView(el, el.querySelector<HTMLElement>('[data-node][aria-pressed="true"]'));
-    centreOn.current = null;
-  }, []);
-  usePointerZoom(box, scale, zoom, afterZoom);
-  const overview = scale < OVERVIEW;
-  // In overview a click on a node also zooms to 100 % centred on it (the node's own click selects it).
-  const onClickCapture = (e: React.MouseEvent<HTMLDivElement>) => {
-    if (!overview || !(e.target instanceof HTMLElement)) return;
-    const node = e.target.closest<HTMLElement>('button[data-node]');
-    if (!node) return;
-    centreOn.current = node;
-    zoom(1);
-  };
-  const fit = () => {
-    const s = fitScale();
-    setScale(s);
-    setFitted(true);
-    setSaid(`Zoom ${pct(s)}, fitted`);
-  };
-  const keys = graphKeys(scale, zoom);
-  // layout only: the canvas size and the zoom (the designer's markup puts the size and scale inline)
-  const canvas: CSSProperties = { width, height, zoom: scale };
   return (
-    <div className={cx('sy-graphview', embedded && 'sy-graphview--embedded')}>
-      <ZoomBar controls={id} scale={scale} fitted={fitted} zoom={zoom} fit={fit} />
-      <span className="sy-sr-only" aria-live="polite">
-        {said}
-      </span>
-      <section id={id} className={cx('sy-graph', overview && 'sy-graph--overview')} aria-label={label} ref={box}>
-        <div className="sy-graph__canvas" style={canvas} onKeyDown={keys} onClickCapture={onClickCapture}>
-          <Edges edges={edges} arrowId={arrowId} />
-          {children}
-        </div>
-      </section>
-    </div>
+    <CanvasFrame
+      label={label}
+      title={title ?? label}
+      width={width}
+      height={height}
+      embedded={embedded}
+      noFKey={noFKey}
+      openOn={openOn}
+      onKey={arrowKey}
+      onOverviewClick={overviewClick}>
+      <Edges edges={edges} arrowId={arrowId} />
+      {children}
+    </CanvasFrame>
   );
 }
 

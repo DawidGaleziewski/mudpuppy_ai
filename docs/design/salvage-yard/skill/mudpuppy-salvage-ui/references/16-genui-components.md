@@ -810,6 +810,7 @@ reason) + `__foot` (Confirm `.sy-btn--primary`, Cancel quiet, "Nothing runs unti
 | `running` | Solid cyan, Confirm `aria-busy="true"` | "Resuming…" |
 | `done` | Solid green, result with links | "Resumed as scan 01a110e7-2068 · continues 01a110d5-2028" · "Open in Scans" · Undo (marks only) |
 | `failed` | Solid red | The command's message, ERR reference, "Nothing changed" · "Try again" |
+| `failed`, didn't start (2.3) | Solid red | Status word **Didn't start**; facts **Created: nothing**, Why (the cause quoted), the environment and when, ERR reference · **Start again** (same arguments), Check the address. `genui-components.html#g-start` |
 | `cancelled` | Folded to the head line, muted | "Cancelled · nothing changed" |
 | `expired` | Folded to the head line, muted (10 min passed, or its preconditions changed) | "No longer applies: 01a110d5-2028 was resumed from Scans" |
 | `undone` | Solid line, ash title (marks only) | "Undone · mark removed" |

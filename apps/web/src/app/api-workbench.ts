@@ -47,6 +47,8 @@ export interface WbFrame {
   why: { path: string; by_you: boolean; because: string; asked: string; shows: string[]; data: string; other_paths: string[] } | null;
   feedback: { url: string; value: string | null; reasons: string[] } | null;
   stale_since: string | null;
+  /** Placed by the server, not the model (designer T-13): no "generated" mark. */
+  placed?: boolean;
 }
 
 export interface WbRecord {
@@ -90,6 +92,9 @@ export interface WbCommandCard {
   sign_ins?: string[];
   /** done persona.add: Undo removes the persona while no scan used it. */
   undo_url?: string | null;
+  /** failed before it created anything (designer T-13): "Didn't start", and where to check the address. */
+  not_started?: boolean;
+  check_url?: string | null;
 }
 
 export interface WbTurn {

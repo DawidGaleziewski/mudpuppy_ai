@@ -21,6 +21,8 @@ export interface ScreenOut {
   release: string | null;
   parts: string[];
   process: { key: string; name: string } | null;
+  /** The main variant's latest recording, on the list only (designer T-03); none recorded: null. */
+  picture?: { shot: string | null; wire: string | null } | null;
 }
 
 /** The list's filters, as the URL carries them (empty: not set). */
@@ -114,3 +116,6 @@ export const useScreens = (portal: string, f: ScreenFilter, enabled = true) =>
   screensApi.useScreensQuery({ portal, f }, { skip: !enabled });
 
 export const useScreen = (portal: string, key: string) => screensApi.useScreenQuery({ portal, key });
+
+/** One screen while a picture dialog shows it (its variants); none: not asked. */
+export const useScreenIf = (portal: string, key: string | null) => screensApi.useScreenQuery({ portal, key: key ?? '' }, { skip: key === null });

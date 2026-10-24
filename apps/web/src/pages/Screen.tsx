@@ -26,7 +26,7 @@ import { ScreenNeighbours } from '../app/ScreenNeighbours';
 import { useScreen, type ActionOut, type ScreenDetailData, type VariantOut } from '../app/api-screens';
 import { useScreenRecordings, type ScreenRecordings } from '../app/api-state';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { RecordingView } from '../app/Recording';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
@@ -352,7 +352,7 @@ export function Screen() {
             <Tag>{screenKey}</Tag> <Text asIs>{title}</Text>
           </>
         }
-        meta={q.data ? meta(q.data, rec) : undefined}
+        meta={headMeta(q, (d) => meta(d, rec))}
         actions={<ScreenNeighbours portal={portal} screenKey={screenKey} list={params.get('list')} />}
       />
       {view}

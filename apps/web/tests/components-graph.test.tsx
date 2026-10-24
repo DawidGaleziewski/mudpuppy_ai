@@ -1,8 +1,11 @@
 // The components added for the portal map (spec 053): Graph, GraphNode, Legend, Bundle, ViewNav,
 // Fieldset, SubHead and Text's link.
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen, within } from '@testing-library/react';
 import { describe, expect, it, vi } from 'vitest';
 import { Bundle, Check, Fieldset, Graph, GraphNode, Legend, SubHead, Text, ViewNav } from '../src/design-system';
+
+/** The scale the view painted on the drawing (designer T-07: it moves by transform). */
+const scaleOf = (el: HTMLElement) => /scale\(([\d.]+)\)/.exec(el.style.transform)?.[1];
 
 /** jsdom lays nothing out: give a node its box, for the arrow keys. */
 function boxAt(el: HTMLElement, x: number, y: number) {
@@ -42,13 +45,13 @@ describe('Graph', () => {
     expect(bar.parentElement!.className).toBe('sy-graphview');
     expect(bar.getAttribute('aria-controls')).toBe(screen.getByRole('region', { name: 'Map of shop now' }).id);
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
-    expect(canvas.style.zoom).toBe('1.25');
+    expect(scaleOf(canvas)).toBe('1.25');
     for (let i = 0; i < 10; i++) fireEvent.click(screen.getByRole('button', { name: 'Zoom out' }));
-    expect(canvas.style.zoom).toBe('0.25');
+    expect(scaleOf(canvas)).toBe('0.25');
     expect(screen.getByText('Zoom 25%')).toBeTruthy(); // said once, in the live region
     expect(screen.getByRole('button', { name: 'Zoom 25%, overview, reset to 100%' })).toBeTruthy();
     fireEvent.keyDown(home, { key: '0' });
-    expect(canvas.style.zoom).toBe('1');
+    expect(scaleOf(canvas)).toBe('1');
     fireEvent.keyDown(home, { key: '+' });
     expect(screen.getByRole('button', { name: 'Zoom 125%, reset to 100%' })).toBeTruthy();
     const fit = screen.getByRole('button', { name: 'Fit' });
@@ -60,29 +63,52 @@ describe('Graph', () => {
   });
 });
 
-describe('Graph, the pointer (R-103 (8))', () => {
-  it('zooms at the pointer with Ctrl + wheel, keeps the plain wheel for scrolling, never selects on a drag', () => {
+describe('Graph, the pointer (designer T-07: engage to zoom)', () => {
+  const wheel = (map: HTMLElement, init: WheelEventInit) => {
+    const e = new WheelEvent('wheel', { deltaY: -100, clientX: 50, clientY: 50, bubbles: true, cancelable: true, ...init });
+    act(() => {
+      map.dispatchEvent(e);
+    });
+    return e.defaultPrevented;
+  };
+
+  it('leaves the wheel to the page at rest, zooms with Ctrl + wheel, and with the wheel once engaged', () => {
     twoNodes();
     const map = screen.getByRole('region', { name: 'Map of shop now' });
     const level = () => screen.getByRole('button', { name: /reset to 100%/ }).textContent;
     expect(level()).toBe('100%');
-    const plain = new WheelEvent('wheel', { deltaY: -100, bubbles: true, cancelable: true });
-    map.dispatchEvent(plain);
-    expect(plain.defaultPrevented).toBe(false); // the box or the page scrolls
+    expect(wheel(map, {})).toBe(false); // the page scrolls past it
     expect(level()).toBe('100%');
-    const zoomIn = new WheelEvent('wheel', { deltaY: -100, ctrlKey: true, clientX: 50, clientY: 50, bubbles: true, cancelable: true });
-    act(() => {
-      map.dispatchEvent(zoomIn);
-    });
-    expect(zoomIn.defaultPrevented).toBe(true);
+    expect(map.hasAttribute('data-engaged')).toBe(false);
+    expect(wheel(map, { ctrlKey: true })).toBe(true);
     expect(level()).toBe('128%'); // smooth, not a step; Fit is off
     expect(screen.getByRole('button', { name: 'Fit' }).getAttribute('aria-pressed')).toBe('false');
-    const onWords = new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true });
-    map.querySelector('text')?.dispatchEvent(onWords);
-    expect(onWords.defaultPrevented).toBe(true);
-    const onNode = new MouseEvent('mousedown', { button: 0, bubbles: true, cancelable: true });
-    screen.getByRole('button', { name: /Home/ }).dispatchEvent(onNode);
-    expect(onNode.defaultPrevented).toBe(false); // a node still takes focus and its click
+    // Tab in (or a click) engages: the ring, the hint, and the wheel zooms here
+    fireEvent.focus(map);
+    expect(map.hasAttribute('data-engaged')).toBe(true);
+    expect(map.querySelector('.sy-graph__hint')?.textContent).toBe('Wheel zooms · Drag pans · Esc to leave');
+    expect(wheel(map, { deltaY: 100 })).toBe(true);
+    expect(level()).toBe('100%');
+    // Esc releases: the wheel goes to the page again
+    fireEvent.keyDown(map, { key: 'Escape' });
+    expect(map.hasAttribute('data-engaged')).toBe(false);
+    expect(wheel(map, {})).toBe(false);
+    expect(map.className).toContain('sy-graph--canvas'); // no text selection, the drawing moves by transform
+  });
+
+  it('opens full screen at the same zoom, always engaged, and comes back to it (T-08)', () => {
+    twoNodes();
+    fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Full screen' }));
+    const full = screen.getByRole('dialog', { name: 'Map of shop now' });
+    expect(full.className).toContain('sy-dialog--full');
+    const inside = full.querySelector<HTMLElement>('.sy-graph')!;
+    expect(inside.hasAttribute('data-engaged')).toBe(true);
+    expect(scaleOf(inside.querySelector('.sy-graph__canvas')!)).toBe('1.25');
+    fireEvent.click(within(full).getByRole('button', { name: 'Zoom in' }));
+    fireEvent.click(within(full).getByRole('button', { name: /Exit full screen/ }));
+    expect(screen.queryByRole('dialog')).toBeNull();
+    expect(screen.getByRole('button', { name: /reset to 100%/ }).textContent).toBe('150%');
   });
 });
 
@@ -149,17 +175,17 @@ describe('Graph, round 3 (spec 072)', () => {
       );
       const map = screen.getByRole('region', { name: 'Map of shop now' });
       const home = screen.getByRole('button', { name: /Home/ });
-      expect(home.parentElement!.style.zoom).toBe('0.8');
-      expect(map.className).toBe('sy-graph');
+      expect(scaleOf(home.parentElement!)).toBe('0.8');
+      expect(map.className).toBe('sy-graph sy-graph--canvas');
       const fit = screen.getByRole('button', { name: 'Fit' });
       expect(fit.getAttribute('aria-pressed')).toBe('false');
       fireEvent.click(fit);
-      expect(home.parentElement!.style.zoom).toBe('0.184');
-      expect(map.className).toBe('sy-graph sy-graph--overview');
+      expect(scaleOf(home.parentElement!)).toBe('0.184');
+      expect(map.className).toBe('sy-graph sy-graph--canvas sy-graph--overview');
       fireEvent.click(home);
       expect(onSelect).toHaveBeenCalled();
-      expect(home.parentElement!.style.zoom).toBe('1');
-      expect(map.className).toBe('sy-graph');
+      expect(scaleOf(home.parentElement!)).toBe('1');
+      expect(map.className).toBe('sy-graph sy-graph--canvas');
     } finally {
       width.mockRestore();
     }

@@ -6,7 +6,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from . import stores
+from . import db, stores
 
 
 class StoreOut(BaseModel):
@@ -16,6 +16,10 @@ class StoreOut(BaseModel):
     kind: str
     #: An eval workspace's folder name; None for a main store.
     workspace: str | None
+    #: The store file from its data folder ("data/db/sandbox.sqlite"), for the header's menu.
+    path: str = ""
+    #: The file's size in bytes; None when it can't be read.
+    size: int | None = None
 
 
 class StoreList(BaseModel):
@@ -30,7 +34,15 @@ class StoreList(BaseModel):
 
 def _out(s: stores.Store) -> StoreOut:
     workspace = s.data_dir.parent.name if s.kind == "eval" else None
-    return StoreOut(key=s.key, label=s.label, kind=s.kind, workspace=workspace)
+    file = db.store_path(s.data_dir, s.env)
+    try:
+        size: int | None = file.stat().st_size
+    except OSError:
+        size = None
+    path = f"{s.data_dir.name}/{file.relative_to(s.data_dir).as_posix()}"
+    return StoreOut(
+        key=s.key, label=s.label, kind=s.kind, workspace=workspace, path=path, size=size
+    )
 
 
 def store_list(

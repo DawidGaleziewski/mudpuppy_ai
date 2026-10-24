@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Button, Cluster, CommandCard, Facts, Film, FilmItem, GenView, Meter, Mini, Narration, Sheet, Stack, Table, Tag, Text, shortScanId } from '../design-system';
+import { Button, Cluster, CommandCard, Facts, Film, FilmItem, GenView, Loader, Meter, Mini, Narration, Reserve, Sheet, Stack, Table, Tag, Text, shortScanId } from '../design-system';
 import type { StatusOut } from '../app/api';
 import { stateHref } from '../app/api-state';
 import type { WbCard, WbCommandCard, WbPage, WbPageModel, WbScan, WbTurn } from '../app/api-workbench';
@@ -53,6 +53,16 @@ function pageState(s: WbScan, p: WbPage): 'failed' | 'here' | null {
 const WORD = { failed: ['failed', 'Failed here'], here: ['running', 'Crawler here'] } as const;
 
 function LiveMap({ s, a }: { s: WbScan; a: WbActions }) {
+  // designer T-13: before the first page, a box of its final size says what it waits for
+  if (s.route_pages.length === 0 && s.status === 'running')
+    return (
+      <Stack>
+        <ScanMeter s={s} />
+        <Reserve height={96}>
+          <Loader size="block">Waiting for the first page</Loader>
+        </Reserve>
+      </Stack>
+    );
   return (
     <Stack>
       <ScanMeter s={s} />
@@ -177,7 +187,7 @@ export function Card({ card, view, a }: { card: WbCard; view: string | null; a: 
   const feedback = f.feedback && view ? { value: f.feedback.value, reasons: f.feedback.reasons, choices: m.reasons, onAnswer: (x: { value: string; toggle?: string; text?: string }) => a.feedback(view, x) } : null;
   const shown = f.state === 'stale' ? status(m.statuses.wb_scan.stale) : status(f.status ? m.statuses.wb_scan[f.status] : undefined);
   return (
-    <GenView id={f.dom_id} title={f.title} titleAsIs={f.title_mono} source={f.source} card={f.card} failure={f.failure} state={f.state} status={shown} why={why} feedback={feedback}>
+    <GenView id={f.dom_id} title={f.title} titleAsIs={f.title_mono} source={f.source} card={f.card} failure={f.failure} state={f.state} status={shown} why={why} feedback={feedback} placed={f.placed === true}>
       <Body card={card} a={a} />
     </GenView>
   );
@@ -240,9 +250,13 @@ export function Command({ c, a, turn }: { c: WbCommandCard; a: WbActions; turn: 
       onConfirm={(persona) => a.confirm(id, c.token ?? '', persona)}
       onCancel={() => a.cancel(id)}
       {...(c.ask_persona ? { onAddPersona: () => a.addPersona(turn, freeName(c.personas)) } : {})}
+      {...(c.not_started ? { notStarted: { onAgain: () => a.ask(START_AGAIN), ...(c.check_url && { check: c.check_url }) } } : {})}
     />
   );
 }
+
+/** Start again (designer T-13): the same scan asked for once more; the new card is confirmed as every write (spec 078 D-4). */
+const START_AGAIN = 'Start the same scan again.';
 
 export function TurnNarration({ rt, a }: { rt: WbTurn; a: WbActions }) {
   if (!rt.narration.length) return null;

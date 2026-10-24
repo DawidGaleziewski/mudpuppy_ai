@@ -17,7 +17,7 @@ import {
   Text,
 } from '../design-system';
 import { usePortalHome, type PortalHomeData } from '../app/api';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
@@ -163,7 +163,7 @@ export function PortalHome() {
       <PageHead
         crumbs={[{ label: 'Portals', href: '/app/' }, { label: portal }]}
         title={portal}
-        meta={q.data ? `environment ${q.data.environment}` : undefined}
+        meta={headMeta(q, (d) => `environment ${d.environment}`)}
       />
       <QueryState query={q} what="the portal">
         {(h) => <Home h={h} />}

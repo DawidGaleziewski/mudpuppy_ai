@@ -73,6 +73,21 @@ export async function storeCredential(path: string, where: { portal: string; env
   return answer.message ?? `The vault did not take it (${String(status)}).`;
 }
 
+/**
+ * A dry run that answers what a write would do (a merge's plan, designer T-06): the JSON when it
+ * answered ok, else the reason as `message`. Nothing is written, so it is no mutation.
+ */
+export async function postForPlan<T>(w: Write): Promise<{ ok: true; value: T } | { ok: false; message: string }> {
+  const r = await fetch(w.path, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify(w.body),
+  }).catch(() => null);
+  const answer = (await r?.json().catch(() => null)) as { ok?: boolean; message?: string; plan?: T } | null;
+  if (r?.ok && answer?.ok === true && answer.plan !== undefined) return { ok: true, value: answer.plan };
+  return { ok: false, message: answer?.message ?? 'The dashboard did not answer.' };
+}
+
 export async function postJson(w: Write): Promise<WriteResult> {
   const r = await fetch(w.path, {
     method: 'POST',

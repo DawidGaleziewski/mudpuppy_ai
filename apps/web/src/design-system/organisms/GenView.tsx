@@ -80,6 +80,8 @@ export interface GenViewProps {
   status?: StatusProps | null;
   why?: GenWhy | null;
   feedback?: GenFeedbackProps | null;
+  /** Placed by the server, not the model (the live map at a scan's start, designer T-13): no "generated" mark, no Why. */
+  placed?: boolean;
   children: ReactNode;
 }
 
@@ -109,12 +111,30 @@ function WhyPanel({ id, why }: { id: string; why: GenWhy }) {
   );
 }
 
+/** The frame's title with the "generated" mark (none when the server placed it) and its status. */
+function GenTitle({ head, title, asIs, placed, status }: { head: string; title: ReactNode; asIs: boolean; placed: boolean; status: StatusProps | null | undefined }) {
+  return (
+    <div className="sy-genview__title">
+      <h3 id={head} className={cx('sy-plate__title', asIs && 'sy-case-normal')}>
+        {title}
+        {!placed && <span className="sy-sr-only">, generated</span>}
+      </h3>
+      {!placed && (
+        <span className="sy-genmark" aria-hidden="true">
+          generated
+        </span>
+      )}
+      {status && <Status {...status} />}
+    </div>
+  );
+}
+
 /**
  * A frame the assistant generated (designer § 5.3): the "generated" mark, its status, "Why this
  * view?" and "Right view?" on the lead frame, the source of its data under it. The model's words
  * arrive as plain strings only.
  */
-export function GenView({ id, title, titleAsIs = false, source, card = false, failure = false, state = 'ready', status, why, feedback, children }: GenViewProps) {
+export function GenView({ id, title, titleAsIs = false, source, card = false, failure = false, state = 'ready', status, why, feedback, placed = false, children }: GenViewProps) {
   const head = useId();
   const [open, setOpen] = useState(false);
   return (
@@ -126,16 +146,7 @@ export function GenView({ id, title, titleAsIs = false, source, card = false, fa
       aria-live={card ? 'off' : undefined}
     >
       <header className="sy-genview__head">
-        <div className="sy-genview__title">
-          <h3 id={head} className={cx('sy-plate__title', titleAsIs && 'sy-case-normal')}>
-            {title}
-            <span className="sy-sr-only">, generated</span>
-          </h3>
-          <span className="sy-genmark" aria-hidden="true">
-            generated
-          </span>
-          {status && <Status {...status} />}
-        </div>
+        <GenTitle head={head} title={title} asIs={titleAsIs} placed={placed} status={status} />
         {why && (
           <div className="sy-genview__tools">
             <button className="sy-genview__why" type="button" aria-expanded={open} aria-controls={`${id}-why`} onClick={() => setOpen(!open)}>

@@ -109,4 +109,17 @@ describe('Docs', () => {
     });
     expect(await screen.findByText(/match these filters/)).toBeTruthy();
   });
+
+  it('opens the capability map as a list, with the diagram second (designer T-09)', async () => {
+    const caps = [{ key: 'CAP-001', title: 'Sprzedaż ubezpieczeń', contains: [{ key: 'PROC-001', title: 'Oblicz składkę' }] }];
+    at('/app/portals/shop/docs?section=capabilities', {
+      [`${API}?section=capabilities`]: section({ capabilities: caps, diagram: { source: 'flowchart TB\n  a', caption: 'Capability map: capabilities and what they contain' } }),
+    });
+    const list = await screen.findByRole('table', { name: 'Capability map' });
+    expect(within(list).getByRole('link', { name: 'PROC-001' }).getAttribute('href')).toBe('/app/portals/shop/docs/PROC-001');
+    expect(screen.getByRole('button', { name: 'List' }).getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(screen.getByRole('button', { name: 'Diagram' }));
+    expect(screen.queryByRole('table', { name: 'Capability map' })).toBeNull();
+    expect(screen.getByText('Capability map: capabilities and what they contain')).toBeTruthy();
+  });
 });

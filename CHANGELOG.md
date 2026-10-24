@@ -6,6 +6,22 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-106: the designer's round 4, navigation and canvases** (spec 078, v2.10.0, 2026-10-24).
+  Pages open without a blink: the head at once, a skeleton at its final size with a loader (three
+  beads and what loads) only after 300 ms, and nothing jumps when the data lands (checked by
+  `pnpm --dir apps/dashboard cls:check`, at most 0.016 on every page). After a link from another
+  section a page offers "← Process …" back to exactly where you were, and a screen opened from the
+  Screens list has Previous / Next (J / K). The Screens list shows each screen's picture; the
+  picture opens a dialog that steps through the list (variants on Shift + ← →). Processes ▸ In no
+  process sorts loose screens: tick them in a grid into a new process, or Add to process, which
+  extends that process's scope (its as-is follows what scans saw; a screen no scan reached waits
+  as "Not on the observed path yet"). Two processes of one persona can be merged (the server's
+  plan first, Undo for 10 s, Split back later). Maps and diagrams move like a design tool: drag
+  pans, the wheel zooms once you click in (Esc leaves), full screen keeps the view; the capability
+  map opens as a list. The header puts the data store on the portal picker and the assistant's
+  status in Ask, in one row; All portals shows every section, the portal ones shut with the
+  reason. A Workbench scan the crawler refused to start says "Didn't start" and that nothing was
+  created. Migration 0051.
 - **R-96: the live Workbench, a spike** (spec 075, v2.9.0, 2026-10-24). Workbench ▸ Try the live
   Workbench: after you confirm a scan it runs in the background, so the assistant answers while
   the crawler works, and the screen follows the scan live (its graph with the crawler's page and

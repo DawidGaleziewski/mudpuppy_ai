@@ -1,43 +1,18 @@
 import { createContext, useCallback, useContext, useEffect, useLayoutEffect, useMemo, useState, type ReactNode } from 'react';
 import { useParams, useSearchParams } from 'react-router';
-import { AppShell, Button, Callout, Cluster, LinkButton, SearchBox, Stack, Text, type NavGroup } from '../design-system';
+import { AppShell, Button, Callout, Cluster, Kbd, LinkButton, SearchBox, SrOnly, Stack, Status, Text, type NavGroup } from '../design-system';
 import type { PageContext } from './api-assistant';
-import { usePortals } from './api';
+import { useAssistantStatus, usePortals } from './api';
 import { searchHref } from './api-lists';
 import { AsOfBanner, AsOfMenu } from './AsOfMenu';
-import { StoreBanner, StoreMenu, useStoreFollowsPortal } from './StoreMenu';
+import { StoreBanner, useStoreFollowsPortal } from './StoreMenu';
 import { useGo } from './RouterAnchor';
 import { AssistantContext, keepSay } from './assistant-context';
 import { AssistantDrawer } from './AssistantDrawer';
 import { PortalMenu } from './PortalMenu';
+import { useRememberPortal } from './lastPortal';
 
 const OPEN_KEY = 'mudpuppy.assistant.open';
-const LAST_PORTAL_KEY = 'mudpuppy.portal.last';
-
-function storedPortal(): string | undefined {
-  try {
-    return localStorage.getItem(LAST_PORTAL_KEY) ?? undefined;
-  } catch {
-    return undefined;
-  }
-}
-
-/**
- * The portal used last in this browser (a per-viewer convenience): the nav on All portals points
- * at it. One the store no longer lists is forgotten.
- */
-function useLastPortal(portal: string | undefined, known: string[] | undefined): string | undefined {
-  const last = portal ?? storedPortal();
-  useEffect(() => {
-    if (portal === undefined) return;
-    try {
-      localStorage.setItem(LAST_PORTAL_KEY, portal);
-    } catch {
-      // nothing to keep it in: All portals shows only Portals
-    }
-  }, [portal]);
-  return last !== undefined && known?.includes(last) ? last : undefined;
-}
 
 // Whether the drawer is open is a per-viewer convenience for the session; storage may be missing.
 function storedOpen(): boolean {
@@ -122,14 +97,30 @@ function useAsk(turn: (open: boolean) => void) {
 
 type Section = 'portals' | 'home' | 'changes' | 'review' | 'processes' | 'screens' | 'rules' | 'docs' | 'scans' | 'settings' | 'search' | 'glossary' | 'workbench';
 
+/** Why a portal's sections are shut on All portals (designer T-12). */
+const PICK_A_PORTAL = 'Pick a portal to open these.';
+
+/**
+ * All portals is a mode of its own (designer T-12, D-77): every section shows; Home is the
+ * overview; the sections that need one portal are disabled with the reason. Changes, Review and
+ * Settings have no across-portals page yet, so they are shut too (spec 078 D-1).
+ */
+function allPortalsNav(current: Section): NavGroup[] {
+  const shut = (label: string) => ({ href: `#${label}`, label, disabled: true });
+  return [
+    { items: [{ href: '/app/', label: 'Home', current: current === 'portals' }, shut('Changes'), shut('Review')] },
+    { label: 'Portal model', note: PICK_A_PORTAL, items: [shut('Processes'), shut('Screens'), shut('Rules'), shut('Docs')] },
+    { label: 'Machine', items: [shut('Scans'), shut('Settings')] },
+  ];
+}
+
 /** The portal's sections in the 2.0 grouping, the current one marked; the Workbench while its beta is on. */
 function navOf(portal: string | undefined, current: Section, workbench: boolean): NavGroup[] {
   const at = (s: Section) => current === s;
-  const portals = { items: [{ href: '/app/', label: 'Portals', current: at('portals') }] };
-  if (!portal) return [portals];
+  if (!portal) return allPortalsNav(current);
   const base = `/app/portals/${encodeURIComponent(portal)}`;
   return [
-    portals,
+    { items: [{ href: '/app/', label: 'All portals', current: at('portals') }] },
     {
       items: [
         { href: base, label: 'Home', current: at('home') },
@@ -171,17 +162,31 @@ function StrayServers({ warnings }: { warnings: string[] | undefined }) {
   );
 }
 
-/** The header's end: As of on a model page, the assistant's button, help and the glossary. */
-function HeaderEnd({ portal, model, open, turn }: { portal: string | undefined; model: boolean; open: boolean; turn: (open: boolean) => void }) {
+/**
+ * Ask, carrying the assistant's status (designer T-11): a square read as "Assistant up."; when
+ * the chat service doesn't answer, ✕ and the word "down" show. Not known yet: no square.
+ */
+function AskButton({ open, turn }: { open: boolean; turn: (open: boolean) => void }) {
+  const up = useAssistantStatus().data?.up;
+  return (
+    <Button size="sm" variant={open ? 'default' : 'quiet'} aria-expanded={open} aria-keyshortcuts="Control+J" onClick={() => turn(!open)}>
+      {up === true && (
+        <Status status="ok">
+          <SrOnly>Assistant up.</SrOnly>
+        </Status>
+      )}
+      {up === false && <Status status="failed">down</Status>}
+      {'Ask '}
+      <Kbd>Ctrl J</Kbd>
+    </Button>
+  );
+}
+
+/** The header's end: Ask with the assistant's status, help and the glossary. */
+function HeaderEnd({ portal, open, turn }: { portal: string | undefined; open: boolean; turn: (open: boolean) => void }) {
   return (
     <Cluster>
-      <StoreMenu portal={portal} />
-      {portal && model && <AsOfMenu portal={portal} />}
-      {portal && (
-        <Button size="sm" variant={open ? 'default' : 'quiet'} aria-expanded={open} onClick={() => turn(!open)}>
-          Ask the assistant
-        </Button>
-      )}
+      {portal && <AskButton open={open} turn={turn} />}
       <LinkButton size="sm" variant="quiet" href="/app/glossary" aria-label="Help and glossary">
         ?
       </LinkButton>
@@ -240,10 +245,10 @@ function Frame({ current, portal: given, context = null, children }: FrameOf & {
   const searched = current === 'search' ? (query.get('q') ?? '') : '';
   const portals = usePortals().data;
   const workbench = portals?.workbench === true;
-  const last = useLastPortal(portal, portals?.portals.map((p) => p.id));
+  useRememberPortal(portal);
   useStoreFollowsPortal(portal);
-  // All portals keeps the whole nav, for the portal used last (designer v2-15, R-103 (3))
-  const nav = navOf(portal ?? last, current, workbench);
+  // All portals shows every section, the portal ones shut (designer T-12)
+  const nav = navOf(portal, current, workbench);
   // the model pages follow As of (spec 040 FR-001)
   const model = current === 'processes' || current === 'screens' || current === 'rules';
   return (
@@ -253,10 +258,11 @@ function Frame({ current, portal: given, context = null, children }: FrameOf & {
         header={
           <>
             <PortalMenu portal={portal} />
-            <SearchBox key={searched} value={searched} onSearch={(q) => go(searchHref(q, portal))} />
+            {portal && model && <AsOfMenu portal={portal} />}
+            <SearchBox compact key={searched} value={searched} placeholder="Search" onSearch={(q) => go(searchHref(q, portal))} />
           </>
         }
-        headerEnd={<HeaderEnd portal={portal} model={model} open={open} turn={turn} />}
+        headerEnd={<HeaderEnd portal={portal} open={open} turn={turn} />}
         drawer={portal && open ? <AssistantDrawer portal={portal} context={context} onClose={close} nudge={nudge} /> : undefined}
       >
         <StoreBanner portal={portal} />

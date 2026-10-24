@@ -28,6 +28,12 @@ export interface CommandCardProps {
   /** failed: the command's message and its error reference. */
   error?: string;
   errorRef?: ReactNode;
+  /**
+   * failed before anything existed (designer T-13, D-78: a scan start the crawler refused): the
+   * status reads "Didn't start", the card says what was created (nothing) and quotes why; Start
+   * again and Check the address (Settings ▸ Environments).
+   */
+  notStarted?: { onAgain?: () => void; check?: string };
   busy?: boolean;
   /** Confirm sends the card's one-time token (and the persona chosen); nothing runs before it. */
   onConfirm?: (persona: string | null) => void;
@@ -177,6 +183,8 @@ function Done({ p }: { p: CommandCardProps }) {
 function Head({ p }: { p: CommandCardProps }) {
   if (p.state === 'cancelled') return <span className="sy-small sy-muted">Cancelled · nothing changed</span>;
   if (p.state === 'expired') return <span className="sy-small sy-muted">{`No longer applies: ${p.result ?? ''}`}</span>;
+  // the words say exactly what happened (designer T-13): not "Failed" when nothing started
+  if (p.state === 'failed' && p.notStarted) return <Status status="failed">Didn&apos;t start</Status>;
   return p.status ? <Status {...p.status} /> : null;
 }
 
@@ -198,11 +206,43 @@ export function CommandCard(p: CommandCardProps) {
         </div>
       )}
       {(p.state === 'done' || p.state === 'undone') && <Done p={p} />}
-      {p.state === 'failed' && (
+      {p.state === 'failed' && !p.notStarted && (
         <div className="sy-cmd__body" role="alert">
           <span>{`${p.error ?? ''} Nothing changed.`}</span> {p.errorRef}
         </div>
       )}
+      {p.state === 'failed' && p.notStarted && <NotStarted p={p} n={p.notStarted} />}
     </section>
+  );
+}
+
+/** A command that failed before it created anything (designer T-13): what was created, why, and the way on. */
+function NotStarted({ p, n }: { p: CommandCardProps; n: NonNullable<CommandCardProps['notStarted']> }) {
+  const why = (p.error ?? '').replace(/\.$/, '');
+  return (
+    <>
+      <div className="sy-cmd__body" role="alert">
+        <Facts
+          items={[
+            ['Created', 'nothing: no scan, no pages, nothing in Scans'],
+            ['Why', `“${why}.”`],
+            ...(p.errorRef ? [['Reference', p.errorRef] as const] : []),
+          ]}
+        />
+        <span className="sy-small sy-muted">The crawler refused before it opened a page; nothing in the portal broke.</span>
+      </div>
+      <footer className="sy-cmd__foot">
+        {n.onAgain && (
+          <Button size="sm" onClick={n.onAgain}>
+            Start again
+          </Button>
+        )}
+        {n.check && (
+          <Anchor className="sy-small" href={n.check}>
+            Check the address
+          </Anchor>
+        )}
+      </footer>
+    </>
   );
 }

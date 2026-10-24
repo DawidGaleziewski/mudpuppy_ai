@@ -105,6 +105,8 @@ Graph and timeline layout are the exceptions: `.sy-node`, `.sy-node-group` and `
 Gen UI hooks (`genui.css`): `.sy-wb` takes `--sy-wb-h` (conversation height), `--sy-wb-conv` and `--sy-wb-aside` (column widths); `.sy-mini` takes `--sy-mini-h`; `.sy-film__item` `--sy-film-w`; `.sy-genskel__block` `--sy-skel-h` (reserve the final size); `.sy-evstrip` `--sy-evstrip-n`.
 2.2 hooks: `.sy-phasebar__phase` takes `--sy-phase` (the phase's length in seconds); `.sy-compare__stack` `--sy-overlay` (0–1, the after's strength); `--sy-header-h` on `:root` (65px, 121px below 1200px: the drawer's top and height); `.sy-dialog__main` `--sy-dialog-aside` (320px). State as attributes: `data-kind`, `data-state`, `data-narrow` (phase bar), `data-shape="line"` (Not here), `data-label` (range label), `data-edited` (command card field).
 
+2.3 hooks: `.sy-rowpic` takes `--sy-thumb-row` (96px; 72px in `.sy-table--dense`, 64px on phones); `.sy-sortgrid` `--sy-pick-min` (200px, 150px on phones); `.sy-skel__rows` `--sy-skel-rows` (rows to draw) and `--sy-skel-row` (row height, 49px; 61px with 72px pictures); `.sy-skel__block` `--sy-skel-h`; `.sy-skel__line` `--sy-skel-w`; `.sy-reserve` `--sy-ratio` (e.g. `16 / 10`) or `--sy-reserve-h`; `.sy-dialog--full.sy-dialog--static` `--sy-dialog-static-h` (previews only). The canvas of `.sy-graph--canvas` takes `transform: translate() scale()` from the canvas controller (T-07). State as attributes: `data-engaged` and `data-panning` (canvas), `data-ticked` (`.sy-pick`), `aria-busy="true"` (dims a refetching list), `aria-disabled` (pager ends, nav items).
+
 2.1 hooks: `.sy-dialog--wide` takes `--sy-dialog-wide` (1280px); `.sy-variant` `--sy-variant-pic` (360px); `.sy-graphview` `--sy-graph-top` (space above the graph on the Map page), `--sy-graph-sticky` (where the zoom bar sticks) and `--sy-graph-max` (embedded cap, 520px). The graph canvas keeps its inline size, node positions and `transform: scale()` from the API's layout.
 
 **Forbidden everywhere outside `tokens.css`:**
@@ -188,6 +190,10 @@ Wrap classes like this, but never re-implement the CSS in JS. The stylesheet sta
 | Toast | `role="status"`; auto-dismiss ≥ 10s unless it has Undo, then stay until dismissed or navigated. |
 | Search | Ctrl K focuses `.sy-search input`. |
 | Running pulse | Nothing: set `data-status="running"`. |
+| Came from / pager (2.3) | Links inside the app pass `state.from = { href, kind, title }` and, from lists, `state.list = { ids, label, href }`; the page head renders `.sy-backlink` / `.sy-pager` from them; pager moves use replace navigation; J / K step. |
+| Canvas (2.3) | One controller per `.sy-graph--canvas`: pointer events pan after 4 px (`data-panning`), click or focus sets `data-engaged`, the wheel zooms only when engaged (smooth, at the pointer), buttons and keys step 25…200 %; Esc, outside click or focus out clears `data-engaged`; F opens `.sy-dialog--full`. |
+| Picture dialog browsing (2.3) | ← → / J K move through the list it was opened from, Shift ← → through variants; X toggles the tick; A opens Add to process; keys ignored in fields. |
+| Loading (2.3) | Navigate in a transition; render the page's skeleton only after 300 ms and keep it ≥ 300 ms; a refetch keeps old data and sets `aria-busy="true"`; every loader is `.sy-loader` naming what loads. |
 | Meter | Update `--value` and `aria-valuenow` together. |
 
 ## 9. Browser support

@@ -309,6 +309,34 @@ export interface ProcessLiveTable {
   created_at: string;
 }
 
+/** 0051 (spec 078 T-05): screens in a process's scope that no observed move reaches yet. */
+export interface ProcessScopeScreensTable {
+  id: string;
+  process_id: string;
+  state_id: string;
+  author: string;
+  added_at: string;
+  removed_at: string | null;
+  removed_by: string | null;
+}
+
+/** 0051 (spec 078 T-06): one merge of two saved processes; `moved_json` is a JSON array text. */
+export interface ProcessMergesTable {
+  id: string;
+  portal_id: string;
+  kept_process_id: string;
+  absorbed_process_id: string;
+  author: string;
+  reason: string | null;
+  kept_name_before: string;
+  kept_as_is_rev_before: number;
+  kept_as_is_rev_after: number;
+  moved_json: string;
+  created_at: string;
+  undone_at: string | null;
+  undone_by: string | null;
+}
+
 export interface GroupingSuggestionsTable {
   id: string;
   portal_id: string;

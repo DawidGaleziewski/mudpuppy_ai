@@ -1,11 +1,16 @@
+import { useState } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { Button, Callout, Cluster, Columns, LinkButton, PageHead, Segmented, Stack, Tag, Text } from '../design-system';
 import { docHref, useProcessPage, type ProcessPage } from '../app/api-process';
-import { exportHref, processesKey } from '../app/api-processes';
+import { exportHref, processesKey, useProcesses } from '../app/api-processes';
+import { MergeDialog } from '../app/MergeDialog';
+import { MergeDone } from '../app/MergeDone';
+import type { WriteResult } from '../app/state/http';
+import { ProcessScope } from './ProcessScope';
 import { processPageHref } from '../app/api-process-compare';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { useGo } from '../app/RouterAnchor';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
@@ -43,13 +48,14 @@ function Meta({ d }: { d: ProcessPage }) {
   );
 }
 
-function Actions({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void }) {
+function Actions({ d, ask, merge }: { d: ProcessPage; ask: (a: Ask) => void; merge: () => void }) {
   const right = d.model.kind === 'to-be' ? d.model.label : d.to_be_first;
   return (
     <Cluster>
       {right && <LinkButton href={processPageHref(d.portal, d.key, 'compare', `?left=A&right=${right}`)}>{`Compare A and ${right}`}</LinkButton>}
       <LinkButton href={processPageHref(d.portal, d.key, 'history')}>History</LinkButton>
       <LinkButton href={exportHref(d.portal, d.key)}>Documentation</LinkButton>
+      {!d.archived_at && <Button onClick={merge}>Merge with…</Button>}
       {!d.archived_at && (
         <Button
           variant="quiet"
@@ -67,6 +73,34 @@ function Actions({ d, ask }: { d: ProcessPage; ask: (a: Ask) => void }) {
       )}
     </Cluster>
   );
+}
+
+/** Merge with… (designer T-06): the dialog over this process and another of the portal's, then its answer with Undo. */
+function useMergeWith(d: ProcessPage) {
+  const [shown, setShown] = useState(false);
+  const [done, setDone] = useState<WriteResult | null>(null);
+  const targets = useProcesses(d.portal, false, 1, shown).data?.targets ?? [];
+  const self = targets.find((t) => t.id === d.id) ?? { id: d.id, key: d.key, name: d.name, persona: d.persona, steps: d.screens, states: [] };
+  const titles = new Map(d.steps.map((s) => [s.state ?? '', s.title]));
+  const view = (ask: (a: Ask) => void) => (
+    <>
+      {done && <MergeDone portal={d.portal} result={done} ask={ask} />}
+      {shown && (
+        <MergeDialog
+          portal={d.portal}
+          first={self}
+          candidates={targets}
+          onClose={() => setShown(false)}
+          onDone={(r) => {
+            setShown(false);
+            setDone(r);
+          }}
+          titleOf={(s) => titles.get(s) ?? s}
+        />
+      )}
+    </>
+  );
+  return { open: () => setShown(true), view };
 }
 
 function ModelSwitch({ d, ask, setModel }: { d: ProcessPage; ask: (a: Ask) => void; setModel: (m: string) => void }) {
@@ -111,11 +145,14 @@ function Body({ d, setView }: { d: ProcessPage; setView: (next: { model?: string
   // the process's own query sits under the list's key: one refresh covers both
   const { ask, view } = useConfirmedWrite(processesKey(d.portal));
   const draft = useDraft(d);
+  const merging = useMergeWith(d);
   return (
     <Stack>
-      <Actions d={d} ask={ask} />
+      <Actions d={d} ask={ask} merge={merging.open} />
       {view}
-      {d.archived_at && (
+      {merging.view(ask)}
+      <ProcessScope d={d} ask={ask} />
+      {d.archived_at && !d.scope?.merged_into && (
         <Callout title="Archived">
           {`Archived ${d.archived_at}. It is out of the list and its screens count as in no process; nothing was deleted. `}
           <Button
@@ -176,7 +213,7 @@ export function Process() {
           { label: key },
         ]}
         title={d ? <Text asIs>{d.name}</Text> : key}
-        meta={d ? <Meta d={d} /> : undefined}
+        meta={headMeta(q, (p) => <Meta d={p} />)}
       />
       <QueryState query={q} what="the process">
         {(p) => <Body d={p} setView={setView} />}

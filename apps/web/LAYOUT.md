@@ -31,6 +31,12 @@ map (G-30; moved out of `CLAUDE.md` in spec 074).
   no mutation so a credential's values are never kept).
 - `api.ts`: the portals, scans and home endpoints; one `api-<page>.ts` per page group injects its
   endpoints (`api.injectEndpoints`) and keeps its hooks' names.
+- Processes (spec 078 added): `LooseScreens.tsx` (Processes ▸ In no process: the sorting grid or
+  list, ticks in order, the selection bar, `NewProcess.tsx` as its side panel), `addToProcess.ts`
+  (the Add to process ▾ menu's entries), `MergeDialog.tsx` (two processes, the server's dry run as
+  facts), `MergeDone.tsx` (its answer with Undo for 10 s; Split back), `ProcessScope.tsx` (a
+  process page's "Not on the observed path yet", Merged into, merges here), `ScreenBrowser.tsx`
+  (the picture dialog over a list of screens).
 - Processes: `api-processes.ts`; `api-process.ts` for one process, whose page is `Process.tsx`
   with `ProcessFacts.tsx`, `ProcessAsIs.tsx` (A's sign-off and stage), `ProcessSteps.tsx`,
   `SelectedStep.tsx` and `ProcessEditor.tsx` (the to-be draft bar); the draft is `stepOps.ts`
@@ -64,8 +70,10 @@ map (G-30; moved out of `CLAUDE.md` in spec 074).
   `ConfirmedWrite.tsx` (ask first, post, show the answer: every write goes through it; an `Ask`
   may carry `follow`, the link's word, and `onDone`, run after a recorded write).
 - The frame: `Shell.tsx` (one frame around every page, spec 073; pages hand up their section,
-  portal and context), `PortalMenu.tsx` (the header's portal picker), `StoreMenu.tsx` (the data
-  store; the store follows the portal), `AsOfMenu.tsx` (As of; on one item only its versions),
+  portal and context; Ask carries the assistant's status; All portals shows every section, the
+  portal ones shut), `PortalMenu.tsx` (the header's "Portal [portal ▾][store ▾]", designer T-11),
+  `StoreMenu.tsx` (the store half; the store follows the portal), `lastPortal.ts` (the portal used
+  last and where a first visit opens, T-12), `AsOfMenu.tsx` (As of; on one item only its versions),
   `QueryState.tsx` (loading and error), `ShownStatus.tsx` (a status as the API maps it).
 - Links: `RouterAnchor.tsx` (`routerLink` for the design system's `LinkProvider`, `useGo` for
   moves made by code); `store.ts` and `asOf.ts` keep `?store=` and `?as_of=`;

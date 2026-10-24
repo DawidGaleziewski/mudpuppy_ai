@@ -117,6 +117,19 @@ Shortcut: select several loose screens in "In no process" → **New process from
 Save → process created, A r1 built, status toast **"■ SAVED · “Test process”, 2 screens."**, and the workflow step
 "Sort into processes" becomes OK.
 
+### 6.3a Add screens to a saved process — In no process, Screens, the picture dialog (2.3, T-05)
+"Add to process ▾" on a screen, on the ticked set, and in the picture dialog. Adding is a **scope change**:
+the screens join the included screens; A is **rebuilt from what scans observed** (a new A revision, author "you · scope
+change"); a screen no observed path reaches yet shows **"Not on the observed path yet"** until a scan walks it. To-be
+variants don't change. Undo in the toast removes the screens and the A revision. A proposed suggestion can take screens
+too (its scope grows; it stays a suggestion). API: `POST /portals/{p}/processes/{id}/scope:add`.
+
+### 6.3b Merge two saved processes — Processes (2.3, T-06)
+Same persona only. One process **absorbs** the other: scopes unite, A is rebuilt from observations, the absorbed
+process's to-be variants move over as the next letters marked **"branched from another as-is"** (re-base before Compare),
+the absorbed process is archived and its key redirects. Undo for 10 s; later **Split back** from the History event.
+API: `POST /portals/{p}/processes:merge` (with `dry_run`), `…/history/{event}:split-back`.
+
 ### 6.4 Building and updating the as-is (A) — automatic
 1. **A r1** is built from the scope and the recorded navigation edges: order the included screens along the observed path from start to end. Each step points at a **screen revision** (route + cluster).
 2. If the scan never reached the end screen, the last step is followed by an **"End not reached"** marker (needs you) with the scan id and the queue size, and **Resume scan to reach the end** is offered.
@@ -275,6 +288,9 @@ Example: "Test process" (guest, `/` → `/faq`, 2 screens) becomes a Scoped proc
 | GET | `/change-specs/{id}/export?format=md` | Export | Markdown (PDF optional) |
 | PUT | `/processes/{id}/live/{env}` | Manual mark `{variant_id, revision_id}` | confirm in UI; audit |
 | DELETE | `/processes/{id}` | **Archive** (not delete) | 204 |
+| POST | `/portals/{p}/processes/{id}/scope:add` | Add screens to the scope (2.3) | new A revision or "not on the observed path yet"; Undo by event id |
+| POST | `/portals/{p}/processes:merge` | Merge `{keep, absorb, name, start, end, reason, dry_run}` (2.3) | same persona only (422 otherwise); dry run returns the facts |
+| POST | `/portals/{p}/processes/{keep}/history/{event}:split-back` | Undo a merge later (2.3) | restores the absorbed process |
 
 Writes keep today's behaviour when the chat service is down: process pages stay readable; assistant
 actions (regroup, ask, propose) show the failure state; saving scope and drafts does **not** depend on
@@ -309,6 +325,8 @@ the chat service.
 | 6.1 Suggestions | 01 Home, 04 Processes | FE-P01, FE-P06 |
 | 6.2 Accept / edit / dismiss | 04 | FE-P01, FE-P07 |
 | 6.3 New process | 04 (New process) | FE-P08 |
+| 6.3a Add to process | v2-18, v2-19 | FE-V34, FE-V35 |
+| 6.3b Merge | v2-20 | FE-V36 |
 | 6.4 As-is updates | 05 (ghosted A), 07 | FE-P09 |
 | 6.5 Document as-is | Docs, 09 Review | FE-R01 |
 | 6.6–6.7 Draw the to-be, assistant help | 05, 02 drawer | FE-P02, FE-A04 |

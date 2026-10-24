@@ -9,6 +9,7 @@ from pydantic import BaseModel
 
 from .. import (
     as_of,
+    chat_client,
     db,
     queries_app,
     queries_app_all_portals,
@@ -64,6 +65,18 @@ def data_stores(
     c = web.ctx(request, env)
     every = stores.list_stores(web.settings.data_dir, web.settings.eval_root)
     return queries_app_stores.store_list(every, c.store, c.store_note, portal)
+
+
+class AssistantStatus(BaseModel):
+    """Whether the chat service answers: the square inside the header's Ask (designer T-11)."""
+
+    up: bool
+
+
+@router.get("/assistant-status")
+async def assistant_status(request: Request) -> AssistantStatus:
+    web = web_of(request)
+    return AssistantStatus(up=await chat_client.service_up(web.settings, web.chat_transport))
 
 
 class ModelVersion(BaseModel):

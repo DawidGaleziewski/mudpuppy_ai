@@ -131,9 +131,40 @@ def test_a_done_start_shows_its_live_map_before_the_assistant_composes(
     first, second = turns[0], turns[1]
     assert [c["type"] for c in second["cards"]] == ["LiveMap"]
     assert second["cards"][0]["scan"]["run_id"] == RUN
+    # designer T-13: no model chose it: no generated mark, its source says who placed it
+    frame = second["cards"][0]["frame"]
+    assert frame["placed"] is True and frame["why"] is None
+    assert frame["source"].endswith("placed by the server when the scan started")
     assert second["narration"]  # the run's own lines, cited
     # the view of turn 1 already binds the scan: no second live card there
     assert [c["type"] for c in first["cards"]].count("LiveMap") == 1
+
+
+def test_a_start_the_crawler_refused_did_not_start(
+    empty_store: Store,
+    client: TestClient,  # noqa: F811
+) -> None:
+    """Designer T-13 (R-103 (1)): a start that ended failed with no run says so: Didn't start."""
+    conn = empty_store.connect()
+    at = "2026-10-06T10:48:00.000Z"
+    insert(
+        conn, "chat_messages", id="m2", conversation_id=CONV, seq=2, role="user",
+        content="Start a map scan.", created_at=at,
+    )  # fmt: skip
+    insert(
+        conn, "workbench_commands", id="cmd-0005", conversation_id=CONV, turn=2,
+        command="scan.start", args_json=json.dumps({"type": "full_map"}),
+        reason="you asked for a map scan.", source="button", state="failed",
+        token_hash="0" * 64, precondition_hash="z", idempotency_key="k5",
+        expires_at="2999-01-01T00:00:00Z", confirmed_by="dawid", confirmed_at=at,
+        result_json=json.dumps({"message": "robots.txt could not be read (network error)"}),
+        error_ref="ERR-T", created_at=at, updated_at=at,
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    (cmd,) = client.get(API, params={"c": CONV}).json()["turns"][1]["commands"]
+    assert cmd["not_started"] is True and cmd["check_url"] == f"/app/portals/{PORTAL}/settings"
+    assert cmd["error"] == "robots.txt could not be read (network error)."
 
 
 def test_a_record_card_carries_its_type_word_in_the_json() -> None:

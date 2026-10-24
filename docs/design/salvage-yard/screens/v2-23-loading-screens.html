@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Screens · loading</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  .mp-filters { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3) var(--sy-space-4); }
+  .mp-skelrow { display: grid; grid-template-columns: 72px 1fr 120px 120px; gap: 12px; align-items: center; padding: 10px 12px; border-bottom: var(--sy-weld) solid var(--sy-border-weld); }
+  .mp-skelrow:last-child { border-bottom: 0; }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l"><span class="sy-label" id="portal-l">Portal</span>
+      <select class="sy-select" aria-label="Portal"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+      <button class="sy-select sy-store" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only" title="Data store: data/db/sandbox.sqlite · read-only · writes go through commands"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" focusable="false"><ellipse cx="6" cy="2.6" rx="4.5" ry="1.6"/><path d="M1.5 2.6v6.8c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6V2.6M1.5 6c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6"/></svg>sandbox</button></div>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <a class="sy-btn" href="02-screen-with-assistant.html"><span class="sy-status" data-status="ok"><span class="sy-sr-only">Assistant up.</span></span>Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html" aria-current="page">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+    </nav>
+    <main id="main" class="sy-main">
+<!-- T-10: the head renders from the route at once (title from the nav label); only its data line waits, as a line of the same height -->
+      <div class="sy-pagehead">
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px"><h1 class="sy-h1">Screens</h1>
+            <p class="sy-meta"><span class="sy-skel__line" style="display: inline-block; --sy-skel-w: 420px; vertical-align: middle"></span></p></div>
+          <span class="sy-btn" aria-hidden="true" style="visibility: hidden">4 screens need you</span>
+        </div>
+      </div>
+      <nav class="sy-tabs" aria-label="Screens views">
+        <a class="sy-tab" href="v2-06-screens.html" aria-current="page">List <span class="sy-count sy-count--muted">·</span></a>
+        <a class="sy-tab" href="v2-08-map.html">Map</a></nav>
+      <form class="mp-filters" aria-label="Filter screens">
+        <div class="sy-seg" role="group" aria-label="Status"><button type="button" aria-pressed="false">Active</button><button type="button" aria-pressed="false">Merged</button><button type="button" aria-pressed="false">Retired</button><button type="button" aria-pressed="true">All</button></div>
+        <label class="sy-cluster" style="--sy-gap: 8px"><span class="sy-label">Part</span><select class="sy-select sy-select--md" style="width: 180px"><option>All parts</option></select></label>
+        <label class="sy-cluster" style="--sy-gap: 8px"><span class="sy-label">Process</span><select class="sy-select sy-select--md" style="width: 200px"><option>All processes</option></select></label>
+      </form>
+      <section class="sy-stack" aria-labelledby="list-h" style="--sy-gap: var(--sy-space-3)">
+        <div class="sy-split"><h2 id="list-h" class="sy-h2">All screens</h2><span class="sy-loader" role="status"><span class="sy-loader__beads" aria-hidden="true"><i></i><i></i><i></i></span><span class="sy-loader__label">Loading screens · 12 of 23</span></span></div>
+        <div class="sy-table-wrap" aria-busy="true">
+          <div class="mp-skelrow" style="background: var(--sy-bg-raised)"><span class="sy-skel__line" style="--sy-skel-w: 60%"></span><span class="sy-skel__line" style="--sy-skel-w: 40%"></span><span class="sy-skel__line"></span><span class="sy-skel__line"></span></div>
+          <div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 62%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 48%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 55%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 44%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 58%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 50%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div><div class="mp-skelrow"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: 66%"></span><span class="sy-skel__line" style="--sy-skel-w: 35%"></span></span><span class="sy-skel__line" style="--sy-skel-w: 70%"></span><span class="sy-skel__line" style="--sy-skel-w: 55%"></span></div>
+        </div>
+        <p class="sy-small sy-muted">Rows are drawn at their final height (picture 72 × 45 + two lines), 8 of them: the page doesn't grow when the list lands.</p>
+      </section>
+    </main>
+  </div>
+</div>
+</body>
+</html>

@@ -7,10 +7,12 @@ export interface SearchBoxProps {
   /** A search asked for: the app moves to its results. */
   onSearch: (q: string) => void;
   placeholder?: string;
+  /** The header's narrow form (`.sy-search--compact`, designer T-11: one header row from 1180 px). */
+  compact?: boolean;
 }
 
 /** The header's search (`.sy-search`): Ctrl K focuses it from anywhere, Enter searches. */
-export function SearchBox({ value = '', onSearch, placeholder = 'Search parts: screens, processes, records' }: SearchBoxProps) {
+export function SearchBox({ value = '', onSearch, placeholder = 'Search parts: screens, processes, records', compact = false }: SearchBoxProps) {
   const [q, setQ] = useState(value);
   const input = useRef<HTMLInputElement>(null);
   useEffect(() => {
@@ -28,7 +30,7 @@ export function SearchBox({ value = '', onSearch, placeholder = 'Search parts: s
     onSearch(q.trim());
   };
   return (
-    <form className="sy-search" role="search" onSubmit={submit}>
+    <form className={compact ? 'sy-search sy-search--compact' : 'sy-search'} role="search" onSubmit={submit}>
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" focusable="false">
         <circle cx="11" cy="11" r="7" />
         <path d="M20 20l-3.5-3.5" />

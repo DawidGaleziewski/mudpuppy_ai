@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy · Salvage Yard · Loading lab</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/fonts.css">
+<link rel="stylesheet" href="css/salvage.css">
+<style>
+  /* Lab page only */
+  .lab { max-width: 1240px; margin: 0 auto; padding: 32px 24px 64px; display: flex; flex-direction: column; gap: 24px; }
+  .lab-panes { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(460px, 100%), 1fr)); gap: 20px; align-items: start; }
+  .lab-pane { display: flex; flex-direction: column; gap: 12px; padding: 16px; background: var(--sy-bg-plate); border: 1px solid var(--sy-border-weld); }
+  .lab-pane__head { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; }
+  .lab-cls { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); }
+  .lab-cls[data-bad] { color: var(--sy-fail); }
+  .lab-page { display: flex; flex-direction: column; gap: 12px; padding: 14px; background: var(--sy-bg-ground); border: 1px solid var(--sy-border-weld); }
+  .lab-row { display: grid; grid-template-columns: 72px 1fr 80px; gap: 12px; align-items: center; padding: 8px 10px; border-bottom: 1px solid var(--sy-border-weld); }
+  .lab-row:last-child { border-bottom: 0; }
+  .lab-row .sy-thumb { width: 72px; }
+  .lab-list { border: 1px solid var(--sy-border-plate); background: var(--sy-bg-plate); }
+  .lab-list__head { display: grid; grid-template-columns: 72px 1fr 80px; gap: 12px; padding: 8px 10px; background: var(--sy-bg-raised);
+    font-size: var(--sy-fs-label); font-weight: 700; text-transform: uppercase; letter-spacing: var(--sy-track-caps); color: var(--sy-text-muted); }
+  .lab-after { padding: 10px; border: 1px dashed var(--sy-border-control); font-size: var(--sy-fs-xs); color: var(--sy-text-muted); }
+  .lab-pic { display: flex; flex-direction: column; gap: 4px; padding: 6px; }
+  .lab-pic > i { display: block; height: 4px; background: #c9c6be; }
+  .lab-pic > i:first-child { height: 6px; background: #8f8c86; width: 60%; }
+  .lab-status { display: flex; align-items: center; min-height: 20px; margin: 0; }
+</style>
+</head>
+<body class="sy-ground">
+<main class="lab">
+  <header class="sy-stack" style="--sy-gap: 6px">
+    <a class="sy-small" href="components.html#c-23-loading">← Components · Loader and layout stability</a>
+    <h1 class="sy-h1">Loading lab</h1>
+    <p class="sy-prose sy-meta">Two ways to load the same Screens list. Press a button and watch what moves. The number under each pane adds up
+      every layout shift inside it (the browser's own Layout Instability API; the score Google calls CLS counts shifts that happen
+      more than 0.5 s after an input, which is when a slow page lands). Docs: <code>docs/20-navigation-and-canvases/T-10-loading-and-layout-stability.md</code>.</p>
+    <div class="sy-cluster" style="--sy-gap: 8px 12px">
+      <button class="sy-btn sy-btn--strong" type="button" data-load="1200">Load: slow (1.2 s)</button>
+      <button class="sy-btn" type="button" data-load="150">Load: fast (150 ms)</button>
+      <button class="sy-btn sy-btn--quiet" type="button" data-load="0">Reset</button>
+      <span class="sy-small sy-muted" id="lab-clock" role="status" aria-live="polite"></span>
+    </div>
+  </header>
+
+  <div class="lab-panes">
+    <section class="lab-pane" aria-labelledby="pa-h" data-pane="today">
+      <div class="lab-pane__head"><h2 id="pa-h" class="sy-h3">Today: one line, then the page</h2>
+        <span class="lab-cls" data-cls>shift 0.000</span></div>
+      <div class="lab-page">
+        <h3 class="sy-h2">Screens</h3>
+        <div data-body></div>
+        <div class="lab-after">Whatever sits under the list (History, the next plate) moves when the list lands.</div>
+      </div>
+    </section>
+    <section class="lab-pane" aria-labelledby="pb-h" data-pane="rule">
+      <div class="lab-pane__head"><h2 id="pb-h" class="sy-h3">The rule: nothing for 300 ms, then the skeleton at its final size</h2>
+        <span class="lab-cls" data-cls>shift 0.000</span></div>
+      <div class="lab-page">
+        <h3 class="sy-h2">Screens</h3>
+        <div data-body></div>
+        <div class="lab-after">Whatever sits under the list stays where it is.</div>
+      </div>
+    </section>
+  </div>
+
+  <section class="sy-plate" aria-labelledby="rules-h">
+    <div class="sy-plate__head"><h2 id="rules-h" class="sy-plate__title">The timing, in short</h2></div>
+    <div class="sy-plate__body">
+      <ol class="sy-prose" style="padding-left: 20px; margin: 0; display: flex; flex-direction: column; gap: 4px">
+        <li>0–300 ms: the old page stays; only the nav's current item and the URL change. A fast load shows no loading state at all.</li>
+        <li>At 300 ms: the new page's head (from the route) and its body as a skeleton at its final size, with the loader saying what is loading.</li>
+        <li>Once shown, the skeleton stays at least 300 ms, so it never flashes.</li>
+        <li>The data lands in the same boxes. Nothing below moves. Pictures arrive later in boxes that already have their size.</li>
+      </ol>
+    </div>
+  </section>
+</main>
+<script>
+(() => {
+  const ROWS = 8;
+  const titles = ["Kalkulator OC/AC — dane kierowcy", "Kalkulator OC/AC — opcje", "Kalkulator OC/AC — wynik", "Kontakt",
+                  "Ubezpieczenia dla Ciebie", "Nie możemy Cię ubezpieczyć", "Porównanie produktów", "Samochód"];
+  const loader = (label, cls = "") => `<span class="sy-loader ${cls}" role="status"><span class="sy-loader__beads" aria-hidden="true"><i></i><i></i><i></i></span><span class="sy-loader__label">${label}</span></span>`;
+  const list = (rows) => `<div class="lab-list"><div class="lab-list__head"><span>Pic</span><span>Screen</span><span>Seen</span></div>${rows}</div>`;
+  const realRows = () => titles.slice(0, ROWS).map(t => `<div class="lab-row"><span class="sy-thumb lab-pic" aria-hidden="true"><i></i><i></i><i></i></span><span class="sy-stack" style="--sy-gap: 2px"><a href="#">${t}</a><span class="sy-route">/route</span></span><span class="sy-small">17 Oct</span></div>`).join("");
+  const ruleFinal = () => `<div class="sy-stack" style="--sy-gap: 12px"><p class="sy-small sy-muted lab-status">23 screens · updated just now</p>${list(realRows())}</div>`;
+  const ruleSkel = () => `<div class="sy-stack sy-skel" style="--sy-gap: 12px" aria-busy="true">${loader("Loading screens · 0 of 23")}${list(skelRows())}</div>`;
+  const skelRows = () => Array.from({length: ROWS}, (_, i) => `<div class="lab-row"><span class="sy-thumb sy-thumb--loading" aria-hidden="true"></span><span class="sy-stack" style="--sy-gap: 6px"><span class="sy-skel__line" style="--sy-skel-w: ${50 + (i * 7) % 30}%"></span><span class="sy-skel__line" style="--sy-skel-w: 30%; height: 10px"></span></span><span class="sy-skel__line" style="--sy-skel-w: 80%"></span></div>`).join("");
+  const panes = {today: document.querySelector('[data-pane="today"]'), rule: document.querySelector('[data-pane="rule"]')};
+  const body = (p) => panes[p].querySelector("[data-body]");
+  const scores = {today: 0, rule: 0};
+  const clock = document.getElementById("lab-clock");
+  let timers = [];
+  function show(p, html, busy) { const b = body(p); b.innerHTML = html; b.setAttribute("aria-busy", busy ? "true" : "false"); }
+  function reset() {
+    timers.forEach(clearTimeout); timers = [];
+    show("today", list(realRows())); show("rule", ruleFinal());
+    for (const k in scores) { scores[k] = 0; paint(k); }
+  }
+  function paint(k) {
+    const el = panes[k].querySelector("[data-cls]"); el.textContent = "shift " + scores[k].toFixed(3);
+    if (scores[k] > 0.01) el.setAttribute("data-bad", ""); else el.removeAttribute("data-bad");
+  }
+  function load(ms) {
+    timers.forEach(clearTimeout); timers = [];
+    for (const k in scores) { scores[k] = 0; paint(k); }
+    const t0 = performance.now();
+    // Today: the body collapses to one line at once, then the full list lands.
+    show("today", `<p class="sy-small sy-muted">Loading screens…</p>`, true);
+    timers.push(setTimeout(() => show("today", list(realRows())), ms));
+    // The rule: keep the old body for 300 ms; then the skeleton at the final size (≥ 300 ms); then the data in place.
+    const SHOW_AFTER = 300, MIN_SHOWN = 300;
+    if (ms <= SHOW_AFTER) {
+      timers.push(setTimeout(() => show("rule", ruleFinal()), ms));
+    } else {
+      timers.push(setTimeout(() => show("rule", ruleSkel(), true), SHOW_AFTER));
+      timers.push(setTimeout(() => show("rule", ruleFinal()), Math.max(ms, SHOW_AFTER + MIN_SHOWN)));
+    }
+    // The loader line and the status line have the same height, so skeleton → data moves nothing.
+    clock.textContent = `Loading for ${ms} ms…`;
+    timers.push(setTimeout(() => { clock.textContent = `Loaded after ${Math.round(performance.now() - t0)} ms.`; }, Math.max(ms, 600) + 20));
+  }
+  try {
+    new PerformanceObserver((entries) => {
+      for (const e of entries.getEntries()) {
+        for (const k in panes) {
+          if ((e.sources || []).some(s => s.node && panes[k].contains(s.node))) { scores[k] += e.value; paint(k); }
+        }
+      }
+    }).observe({type: "layout-shift", buffered: false});
+  } catch (err) { document.querySelectorAll("[data-cls]").forEach(el => el.textContent = "shift: not measurable here"); }
+  document.querySelectorAll("[data-load]").forEach(b => b.addEventListener("click", () => {
+    const ms = +b.dataset.load; if (!ms) reset(); else load(ms);
+  }));
+  reset();
+})();
+</script>
+</body>
+</html>

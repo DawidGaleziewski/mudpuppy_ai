@@ -231,7 +231,7 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 - **Decision.** `.sy-variants` (auto-fill columns) and `.sy-variant`; a lone variant gets a picture-left layout. `.sy-compare` is kept for before / after pairs.
 - **Why.** Most screens have one variant; stretching it across the page compares nothing and distorts the picture.
 
-### D-47 · The graph sits in a frame with a sticky, floating zoom bar — Accepted
+### D-47 · The graph sits in a frame with a sticky, floating zoom bar — Accepted (wheel rule replaced by D-71)
 - **Decision.** `.sy-graphview` + `.sy-graph__zoom`: the bar floats top-right and sticks under the header while the graph is on screen; the graph's height is natural, capped at the viewport below the header (520px when embedded). Phones open the map as a list; the graph opens full screen.
 - **Why.** One scroll surface at a time, and the zoom controls stay where the eyes are. 75vh was inherited, not designed.
 
@@ -305,6 +305,65 @@ Status key: **Accepted** (build it) · **Open** (needs a product decision, see e
 ### D-64 · A2UI v0.9.1, generated catalog, server-owned data model — Accepted
 - **Decision.** `workbench/a2ui/catalog.json` is generated from the catalogue; components carry ids and options, the server adds `data` paths and writes every observed value; View and CommandCard are server-owned; the spike compiles view specs to A2UI.
 - **Why.** Keeps D-38…D-41 true in the new protocol and gives one source for ids, patterns and limits.
+
+## 2.3 · Navigation and canvases, 24 Oct (`20-navigation-and-canvases/`)
+
+### D-65 · A page opened by a link remembers where it came from — Accepted
+- **Decision.** `.sy-backlink` above the crumbs, "← {Kind} {title}", back to the exact address left (tab, filter, list page, scroll). One step; each page keeps its own in the router state. From the page's own list, no link: the parent crumb carries the list's state. Not after the nav, search, a typed address or a new tab.
+- **Why.** Crumbs say where a page lives; people also need where they were. The browser's Back works but the console never showed it (owner, 24 Oct).
+
+### D-66 · Previous / Next live in the page head, only when there is a list — Accepted
+- **Decision.** `.sy-pager` in the head's actions: Previous · n of N · Next, the neighbour's title in the accessible name, J / K, ends disabled in place, replace navigation.
+- **Why.** A full-width bar would push every page down; with no list, there is nothing to step through.
+
+### D-67 · A list of screens shows each screen's picture — Accepted
+- **Decision.** `.sy-rowpic` with `.sy-thumb--row`: 96 px (72 dense, 64 phone), the latest recording of the main variant; "No picture" hatched with its reason. The picture is a naked button (D-44) that opens the dialog.
+- **Why.** People know screens by sight; titles alone made the owner open each one.
+
+### D-68 · The picture dialog browses the list it was opened from — Accepted
+- **Decision.** ← → / J K move through the list, Shift+← → and a segmented control through variants; the foot has the tick (X), the step number and Add to process (A). The dialog stays one view with small actions, not a workspace.
+- **Why.** Sorting thirty screens was open, Esc, find, tick, open. The same keys as Review keep one habit.
+
+### D-69 · Adding screens to a saved process is a scope change — Accepted
+- **Decision.** "Add to process ▾" on a row, the ticked set and in the dialog. The screens join the process's scope; A is rebuilt from observations, so until a scan walks them they show "Not on the observed path yet". In no process gets a grid with a selection bar.
+- **Why.** A is observed-only (10-processes §1); putting unseen screens into A would make it a guess, and a to-be draft is a different intent.
+
+### D-70 · Two saved processes merge when they are the same persona's — Accepted
+- **Decision.** One absorbs the other; scope unites, A is rebuilt, the absorbed process's to-be variants move over as drafts "branched from another as-is". Undo for 10 s; later Split back from History.
+- **Why.** People find duplicates after saving; a merge that loses nothing and can be reversed is safe to offer.
+
+### D-71 · Canvases move only when engaged (replaces D-47's wheel rule) — Accepted
+- **Decision.** Drag pans everywhere (4 px threshold, also from a node). The wheel scrolls the page until the canvas is engaged by a click or focus; engaged, the wheel and pinch zoom smoothly at the pointer, buttons and keys step 25…200 %. Esc, a click outside or Tab releases. The canvas is moved by a transform, not scrollbars.
+- **Why.** The owner wants zoom on the wheel; a page with an embedded graph must still scroll. Engaging gives both, and is how map tools behave.
+
+### D-72 · Full screen is a dialog — Accepted
+- **Decision.** `.sy-dialog--full` holds the same canvas at the window's size; F enters, Esc leaves to the same zoom and position. On phones it is how a canvas opens. Not the browser's Fullscreen API.
+- **Why.** One component, the console's own Esc and focus handling, and it works in embeds.
+
+### D-73 · A diagram is a graph: the same frame, our theme — Accepted
+- **Decision.** Mermaid output sits in `.sy-graphview--diagram` with the zoom bar, engage and full screen; it opens readable at the top left; Mermaid gets the Salvage Yard theme. The capability map opens as a List, the Diagram second.
+- **Why.** One way to move every canvas; a list answers "what can it do" faster than a picture.
+
+### D-74 · The loader is three weld beads and what is loading — Accepted
+- **Decision.** `.sy-loader`: three 6 px squares pulsing in turn on `--sy-dur-pulse`, and a mono label naming what loads, with a count when known. `--sm` for toolbars and lists, `--block` in a reserved box. No spinner; buttons keep the caret, the assistant keeps its blueprint states.
+- **Why.** It is the running square the yard already has, so loading reads as work in progress, not a new motion.
+
+### D-75 · Content arrives into boxes of its final size — Accepted
+- **Decision.** Head at once; 0–300 ms keep the previous page; from 300 ms a skeleton of the final size and the loader; once shown, ≥ 300 ms. A list refetch keeps old rows dimmed with `aria-busy`. Pictures, graphs, counts and banners reserve their size. Budget CLS ≤ 0.05 per page, checked in CI.
+- **Why.** The owner's "blink" and the jumping pages: a short wait shown as nothing, a long wait shown in place.
+
+### D-76 · The store rides on the portal picker — Accepted
+- **Decision.** The store's name is the second half of the Portal group (`sandbox`), read-only in its name, title and menu; the assistant's status moves into Ask; the nav foot goes.
+- **Why.** The store follows the portal; joined, they need one label and the header stays one row from 1180 px.
+
+### D-77 · All portals shows every section, the portal ones disabled — Accepted
+- **Decision.** Home, Changes, Review and Settings live; Processes, Screens, Rules, Docs and Scans disabled with "Pick a portal to open these." First visit: one portal → it; several → All portals; returning → the last one.
+- **Why.** Showing the last portal's sections under "All portals" would mix one portal's data into the overview.
+
+### D-78 · A command that didn't start says what it created: nothing — Accepted
+- **Decision.** The failed card, "Didn't start", "Created: nothing", the crawler's sentence quoted, Start again with the same arguments; bound to its own run id within 30 s. When a scan starts the server places the live map at once, without a generated mark.
+- **Why.** Red is for failure and this is one; saying "nothing" keeps it calm. The live map is data, not the model's choice (D-39).
+
 ---
 
 ## Open items (need a product decision)

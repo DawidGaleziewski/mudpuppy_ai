@@ -12,6 +12,7 @@ from pydantic import BaseModel
 
 from . import (
     queries_app_process_editor,
+    queries_app_process_scope,
     queries_model_facts,
     queries_process_doc,
     queries_processes,
@@ -149,6 +150,8 @@ class ProcessPage(BaseModel):
     facts: FactsOut | None
     #: The to-be editor (None on A): the person's draft, each step's change, what it removed.
     editor: queries_app_process_editor.EditorOut | None
+    #: Its scope beyond A's steps and the merges it took part in (spec 078).
+    scope: queries_app_process_scope.ScopeOut | None = None
 
 
 def _records(d: queries_process_doc.StepDoc) -> list[RecordGroup]:
@@ -361,4 +364,5 @@ def process_page(
         as_is=as_is,
         facts=_facts(conn, view),
         editor=edit,
+        scope=queries_app_process_scope.scope_out(conn, p.id),
     )

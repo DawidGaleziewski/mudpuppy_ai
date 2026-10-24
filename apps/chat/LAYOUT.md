@@ -28,6 +28,9 @@ keeps the map (spec 042 T050, G-30).
   `process-service` (create, rename/stage, branch, drafts, save, rebase, restore, live, change
   spec; A and B are process models, `…/models/{label}/…`, spec 039 owner answer 8), `process-suggestions` (the assistant's groupings: suggest, accept, dismiss, split, merge),
   `api-processes` (routes), `mcp-process-tools` (`list_grouping_inputs`, `suggest_grouping`).
+  Spec 078 (R-106): `process-scope` (Add to process: a scope change, A rebuilt from what scans
+  observed, screens no move reaches stay in the scope) and `process-merge` (merge two saved
+  processes of one persona, Undo for 10 s, Split back from History), both routed by `api-processes`.
   Spec 027 (R-54): archive / unarchive (never delete), `models/A/edit` (a person's edit of A,
   an `edit` revision), sign-off records `as_is_rev`, and `process-from-record` (a PROC record
   opens a process linked by `record_key`; routes `…/processes/from-record`).

@@ -1,122 +1,64 @@
-# MudPuppy · Salvage Yard: design package
+# MudPuppy · design round 4, as tasks (24 Oct 2026)
 
-> Tag it, strip it, ship it.
+Answers to "Designer questions, round 4: console navigation and canvases" (Q1–Q9), plus the owner's request of the same
+day: **a loader that fits the design system, required wherever content loads, and pages that don't jump.** Written as
+**14 tasks** you can pick up one by one. Lay this over rounds 1–3; the CSS here contains all four.
 
-Everything needed to rebrand and rebuild the MudPuppy console in the **Salvage Yard** design
-system: the brand book, design system and CSS library, detailed screens, the original wireframes,
-screenshots, the frontend skill for your AI harness, and a migration guide from the current
-Console style. It works offline: fonts are bundled and nothing loads from the internet. The one
-exception is the original wireframes, which ask Google Fonts for IBM Plex Sans and fall back to system fonts offline.
+**Start here:** `docs/20-navigation-and-canvases/README.md`: questions → tasks, the task table, the order of work. Each
+`T-xx` file has the decision, why, markup and classes, React notes and acceptance checks. The same list as a spreadsheet:
+`docs/20-navigation-and-canvases/tasks.csv`.
 
-**Open `index.html` in a browser to browse it all.** New: **MudPuppy 2.0** (`docs/12-v2-ux.md`, screens `v2-*`), the design answer
-to spec 039 · R-81: one living model of the portal, What changed, Needs you, business rules.
-Newest: **console answers of 23 Oct, evening** (`docs/19-console-answers/`: phase bar, readable map opening, the persona card,
-Not here and overlay, time axes, table facts, drawer, recordings, scan line, the A2UI catalogue in `workbench/a2ui/`). Before
-that, the **design answers of 23 Oct** (`docs/18-design-answers/`: picture button, wide dialog, variants, graph zoom bar, record and
-full scan ids, chip contrast, the recorded map's edges). Before that, the **Workbench** (generative UI beta, `docs/14`–`17`, screens `wb-*`, `workbench/`): one tab where the assistant composes
-the screen from a catalogue of components, with a runnable reference built on htmx + server templates + SSE.
+| Task | Size | Short answer |
+|---|---|---|
+| T-01 Came from (Q1) | M | `← {Kind} {title}` above the crumbs, back to the exact address; one step; from its own list the parent crumb keeps the list's state |
+| T-02 Previous / Next (Q4) | S | A pager in the head's actions, `← Previous · 4 of 37 · Next →`, J / K, only when opened from a list |
+| T-03 Pictures in lists (Q4) | S | A picture per row in Screens (96 / 72 dense / 64 phone px), "No picture" with its reason |
+| T-04 The picture dialog browses its list (Q2) | M | ← → / J K through the list, Shift ← → variants, X tick, A Add to process |
+| T-05 Sorting, Add to process (Q2) | L | In no process as a grid with a selection bar; "Add to process ▾" everywhere; adding is a scope change, A stays observed-only |
+| T-06 Merge two processes (Q3) | M | Same persona only; one absorbs the other; A rebuilt; Undo 10 s, Split back later |
+| T-07 How a canvas moves (Q6) | L | Engage to zoom: drag pans, the wheel zooms only after a click in, Esc releases; replaces D-47's wheel rule |
+| T-08 Full screen (Q5, Q6) | S | `.sy-dialog--full`, same zoom and position in and out |
+| T-09 Diagram (Q5) | M | Mermaid inside the graph frame with our theme; capability map as a List first |
+| T-10 The loader; no blink (Q7) | M | `.sy-loader`: three weld beads + what loads. Head at once; nothing under 300 ms; then a skeleton at the final size |
+| T-11 Header store (Q8) | S | The store joins the portal picker; the assistant's status moves into Ask; one header row from 1180 px |
+| T-12 All portals nav (Q8) | S | Every section; the portal ones disabled with "Pick a portal to open these." |
+| T-13 Didn't start (Q9) | S | The failed card, "Didn't start · Created: nothing", the cause quoted; the live map placed at once at `scan.started` |
+| T-14 Layout stability everywhere | L | **FE-V45:** reserve the final size wherever content loads, the loader after 300 ms, **CLS ≤ 0.05** per route, a Playwright check |
 
-## What's inside
+## See it
 
-```
-mudpuppy-salvage-yard/
-├── index.html                  start page: links and thumbnails of everything
-├── README.md                   this file
-├── AGENTS.md                   drop-in instructions for coding agents (merge into CLAUDE.md / AGENTS.md)
-├── brand/
-│   ├── brand-book.html         visual brand book
-│   └── logo/                   mark-grid-path.svg · mark-creature.svg · mark-mono.svg · tag-icon.svg (favicon)
-├── design-system/
-│   ├── components.html         every component, live, with markup
-│   ├── genui-components.html   the gen UI layer (Workbench), live, with markup
-│   ├── css/                    tokens.css → fonts.css → salvage.css (→ genui.css on Workbench pages)
-│   ├── fonts/                  Archivo (variable), IBM Plex Mono, Special Elite (WOFF2, subset, licences)
-│   └── tokens/                 tokens.json (Console design-system list format) · tokens.dtcg.json (W3C DTCG)
-├── screens/                    16 v1 screens (12–16: map runs) + 16 MudPuppy 2.0 screens (v2-01 … v2-16) + 10 Workbench screens (wb-01 … wb-10)
-├── wireframes/                 the 12 redesign wireframes (.dc.html, open offline via support.js)
-├── screenshots/
-│   ├── screens/                1280px PNG of every detailed screen (visual-regression baselines)
-│   ├── wireframes/             PNG of every wireframe
-│   └── system/                 brand book, component library, process flow
-├── docs/
-│   ├── 01-brand-book.md        mission, personality, names, wordmark, mark, voice, misuse
-│   ├── 02-design-decisions.md  why it looks like this (decision records + open items)
-│   ├── 03-colour-guide.md      what each colour is designed to show, status matrix, contrast
-│   ├── 04-design-system.md     foundations + every component's rules
-│   ├── 05-css-guide.md         CSS architecture, ARIA state, tokens, lint, templates, JS duties
-│   ├── 06-screens.md           each screen: purpose, regions, rules, acceptance
-│   ├── 07-requirements.md      testable frontend requirements (FE-xx)
-│   ├── 08-migration-guide.md   Console → Salvage: maps, plan, tips, migrating the skill
-│   ├── 09-qa-checklist.md      PR and release checklist, visual regression setup
-│   ├── 10-processes.md         the process redesign: lifecycle, flows, rules, diff, data model, API, scope migration
-│   ├── 10-processes-flow.html  visual overview of how processes work now
-│   ├── 11-map-runs.md          map runs: graph and marks, form probing, checkpoints and resume, directed scans, BA reconciliation
-│   ├── 12-v2-ux.md             MudPuppy 2.0 UX: IA, time, vocabulary, review flow, overturn, before/after, decision tables, states, answers
-│   ├── 13-v2-fixtures.md       the 2.0 data story every v2 screen uses (seed for tests) + the Workbench fixture
-│   ├── 14-workbench.md         Workbench feature spec: paths, layouts, behaviour rules, states, the phased plan step by step
-│   ├── 15-genui-guidelines.md  gen UI style guide and good practices: provenance, writing, stability, trust, accessibility
-│   ├── 16-genui-components.md  the gen UI component catalogue and frame components, props, states, markup
-│   ├── 17-genui-architecture.md htmx vs React decision, view-spec pipeline, SSE, validation, security, evals, tickets
-│   ├── 18-design-answers/      answers to the developers' open questions of 23 Oct: one file each (pictures, dialog, variants, graph, ids, chip, names, A2UI, recorded map edges)
-│   └── 19-console-answers/     the React console's 13 questions (same evening): one file per question, numbered like them
-├── workbench/
-│   ├── schema/                 view-spec, narration and command JSON Schemas, catalogue, commands, model tool definitions
-│   ├── a2ui/                   the catalogue as an A2UI v0.9.1 catalog (generated), example streams, check.py (R-96 spike)
-│   ├── examples/               valid and invalid view specs, narration, commands (the contract tests use them)
-│   ├── tools/gen_wb_schema.py  the single source of the contract (regenerates schema/ and examples/)
-│   └── reference/              runnable reference app: Starlette + Jinja + htmx + SSE, scripted assistant, tests, evals
-├── skill/mudpuppy-salvage-ui/  the frontend skill: SKILL.md + references/ + scripts/ (copy to .claude/skills/)
-└── migration/
-    ├── token-map.csv           Console (and never-shipped rust) tokens → Salvage roles
-    ├── status-map.csv          [ OK ] [INT.] … → data-status + word
-    ├── component-map.csv       Console components → Salvage classes
-    └── find-old-styles.sh      greps a repo for Console-era styling (CI guard)
-```
+- **Live, with markup:** `design-system/components.html` → section **2.3** (`#c-23`), and
+  `design-system/genui-components.html#g-start`.
+- **Try the loading rule:** `design-system/loading-lab.html`. Press "Load: slow (1.2 s)": the left pane is today (it jumps, the
+  shift is measured), the right pane is the rule (0.000).
+- **Screens, new:** `screens/v2-17-screen-from-process.html` (came from + pager), `v2-18-loose-screens.html` (sorting grid,
+  selection bar, Add to process), `v2-19-picture-browse.html` (the dialog browsing the list), `v2-20-merge-processes.html`,
+  `v2-21-capabilities.html` (List), `v2-22-capabilities-diagram.html` (Diagram, engaged), `v2-23-loading-screens.html`
+  (a list loading), `v2-24-loading-screen.html` (a page loading part by part).
+- **Screens, changed:** `v2-06-screens.html` (pictures), `v2-15-all-portals.html` (disabled sections), and the header on
+  every `v2-*` and `wb-*` screen. Their links to v1 pages and the start page work only in the full package.
+- **Screenshots:** `screenshots/answers/23-*.png` (each part at 1280 and 390, five in forced colours, the start card),
+  `screenshots/screens/` (the new and changed screens), `screenshots/system/loading-lab.png`.
 
-## Quick start
+## What's in the folder
 
-**People:** open `index.html` → brand book → component library → screens. Read `docs/02` and `docs/03` before arguing about a colour.
+| Folder | What |
+|---|---|
+| `docs/20-navigation-and-canvases/` | README, T-01…T-14, `tasks.csv` |
+| `docs/` | Decisions **D-65…D-78** (`02`; D-47's wheel rule replaced by D-71), requirements **FE-V31…FE-V45** and the new header order in FE-N01 (`07`), the 2.3 parts (`04`), hooks and JS duties (`05`), screens (`06`), QA (`09`), add to process and merge with their API (`10`), moving around and loading (`12`), didn't start (`14`, `16`), console loader vs the assistant's skeleton (`15`); notes in `18-design-answers/04` and `19-console-answers/03` |
+| `design-system/` | Full CSS (`salvage.css` section "2.3", tokens comment), fonts, both component pages, the loading lab |
+| `screens/` | All `v2-*` and `wb-*` screens (new header), 8 of them new |
+| `patches/` | Diffs against round 3: `salvage.css`, `tokens.css`, all docs, one screen's header (`v2-01`), `v2-06`, `v2-15`, `SKILL.md` |
+| `skill/mudpuppy-salvage-ui/` | The UI skill with the 2.3 parts, the loading rule and the CLS check; references re-synced (incl. `20-…`) |
 
-**Developers:**
-1. Copy `design-system/css`, `design-system/fonts` and `design-system/tag-icon.svg` to the console's static folder (for example `static/salvage/`).
-2. Load `tokens.css`, `fonts.css`, `salvage.css` in a new base template (`docs/05-css-guide.md`).
-3. Follow `docs/08-migration-guide.md`: re-skin first, then the redesign, page by page behind a flag.
+## Order of work
 
-**Workbench (gen UI beta):** read `docs/14-workbench.md` §7 (the plan), then run `workbench/reference/` (see its README)
-and open `screens/wb-01…wb-10`. Stack decision and reasons: `docs/17-genui-architecture.md` §1.
+1. T-11, T-12 (the shell, with R-103) → 2. T-10 (the loader) → 3. T-01, T-02 → 4. T-03 → T-04 → T-05 → T-06 →
+5. T-07 → T-08 → T-09 → 6. T-13 → 7. T-14 last, then in CI for good.
 
-**Harness (Claude Code or similar):**
-1. Commit this package to the repo (for example `docs/design/salvage-yard/`), then copy `skill/mudpuppy-salvage-ui/` to `<repo>/.claude/skills/mudpuppy-salvage-ui/` and set `DS_PATH` / `DESIGN_PKG` at the top of its SKILL.md.
-2. Merge `AGENTS.md` into the repo's `CLAUDE.md`/`AGENTS.md`.
-3. Retire any Console design-system skill (`docs/08-migration-guide.md` §9).
-4. Add `migration/find-old-styles.sh` and the stylelint rules to CI.
+## Checks run
 
-## The system in one screen
-
-- **Steel** ground with a 24px yard grid; solid square **plates**; no radius, no shadows.
-- **Marker orange** = intent (brand, the primary action, needs you).
-  **Manila** = records (tags) and people (typewriter notes).
-  **Blueprint** = drawn, not built (dashed).
-  **Inspected** = OK. **Coolant** = active now. **Failure** = failure only.
-- **Archivo** (UI, prose, Expanded caps for short labels) · **IBM Plex Mono** (data) · **Special Elite** (people).
-- Every status is **shape + word**: ■ happened · □ didn't yet · ⌜⌟ unconfirmed · ✕ broke.
-- Voice: counts first, then the next move.
-
-## Verified
-
-- Every text pair meets WCAG 2.2 AA (`docs/03-colour-guide.md` §5); status colours checked under deuteranopia and protanopia simulation.
-- All three fonts cover Polish (checked glyph by glyph).
-- Every v1 screen renders offline at 1280 and 390, and every 2.0 and Workbench screen at 1280 and 1024 (desktop-first, per the brief), with no page-level horizontal scroll and no console errors.
-- The Workbench contract validates (valid examples pass, invalid ones fail for the expected reason); the reference app's tests and golden-prompt evals pass.
-
-## Open items
-
-Product decisions still needed: `docs/02-design-decisions.md` → *Open items* (notably O-1: the
-"As-is only" product rule vs the new to-be workspace).
-
-## Credits and licences
-
-- Fonts: Archivo and IBM Plex Mono (SIL Open Font License 1.1), Special Elite (Apache License 2.0). Licence files are in `design-system/fonts/`.
-- htmx 2.0.4 and the htmx SSE extension 2.2.3 (BSD Zero Clause), vendored in `workbench/reference/static/vendor/` with their licences.
-- The pixel mudpuppy mark is the existing MudPuppy artwork, recoloured to this palette.
-- Data in the screens comes from MudPuppy scans of the `reference-insurer` demo portal (all data fictitious) and `wikipedia` settings.
+No page-level overflow at 1280 on any `v2-*` / `wb-*` screen or the component pages (and none at 390 on
+`components.html`); no unknown `sy-` classes, no duplicate ids, no broken ARIA references; header one row at 1280 and
+1200; the loading lab measures about 0.015–0.03 shift per slow load today (depending on the window) and 0.000 with the rule. `genui.css` and the Workbench contract
+are unchanged in this round. The full package (`mudpuppy-salvage-yard.zip`) has everything applied.

@@ -28,6 +28,8 @@ export const BaProcessChange = z.enum([
   'restore',
   'archive',
   'unarchive',
+  'merge',
+  'unmerge',
 ]);
 export type BaProcessChange = z.infer<typeof BaProcessChange>;
 
@@ -42,6 +44,9 @@ export const ProcessModelChange = z.enum([
   'restore',
   'observe',
   'edit',
+  'scope',
+  'merge',
+  'unmerge',
 ]);
 export type ProcessModelChange = z.infer<typeof ProcessModelChange>;
 
@@ -197,6 +202,76 @@ export const ProcessLive = z.object({
   created_at: Timestamp,
 });
 export type ProcessLive = z.infer<typeof ProcessLive>;
+
+/**
+ * A screen added to a process's scope that no observed move reaches yet (0051, spec 078 T-05): in the scope,
+ * in no step of A. Open while `removed_at` is null; `removed_by` is set with it.
+ */
+export const ProcessScopeScreen = z
+  .object({
+    id: Id,
+    process_id: Id,
+    state_id: Id,
+    author: z.string().min(1),
+    added_at: Timestamp,
+    removed_at: Timestamp.nullable(),
+    removed_by: z.string().nullable(),
+  })
+  .superRefine((v, ctx) => {
+    if ((v.removed_at === null) !== (v.removed_by === null))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['removed_by'],
+        message: 'removed_at and removed_by are set together',
+      });
+  });
+export type ProcessScopeScreen = z.infer<typeof ProcessScopeScreen>;
+
+/** One to-be model the absorbed process had, moved over to the kept process (`moved_json`, 0051). */
+export const ProcessMergeMoved = z.object({
+  model_id: Id,
+  from_label: z.string().min(1),
+  to_label: z.string().min(1),
+});
+export type ProcessMergeMoved = z.infer<typeof ProcessMergeMoved>;
+
+/**
+ * One merge of two saved processes of the same persona (0051, spec 078 T-06): the kept one absorbs the other.
+ * Enough to put everything back (Undo in 10 s, Split back later). One open merge per absorbed process.
+ */
+export const ProcessMerge = z
+  .object({
+    id: Id,
+    portal_id: z.string().min(1),
+    kept_process_id: Id,
+    absorbed_process_id: Id,
+    author: z.string().min(1),
+    reason: z.string().nullable(),
+    /** The kept process's name before (the dialog may rename it). */
+    kept_name_before: z.string().min(1),
+    /** A's head before the merge, and the A revision the merge wrote. */
+    kept_as_is_rev_before: z.number().int().min(1),
+    kept_as_is_rev_after: z.number().int().min(1),
+    moved_json: z.array(ProcessMergeMoved),
+    created_at: Timestamp,
+    undone_at: Timestamp.nullable(),
+    undone_by: z.string().nullable(),
+  })
+  .superRefine((v, ctx) => {
+    if (v.kept_process_id === v.absorbed_process_id)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['absorbed_process_id'],
+        message: 'a process cannot absorb itself',
+      });
+    if ((v.undone_at === null) !== (v.undone_by === null))
+      ctx.addIssue({
+        code: 'custom',
+        path: ['undone_by'],
+        message: 'undone_at and undone_by are set together',
+      });
+  });
+export type ProcessMerge = z.infer<typeof ProcessMerge>;
 
 export const GroupingSuggestion = z
   .object({

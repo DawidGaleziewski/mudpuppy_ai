@@ -1,0 +1,23 @@
+/* Ours (spec 078): component classes the designer's library leaves to the app, on role tokens only. */
+@layer sy.components {
+  /* A menu button and its popup (.sy-menu, T-05 / T-11): the popup hangs under the button, out of the flow (FE-V45) */
+  .sy-menubox { position: relative; display: inline-flex; }
+  .sy-menubox > .sy-menu { position: absolute; top: 100%; left: 0; z-index: 30; margin-top: var(--sy-space-1); }
+  .sy-menubox--end > .sy-menu { right: 0; left: auto; }
+  .sy-menubox--up > .sy-menu { top: auto; bottom: 100%; margin-top: 0; margin-bottom: var(--sy-space-1); }
+
+  /* A canvas that moves by transform (T-07): the drawing starts at the box's corner; the view places it */
+  .sy-graph--canvas > .sy-graph__canvas { margin: 0; }
+
+  /* The picture dialog browsing a list (T-04): one height whatever the picture, so stepping never moves the foot */
+  .sy-dialog--browse { height: calc(100dvh - var(--sy-space-8)); }
+
+  /* A region read again (T-10 Q7.4): the old content dimmed, "Updating" under the header's right end, out of
+     the flow. The wrapper takes no box (a page's parts stay the children of its stack) */
+  .sy-busy { display: contents; }
+  .sy-busy__note { position: fixed; top: calc(var(--sy-header-h) + var(--sy-space-2)); right: var(--sy-space-4); z-index: 20;
+    padding: var(--sy-space-1) var(--sy-space-2); background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-busy[aria-busy="true"] .sy-table tbody,
+  .sy-busy[aria-busy="true"] .sy-sortgrid,
+  .sy-busy[aria-busy="true"] .sy-rows { opacity: 0.45; pointer-events: none; }
+}

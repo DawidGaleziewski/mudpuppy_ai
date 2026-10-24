@@ -1,7 +1,9 @@
 import { useEffect, useRef, type ComponentType } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import { createBrowserRouter, NavigationType, Outlet, RouterProvider, useLocation, useNavigationType } from 'react-router';
-import { LinkProvider, State } from '../design-system';
+import { LinkProvider, PageHeadProvider } from '../design-system';
+import { useCameFromWiring } from './cameFrom';
+import { Pending } from './QueryState';
 import { NotFound } from '../pages/NotFound';
 import { RecordingRedirect } from './Recording';
 import { currentAsOf } from './asOf';
@@ -91,11 +93,14 @@ function useAsOfReset() {
 function Routed() {
   useScrollOnMove();
   useAsOfReset();
+  const heads = useCameFromWiring();
   return (
     <LinkProvider draw={routerLink}>
-      <ShellLayout>
-        <Outlet />
-      </ShellLayout>
+      <PageHeadProvider value={heads}>
+        <ShellLayout>
+          <Outlet />
+        </ShellLayout>
+      </PageHeadProvider>
     </LinkProvider>
   );
 }
@@ -119,6 +124,8 @@ const pages = [
   page('/app/portals/:portal/docs/sessions/:session', () => import('../pages/DocSession'), 'DocSession'),
   page('/app/portals/:portal/docs/:key', () => import('../pages/DocRecord'), 'DocRecord'),
   page('/app/portals/:portal/processes', () => import('../pages/Processes'), 'Processes'),
+  // before /processes/:key: "loose" is the sorting view, not a process (designer T-05)
+  page('/app/portals/:portal/processes/loose', () => import('../pages/LooseScreens'), 'LooseScreens'),
   page('/app/portals/:portal/processes/:key', () => import('../pages/Process'), 'Process'),
   page('/app/portals/:portal/processes/:key/compare', () => import('../pages/ProcessCompare'), 'ProcessCompare'),
   page('/app/portals/:portal/processes/:key/history', () => import('../pages/ProcessHistory'), 'ProcessHistory'),
@@ -157,7 +164,7 @@ export const routes = [
     element: <Routed />,
     children: pages,
     // the first page's code is still on its way (a move between pages keeps the old page instead)
-    hydrateFallbackElement: <State loading title="Opening the page" />,
+    hydrateFallbackElement: <Pending what="the page" />,
   },
 ];
 

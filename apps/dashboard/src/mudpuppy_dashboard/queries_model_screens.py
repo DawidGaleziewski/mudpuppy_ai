@@ -273,6 +273,22 @@ def status_counts(conn: sqlite3.Connection, portal: str) -> dict[str, int]:
     }
 
 
+MAIN_MEMBER_SQL = (
+    "SELECT s.key, m.state_id FROM model_screens s JOIN screen_members m ON m.screen_id = s.id"
+    " AND m.to_model_version IS NULL WHERE s.portal_id = ? AND m.ordinal = ("
+    "  SELECT min(x.ordinal) FROM screen_members x"
+    "  WHERE x.screen_id = s.id AND x.to_model_version IS NULL)"
+)
+
+
+def main_pictures(conn: sqlite3.Connection, portal: str) -> dict[str, Picture]:
+    """Each screen's main variant (r1, its first current member) and that state's pictures, by
+    screen key: the Screens list's row picture (designer T-03)."""
+    mains = {r["key"]: r["state_id"] for r in rows_of(conn, MAIN_MEMBER_SQL, (portal,))}
+    pics = pictures(conn, list(mains.values()))
+    return {key: pics[state] for key, state in mains.items() if state in pics}
+
+
 def _variants(conn: sqlite3.Connection, screen_id: str, changes: list[Change]) -> list[Variant]:
     members = rows_of(
         conn,

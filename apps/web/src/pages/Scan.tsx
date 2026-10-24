@@ -8,7 +8,7 @@ import { ProcessSection } from './ScanProcess';
 import { TraceSection } from './ScanTrace';
 import { Callout, Facts, PageHead, Plate, ScanId, Stack, Table, Text, ViewNav } from '../design-system';
 import { useScanHead, type ScanHead } from '../app/api-scan';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { ScanGraph } from './ScanGraph';
@@ -117,7 +117,7 @@ export function Scan() {
             Scan <ScanId id={scan} />
           </>
         }
-        meta={q.data ? `${q.data.persona} · read-only` : undefined}
+        meta={headMeta(q, (d) => `${d.persona} · read-only`)}
       />
       <QueryState query={q} what="the scan">
         {(h) => (

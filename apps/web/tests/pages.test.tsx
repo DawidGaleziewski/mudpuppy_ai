@@ -1,5 +1,6 @@
 import { screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { firstVisitTarget } from '../src/app/lastPortal';
 import { at } from './render-at';
 
 // Two scans started in the same millisecond share the short form (D-9, Q6).
@@ -16,15 +17,25 @@ describe('Portals page', () => {
     at('/app/', {
       '/api/portals': {
         environment: 'local-dev',
-        portals: [{ id: 'reference-insurer-local', scans: 3, running: 1, last_scan_at: '2026-10-23T00:12:00Z' }],
+        portals: [
+          { id: 'reference-insurer-local', scans: 3, running: 1, last_scan_at: '2026-10-23T00:12:00Z' },
+          { id: 'shop', scans: 0, running: 0, last_scan_at: null },
+        ],
         other_environments: ['reference-insurer'],
       },
     });
     const main = await screen.findByRole('main');
     expect(await within(main).findByRole('link', { name: 'reference-insurer-local' })).toBeTruthy();
     expect(screen.getByText('1 running')).toBeTruthy();
-    expect(screen.getByText('1 portals · environment local-dev')).toBeTruthy();
-    expect(screen.getByRole('heading', { level: 1, name: 'Portals' })).toBeTruthy();
+    expect(screen.getByText('2 portals · environment local-dev')).toBeTruthy();
+    expect(screen.getByRole('heading', { level: 1, name: 'All portals' })).toBeTruthy();
+  });
+
+  it('opens the only portal, or the one used last, on a first visit (designer T-12)', () => {
+    expect(firstVisitTarget(['shop'], undefined)).toBe('/app/portals/shop');
+    expect(firstVisitTarget(['shop', 'bank'], 'bank')).toBe('/app/portals/bank');
+    expect(firstVisitTarget(['shop', 'bank'], 'gone')).toBeNull();
+    expect(firstVisitTarget([], undefined)).toBe('/app/portals/new');
   });
 
   it('says what failed and what to do when the API is down', async () => {

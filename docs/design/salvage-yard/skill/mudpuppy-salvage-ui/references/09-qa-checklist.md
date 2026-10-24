@@ -102,6 +102,24 @@ Copy this into the PR template for any UI change.
 - [ ] `/states/{id}` lands on the Screen page with the recording dialog open.
 - [ ] Scan lines: kind word, 13-character id, "no new step for N min" only after 2 min.
 
+## 2.3 · Navigation, canvases, loading (`20-navigation-and-canvases/`)
+
+- [ ] Came from: after a cross-section link, "← {Kind} {title}" above the crumbs returns to the same tab, filter, page and scroll; none after nav, search or a typed URL (T-01).
+- [ ] Pager: only when opened from a list; J / K; the disabled end doesn't move the layout; Back returns to the list (T-02).
+- [ ] Pictures in rows: rows keep their height before pictures arrive; "No picture" names why (T-03).
+- [ ] Picture dialog from a list: ← → / J K move through the list, Shift ← → through variants, X ticks, A adds; keys ignored in fields (T-04).
+- [ ] Add to process: menu groups (search past 8, last used, persona A–Z, "already in" disabled, New process); added screens show "Not on the observed path yet" (T-05).
+- [ ] Merge: different personas disabled with the reason; Undo 10 s restores both; Split back from History (T-06).
+- [ ] Canvas: scrolling the page past a graph never zooms it; click to engage, wheel zooms at the pointer; drag pans from a node after 4 px; Esc releases (T-07).
+- [ ] Full screen: F / button, Esc back to the same zoom and position, focus returns (T-08).
+- [ ] Diagram: our theme, opens readable top-left; List and Diagram show the same items (T-09).
+- [ ] Loading: no state under 300 ms; skeleton at the final size from 300 ms, ≥ 300 ms; refetch dims old rows with `aria-busy`; no spinner, no bare "Loading…" (T-10).
+- [ ] **CLS ≤ 0.05 on every route** (Playwright layout-shift check with a 1 s API delay) (T-14, FE-V45).
+- [ ] Header: one row at 1280 and 1200 with the store; Ask carries the assistant's status (T-11).
+- [ ] All portals: portal sections disabled and focusable with the reason (T-12).
+- [ ] Didn't start: portal down → failed card "Didn't start" in ≤ 30 s, nothing in Scans; portal up → live map card before any assistant text, no generated mark (T-13).
+- [ ] Forced colours: engaged canvas ring, ticked picks, loader beads and disabled nav items are visible.
+
 ## Visual regression setup (Playwright)
 
 ```js

@@ -1,0 +1,15 @@
+id,title,size,depends,question,requirement,decision,screens,demo,files
+T-01,Came from: one step back to the exact page you left,M,,Q1,FE-V31,D-65,screens/v2-17-screen-from-process.html,components.html#c-23-nav,T-01-came-from.md
+T-02,Previous / Next on a record page,S,T-01,Q4.1-4.3,FE-V32,D-66,screens/v2-17-screen-from-process.html,components.html#c-23-nav,T-02-prev-next.md
+T-03,Pictures in lists,S,T-10,Q4.4,FE-V33,D-67,screens/v2-06-screens.html,components.html#c-23-rowpic,T-03-pictures-in-lists.md
+T-04,The picture dialog browses its list,M,D-45,Q2.1-2.2,FE-V34,D-68,screens/v2-19-picture-browse.html,components.html#c-23-browse,T-04-picture-dialog-browse.md
+T-05,In no process: sorting view and Add to process,L,T-03 T-04,Q2.3-2.4,FE-V35,D-69,screens/v2-18-loose-screens.html screens/v2-19-picture-browse.html,components.html#c-23-sort,T-05-sorting-and-add-to-process.md
+T-06,Merge two saved processes,M,T-05,Q3,FE-V36,D-70,screens/v2-20-merge-processes.html,,T-06-merge-processes.md
+T-07,How a canvas moves (engage to zoom),L,,Q6.1-6.4 Q6.6,FE-V37,D-71 (replaces D-47 wheel rule),screens/v2-22-capabilities-diagram.html,components.html#c-23-canvas,T-07-canvas-movement.md
+T-08,Full screen for canvases,S,T-07,Q5.4 Q6.5,FE-V38,D-72,,components.html#c-23-canvas,T-08-full-screen.md
+T-09,Diagram (Mermaid) component; capability map,M,T-07 T-08,Q5.1-5.3 Q5.5-5.6,FE-V39,D-73,screens/v2-21-capabilities.html screens/v2-22-capabilities-diagram.html,components.html#c-23-diagram,T-09-diagram.md
+T-10,The loader; loading a page without a blink,M,R-103,Q7 + owner loader request,FE-V40 FE-V41,D-74 D-75,screens/v2-23-loading-screens.html screens/v2-24-loading-screen.html,components.html#c-23-loading loading-lab.html,T-10-loading-and-layout-stability.md
+T-11,Header: the store on the portal picker,S,R-103,Q8.1,FE-V42,D-76,all v2-* and wb-* screens,components.html#c-23-header,T-11-header-store.md
+T-12,All portals nav and the first visit,S,T-11,Q8.2,FE-V43,D-77,screens/v2-15-all-portals.html,components.html#c-23-allportals,T-12-all-portals-nav.md
+T-13,A command that didn't start; the live map at once,S,R-103,Q9,FE-V44,D-78,,genui-components.html#g-start,T-13-command-failed-to-start.md
+T-14,Layout stability everywhere content loads (CLS <= 0.05),L,T-10,owner loader request,FE-V45,D-75,screens/v2-23-loading-screens.html screens/v2-24-loading-screen.html,loading-lab.html,T-14-layout-stability-everywhere.md

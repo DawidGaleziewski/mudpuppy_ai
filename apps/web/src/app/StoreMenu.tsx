@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
-import { Callout, Disclosure, Row, Rows, Text } from '../design-system';
+import { Callout, Menu, StoreMark, Text, type MenuEntry } from '../design-system';
 import { api, read } from './state/api';
 
 interface StoreOut {
@@ -8,6 +8,9 @@ interface StoreOut {
   label: string;
   kind: string;
   workspace: string | null;
+  /** The store file ("data/db/sandbox.sqlite") and its size in bytes (designer T-11). */
+  path: string;
+  size: number | null;
 }
 
 interface StoreList {
@@ -34,24 +37,52 @@ function inStore(pathname: string, search: string, key: string) {
   return `${pathname}?${p.toString()}`;
 }
 
+/** "22 MB", "4.1 MB", "900 kB": a store file's size for its menu line. */
+function sizeWord(bytes: number | null): string | null {
+  if (bytes === null) return null;
+  if (bytes >= 1e6) return `${(bytes / 1e6).toFixed(bytes >= 1e7 ? 0 : 1)} MB`;
+  return `${String(Math.max(1, Math.round(bytes / 1e3)))} kB`;
+}
+
+/** A store's line in the menu: its file, size and that writes go through commands. */
+function storeNote(s: StoreOut): string {
+  const parts = [s.path, sizeWord(s.size), s.kind === 'eval' ? `eval workspace ${s.workspace ?? ''}` : 'writes go through commands'];
+  return parts.filter(Boolean).join(' · ');
+}
+
 /**
- * The header's data-store picker (spec 019 US5, R-71 (d)): the store the console reads, and the
- * stores holding the portal's scans (an eval workspace among them). A menu of links.
+ * The store half of the header's portal picker (spec 019 US5, R-71 (d), designer T-11): the
+ * store's name; its menu lists the portal's stores (the console reads each one read-only; writes
+ * go through commands) and Data store settings. Always a menu, so the header keeps its shape. On
+ * All portals each portal has its own store: `per portal`, disabled.
  */
 export function StoreMenu({ portal }: { portal: string | undefined }) {
   const { pathname, search } = useLocation();
   const data = useStores(portal).data;
-  if (!data || (data.stores.length < 2 && data.current.kind === 'main')) return null;
+  if (!portal) return <Menu look="store" disabled button="per portal" buttonLabel="Data store: per portal" title="Each portal has its own data store" label="Data store" entries={[]} />;
+  if (!data) return <Menu look="store" disabled button={<StoreMark />} buttonLabel="Data store" label="Data store" entries={[]} />;
+  const entries: MenuEntry[] = [
+    { label: `Stores of ${portal}`, group: true },
+    ...data.stores.map((s) => ({ key: s.key, label: s.label, aside: 'read-only', note: storeNote(s), checked: s.key === data.current.key, href: inStore(pathname, search, s.key) })),
+    { separator: true },
+    { key: 'settings', label: 'Data store settings', href: `/app/portals/${encodeURIComponent(portal)}/settings` },
+  ];
+  const now = data.current;
   return (
-    <Disclosure summary={`Data store: ${data.current.label}`}>
-      <Rows label="Switch data store">
-        {data.stores.map((s) => (
-          <Row key={s.key} current={s.key === data.current.key} aside={s.kind === 'eval' ? <Text small muted>eval workspace</Text> : undefined}>
-            <Text href={inStore(pathname, search, s.key)}>{s.label}</Text>
-          </Row>
-        ))}
-      </Rows>
-    </Disclosure>
+    <Menu
+      look="store"
+      align="end"
+      label="Data store"
+      button={
+        <>
+          <StoreMark />
+          {now.label}
+        </>
+      }
+      buttonLabel={`Data store: ${now.label}, read-only`}
+      title={`Data store: ${now.path} · read-only · writes go through commands`}
+      entries={entries}
+    />
   );
 }
 

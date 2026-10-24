@@ -1342,7 +1342,9 @@ class BaProcessRevision(Row):
     process_id: str
     rev: int
     base_rev: int | None
-    change: Literal["create", "rename", "stage", "restore", "archive", "unarchive"]
+    change: Literal[
+        "create", "rename", "stage", "restore", "archive", "unarchive", "merge", "unmerge"
+    ]
     author: str
     name: str
     stage: BaProcessStage
@@ -1369,7 +1371,9 @@ class ProcessModelRevision(Row):
     model_id: str
     rev: int
     base_rev: int | None
-    change: Literal["create", "branch", "save", "restore", "observe", "edit"]
+    change: Literal[
+        "create", "branch", "save", "restore", "observe", "edit", "scope", "merge", "unmerge"
+    ]
     author: str
     steps: Json
     note: str | None
@@ -1399,6 +1403,36 @@ class ProcessLive(Row):
     author: str
     reason: str | None
     created_at: str
+
+
+class ProcessScopeScreen(Row):
+    """A screen added to a process's scope that no observed move reaches yet (0051, spec 078)."""
+
+    id: str
+    process_id: str
+    state_id: str
+    author: str
+    added_at: str
+    removed_at: str | None
+    removed_by: str | None
+
+
+class ProcessMerge(Row):
+    """One merge of two saved processes: the kept one absorbs the other (0051, spec 078)."""
+
+    id: str
+    portal_id: str
+    kept_process_id: str
+    absorbed_process_id: str
+    author: str
+    reason: str | None
+    kept_name_before: str
+    kept_as_is_rev_before: int
+    kept_as_is_rev_after: int
+    moved_json: Json  # [{model_id, from_label, to_label}]
+    created_at: str
+    undone_at: str | None
+    undone_by: str | None
 
 
 class GroupingSuggestion(Row):
@@ -1483,6 +1517,8 @@ TABLE_MODELS: dict[str, type[Row]] = {
     "process_model_revisions": ProcessModelRevision,
     "process_drafts": ProcessDraft,
     "process_live": ProcessLive,
+    "process_scope_screens": ProcessScopeScreen,
+    "process_merges": ProcessMerge,
     "change_spec_revisions": ChangeSpecRevision,
     "form_steps": FormStep,
     "probe_outcomes": ProbeOutcome,

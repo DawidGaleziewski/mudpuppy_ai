@@ -26,6 +26,7 @@ from .web import (
     api_portal_new,
     api_process,
     api_process_export,
+    api_process_scope,
     api_processes,
     api_recorded,
     api_review,
@@ -73,6 +74,8 @@ def create_app(
     app.include_router(api_recorded.router)
     app.include_router(api_screens.router)
     app.include_router(api_map.router)
+    # Before api_processes: /processes/merge is no process.
+    app.include_router(api_process_scope.router)
     app.include_router(api_processes.router)
     app.include_router(api_process.router)
     app.include_router(api_review.router)

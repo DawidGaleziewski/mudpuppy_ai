@@ -50,6 +50,7 @@ const list = {
     { state: 'st-kontakt', title: 'Kontakt', route: '/kontakt', shot: null, wire: null, scans: 2 },
   ],
   default_persona: 'guest',
+  targets: [{ id: 'pr-1', key: 'PRC-001', name: 'Kup polisę', persona: 'guest', steps: 4, states: ['st-home', 'st-kontakt'] }],
 };
 
 
@@ -94,21 +95,91 @@ describe('Processes', () => {
     expect(JSON.parse(post[1].body)).toEqual({ with: 'sg-2' });
   });
 
-  it('makes a new process from the screens ticked, in the order set', async () => {
-    const fetch = at('/app/portals/shop/processes', {
+});
+
+describe('Processes, sorting and merging (spec 078)', () => {
+  it('makes a new process from the screens ticked in the sorting grid, in the order set (designer T-05)', async () => {
+    const fetch = at('/app/portals/shop/processes/loose', {
       [API]: list,
       'POST /api/portals/shop/processes': { ok: true, message: 'Made Help.', href: '/processes/PRC-002?model=A' },
     });
-    const form = await screen.findByRole('form', { name: 'New process from screens' });
+    const grid = await screen.findByRole('list', { name: 'Screens in no process' });
+    fireEvent.click(within(grid).getByRole('checkbox', { name: 'FAQ' }));
+    fireEvent.click(within(grid).getByRole('checkbox', { name: 'Kontakt' }));
+    // the selection bar while anything is ticked; the step numbers follow the tick order
+    expect(within(screen.getByRole('region', { name: 'Selection' })).getByText('2 ticked')).toBeTruthy();
+    const form = screen.getByRole('form', { name: 'New process from these' });
     fireEvent.change(within(form).getByRole('textbox', { name: 'New process name' }), { target: { value: 'Help' } });
-    fireEvent.click(within(form).getByRole('checkbox', { name: /\/faq/ }));
-    fireEvent.click(within(form).getByRole('checkbox', { name: /\/kontakt/ }));
     fireEvent.click(within(form).getByRole('button', { name: 'Move Kontakt up' }));
-    fireEvent.click(within(form).getByRole('button', { name: 'New process from these' }));
-    await confirmIn('Make Help?', 'Make the process');
+    fireEvent.click(within(form).getByRole('button', { name: 'Create process' }));
+    await confirmIn('Make Help?', 'Create process');
     expect(await screen.findByText('Made Help.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === API && c[1]?.method === 'POST') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({ name: 'Help', persona: 'guest', state_ids: ['st-kontakt', 'st-faq'] });
+  });
+
+  it('adds a loose screen to a process as a scope change, never offering one it is already in, with Undo', async () => {
+    const add = `${API}/pr-1/scope`;
+    const fetch = at('/app/portals/shop/processes/loose', {
+      [API]: list,
+      [`POST ${add}`]: { ok: true, message: 'FAQ added to Kup polisę · its as-is follows what scans saw', undo: 'st-faq', href: '/app/portals/shop/processes/PRC-001' },
+      [`POST ${API}/pr-1/scope/remove`]: { ok: true, message: 'Undone: the screens left the process’s scope.' },
+    });
+    const grid = await screen.findByRole('list', { name: 'Screens in no process' });
+    const cards = within(grid).getAllByRole('listitem');
+    // Kontakt is in PRC-001 already: shown, disabled
+    fireEvent.click(within(cards[1]!).getByRole('button', { name: 'Add to process ▾' }));
+    expect(within(screen.getByRole('menu', { name: 'Add to process' })).getByRole('menuitem', { name: /Kup polisę/ }).getAttribute('aria-disabled')).toBe('true');
+    fireEvent.keyDown(screen.getByRole('menu'), { key: 'Escape' });
+    fireEvent.click(within(cards[0]!).getByRole('button', { name: 'Add to process ▾' }));
+    fireEvent.click(within(screen.getByRole('menu', { name: 'Add to process' })).getByRole('menuitem', { name: /Kup polisę/ }));
+    await confirmIn('Add FAQ to Kup polisę?', 'Add to process');
+    expect(await screen.findByText(/FAQ added to Kup polisę/)).toBeTruthy();
+    const post = fetch.mock.calls.find((c) => c[0] === add) as unknown as [string, { body: string }];
+    expect(JSON.parse(post[1].body)).toEqual({ state_ids: ['st-faq'] });
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    await confirmIn('Take FAQ out of Kup polisę again?', 'Undo');
+    expect(await screen.findByText(/Undone/)).toBeTruthy();
+  });
+
+});
+
+describe('Processes, merging (spec 078)', () => {
+  it('merges two ticked processes of one persona after the server’s plan, with Undo (designer T-06)', async () => {
+    const second = { ...list.rows[0]!, id: 'pr-2', key: 'PRC-002', name: 'Test process' };
+    const targets = [list.targets[0]!, { id: 'pr-2', key: 'PRC-002', name: 'Test process', persona: 'guest', steps: 2, states: ['st-home', 'st-car'] }];
+    const plan = {
+      keep: { key: 'PRC-001', name: 'Kup polisę', persona: 'guest', steps: 4, models: ['A r1'] },
+      absorb: { key: 'PRC-002', name: 'Test process', persona: 'guest', steps: 2, models: ['A r1', 'B r1'] },
+      name: 'Kup polisę',
+      scope: { states: ['st-home', 'st-kontakt', 'st-car'], from_absorbed: ['st-car'], off_path: [] },
+      starts: ['st-home'],
+      ends: ['st-kontakt', 'st-car'],
+      as_is_rev: 2,
+      moves: [{ model_id: 'm-b', from_label: 'B', to_label: 'B' }],
+    };
+    // the dry run and the merge share the address: the plan for the one, the answer for the other
+    const fetch = at('/app/portals/shop/processes', {
+      [API]: { ...list, rows: [list.rows[0], second], total: 2, targets },
+      [`POST ${API}/merge`]: { ok: true, plan, message: 'Merged into PRC-001 Kup polisę: Undo for 10 s, or Split back later in History.', undo: 'mg-1' },
+      'POST /api/portals/shop/merges/mg-1/undo': { ok: true, message: 'Split back: PRC-002 is its own process again.' },
+    });
+    fireEvent.click(await screen.findByRole('checkbox', { name: 'Tick Kup polisę' }));
+    const bar = screen.getByRole('region', { name: 'Selection' });
+    expect(within(bar).getByRole('button', { name: 'Merge 2 processes…' }).getAttribute('aria-disabled')).toBe('true');
+    fireEvent.click(screen.getByRole('checkbox', { name: 'Tick Test process' }));
+    fireEvent.click(within(bar).getByRole('button', { name: 'Merge 2 processes…' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Merge 2 processes' });
+    expect(await within(dialog).findByText(/Test process's B moves over as B, marked "branched from another as-is"/)).toBeTruthy();
+    expect(within(dialog).getByRole('combobox', { name: 'End' })).toBeTruthy(); // the two ends differ: pick one
+    fireEvent.click(within(dialog).getByRole('button', { name: 'Merge into Kup polisę' }));
+    expect(await screen.findByText(/Merged into PRC-001/)).toBeTruthy();
+    const posts = fetch.mock.calls.filter((c) => c[0] === `${API}/merge`).map((c) => JSON.parse((c[1] as { body: string }).body) as Record<string, unknown>);
+    expect(posts[0]).toMatchObject({ keep: 'pr-1', absorb: 'pr-2', dry_run: true });
+    expect(posts.at(-1)).toEqual({ keep: 'pr-1', absorb: 'pr-2' });
+    fireEvent.click(screen.getByRole('button', { name: 'Undo' }));
+    await confirmIn('Undo the merge?', 'Undo');
+    expect(await screen.findByText(/Split back: PRC-002/)).toBeTruthy();
   });
 
   it('shows the archived processes with Restore', async () => {

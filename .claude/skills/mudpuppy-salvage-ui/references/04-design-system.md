@@ -92,7 +92,7 @@ Each entry gives the classes to use, when to use the component, and the rules th
 | Ground | `body.sy-ground` | Once, on `<body>`. |
 | Shell | `.sy-app` > `.sy-header` + `.sy-app__body` > `.sy-nav` + `main.sy-main#main` (+ `aside.sy-drawer`) | The skip link `.sy-skip` is the first element in `<body>`. |
 | Header | `.sy-header` | Order: wordmark, portal picker, search (Ctrl K), assistant status, "Ask the assistant" (Ctrl J), help. Same on every page. |
-| Portal picker | `label.sy-portal` > `.sy-label` + `select.sy-select` (reference look) | The project context. Changing the selection must **not** navigate on its own (WCAG 3.2.2): implement as a menu button listing portals as links, or a select plus an explicit "Switch" button. "+ New portal" and "All portals" are links in that menu. |
+| Portal picker | `label.sy-portal` > `.sy-label` + `select.sy-select` (reference look); with the store, `div.sy-portal--store` (2.3) | The project context. Changing the selection must **not** navigate on its own (WCAG 3.2.2): implement as a menu button listing portals as links, or a select plus an explicit "Switch" button. "+ New portal" and "All portals" are links in that menu. |
 | Search | `label.sy-search` > svg + `input` + `.sy-kbd` | Searches parts: screens, processes, records. |
 | Side nav | `nav.sy-nav` > `a.sy-nav__item[aria-current=page]`, `.sy-nav__count`, `.sy-count`, `.sy-nav__foot` | v1: seven sections. 2.0: nine sections in three groups (`.sy-nav__group`: none · Portal model · Machine). The selected item is an inverse chalk plate. Use the marker `.sy-count` only for things that need you (Review). Processes shows "saved·drafted" (e.g. `1·4`); Screens shows the screen count for the picked portal. |
 
@@ -233,6 +233,26 @@ rules: `15-genui-guidelines.md`, gallery: `design-system/genui-components.html`.
 | Disabled segment | `.sy-seg > button[aria-disabled="true"][aria-describedby]` | Focusable, reason line, no hover |
 | Recording dialog | `dialog.sy-dialog--wide` > `.sy-dialog__main` > `figure.sy-dialog__figure` + `aside.sy-dialog__aside` (`--sy-dialog-aside`) | Facts column 320 px; under it below 1024 px; one scroll on phones |
 | Editable command card (genui) | `section.sy-cmd` > `form.sy-cmd__body.sy-cmd__form` (`.sy-cmd__wide`, `table.sy-cmd__data`, `[data-edited]`) | Confirm submits what the card shows; secrets never in it |
+
+### 2.3 parts (`20-navigation-and-canvases/`)
+| Part | Classes | Rules |
+|---|---|---|
+| Came from | `p.sy-backlink` > `a` ("←", `span.sy-backlink__kind`, `span.sy-backlink__title`) | First line of `.sy-pagehead`, above the crumbs; one step; on phones it replaces the crumbs (T-01) |
+| Pager | `nav.sy-pager[aria-label]` > `a.sy-btn--sm` (Previous / Next; ends `role=link aria-disabled`) + `span.sy-pager__pos` | In the head's actions, only when opened from a list; J / K (T-02) |
+| Picture in a row | `span.sy-rowpic` > `button.sy-thumb-btn` > `img.sy-thumb--row` (`--sy-thumb-row`) · `.sy-thumb--none` · `.sy-thumb--loading` | 96 px, 72 dense, 64 phone; width/height on the img; "No picture" says why (T-03) |
+| Dialog browsing a list | `.sy-dialog--wide` + `.sy-dialog__stepper` (list position, `.sy-pager`) + `.sy-seg` (variants) + `.sy-dialog__pick` (`.sy-check`, `.sy-dialog__step`, Add to process) + `.sy-dialog__keys` | ← → list, Shift ← → variants, X tick, A add (T-04) |
+| Sort grid | `ul.sy-sortgrid` (`--sy-pick-min`) > `li.sy-pick[data-ticked]` (`__tick`, `__route`, `__meta`, `__step`) | Bigger pictures, multi-select; the picture opens the dialog, the tick is its own control (T-05) |
+| Selection bar | `div.sy-selbar` (`__count`, `--static` for previews) | Sticky at the bottom while anything is ticked: count, New process, Add to process, Clear (T-05) |
+| Menu | `div.sy-menu[role=menu]` (`__search`, `__label`, `button.sy-menu__item[role=menuitem]`, `__sep`, `--static`) | Add to process: a search past eight, last used, the persona's processes A–Z ("already in" disabled), New process at the end (T-05) |
+| Canvas | `.sy-graph.sy-graph--canvas` `[data-engaged]` `[data-panning]` + `.sy-graph__hint` | Drag pans; the wheel zooms only when engaged; focus ring when engaged (T-07, D-71) |
+| Full screen | `dialog.sy-dialog.sy-dialog--full` > `.sy-graphview--full` | Same canvas, window size; Esc leaves (T-08) |
+| Diagram | `.sy-graphview.sy-graphview--diagram` > `.sy-graph--canvas` > `.sy-diagram` (Mermaid SVG) | Our Mermaid theme; readable first, top-left (T-09) |
+| Loader | `span.sy-loader[role=status]` > `span.sy-loader__beads[aria-hidden]` (3 × `i`) + `span.sy-loader__label` · `--sm` · `--block` | Names what loads; no spinner; static under reduced motion (T-10, D-74) |
+| Skeleton | `div.sy-skel[aria-busy]` (`__label`, `__block` `--sy-skel-h`, `__line` `--sy-skel-w`, `__rows` `--sy-skel-rows` / `--sy-skel-row`) | Final size; neutral steel, not blueprint (T-10) |
+| Reserved box | `div.sy-reserve` (`--sy-ratio` or `--sy-reserve-h`, `--paper`) | Holds a graph, diagram or picture's size; the block loader sits in it (T-14) |
+| Refetching list | `[aria-busy="true"]` on the table wrap or list | Old rows dimmed until the new ones land (T-10) |
+| Header store | `div.sy-portal.sy-portal--store[role=group]` > `select.sy-select` + `button.sy-select.sy-store[aria-haspopup=menu]` | The store's name, read-only in its accessible name and menu (T-11) |
+| Disabled nav item | `a.sy-nav__item[role=link][aria-disabled="true"][aria-describedby]` + `p.sy-nav__note` | All portals: portal sections with the reason (T-12) |
 
 ### Assistant
 | Part | Classes |

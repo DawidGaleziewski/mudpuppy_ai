@@ -3,7 +3,7 @@ import { LinkButton, Meter, PageHead, Plate, ScanId, shortScanId, Stack, Table, 
 import { useScans, type ScanSummary } from '../app/api';
 import { planHref } from '../app/api-plan';
 import { ScansViews } from '../app/ScansViews';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 
@@ -35,7 +35,7 @@ export function Scans() {
           { label: 'Scans' },
         ]}
         title="Scans"
-        meta={q.data ? `${String(q.data.total)} scans · ${String(running.length)} running` : undefined}
+        meta={headMeta(q, (d) => `${String(d.total)} scans · ${String(running.length)} running`)}
         actions={<LinkButton size="md" href={planHref(portal)}>Plan next scan</LinkButton>}
       />
       <ScansViews portal={portal} current="all" />

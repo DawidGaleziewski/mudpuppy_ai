@@ -53,6 +53,26 @@ describe('Screens list', () => {
     expect(screen.getByText('1 active · 0 merged · 1 retired')).toBeTruthy();
   });
 
+  it('shows a picture per row that browses the list in the dialog (designer T-03, T-04)', async () => {
+    const pictured = { ...row, picture: { shot: '/evidence/a.png', wire: null } };
+    const second = { ...row, key: 'SC-0002', title: 'Kontakt', picture: { shot: '/evidence/b.png', wire: null } };
+    const bare = { ...row, key: 'SC-0003', title: 'Login', picture: null };
+    at('/app/portals/shop/screens', { [LIST]: { ...list, screens: [pictured, second, bare] } });
+    const table = await screen.findByRole('table');
+    // no picture: the hatched box and why, never an empty box
+    expect(within(table).getByText('No picture: not recorded yet')).toBeTruthy();
+    fireEvent.click(within(table).getByRole('button', { name: 'Kalkulator OC/AC, enlarge' }));
+    const dialog = await screen.findByRole('dialog', { name: 'Kalkulator OC/AC' });
+    expect(within(dialog).getByText('1 of 3')).toBeTruthy();
+    fireEvent.keyDown(dialog, { key: 'ArrowRight' });
+    expect(await screen.findByRole('dialog', { name: 'Kontakt' })).toBeTruthy();
+    expect(within(screen.getByRole('dialog')).getByRole('img').getAttribute('src')).toBe('/evidence/b.png');
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'j' });
+    expect(within(await screen.findByRole('dialog', { name: 'Login' })).getByText('Nothing recorded for this screen')).toBeTruthy();
+    // the dialog never edits the screen: no tick on a list that isn't sorted
+    expect(within(screen.getByRole('dialog')).queryByRole('checkbox')).toBeNull();
+  });
+
   it('asks the API again with the status picked', async () => {
     const fetch = at('/app/portals/shop/screens', {
       [LIST]: list,
@@ -156,10 +176,14 @@ describe('Screen', () => {
       '/api/portals/shop/screens/SC-0002': { ...detail, screen: { ...detail.screen, key: 'SC-0002' } },
     });
     expect(await screen.findByText('2 of 3')).toBeTruthy();
-    expect(screen.getByRole('link', { name: '← Prev' }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0000?list=sort%3Droute');
+    // designer T-02: the pager names the neighbour and keeps its place at the ends
+    const pager = screen.getByRole('navigation', { name: 'Screens in this list' });
+    expect(within(pager).getByRole('link', { name: `Previous: ${row.title}` }).getAttribute('href')).toBe('/app/portals/shop/screens/SC-0000?list=sort%3Droute');
     fireEvent.keyDown(document, { key: 'j' });
     expect(await screen.findByText('3 of 3')).toBeTruthy();
-    expect(screen.queryByRole('link', { name: 'Next →' })).toBeNull();
+    const last = within(screen.getByRole('navigation', { name: 'Screens in this list' })).getByRole('link', { name: 'Next →' });
+    expect(last.getAttribute('aria-disabled')).toBe('true');
+    expect(last.hasAttribute('href')).toBe(false);
   });
 
   it('has no Prev / Next when opened from elsewhere', async () => {

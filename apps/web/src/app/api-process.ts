@@ -69,6 +69,29 @@ export interface ProcessPage {
   facts: ModelFacts | null;
   /** The to-be editor; null on A. */
   editor: Editor | null;
+  /** Its scope beyond A's steps and the merges it took part in (spec 078). */
+  scope?: ProcessScope | null;
+}
+
+export interface MergeOut {
+  id: string;
+  kept_key: string;
+  kept_name: string;
+  absorbed_key: string;
+  absorbed_name: string;
+  by: string;
+  reason: string | null;
+  at: string;
+  undone_at: string | null;
+}
+
+export interface ProcessScope {
+  /** "Not on the observed path yet" (designer T-05). */
+  off_path: { state: string; title: string; route: string }[];
+  merged_into: MergeOut | null;
+  merges: MergeOut[];
+  /** To-be models moved over by a merge, branched from another process's as-is. */
+  from_other: string[];
 }
 
 export interface Editor {

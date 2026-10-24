@@ -135,7 +135,7 @@
 
   /* ---------- MOTION ---------------------------------------------------- */
   --sy-dur-hover: 120ms;
-  --sy-dur-pulse: 1.3s;   /* running status square only */
+  --sy-dur-pulse: 1.3s;   /* running status square and the loader's beads */
   --sy-dur-caret: 1s;     /* loading caret only         */
 
   /* ---------- LAYERS ---------------------------------------------------- */

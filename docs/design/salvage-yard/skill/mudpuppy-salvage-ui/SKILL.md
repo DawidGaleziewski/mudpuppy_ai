@@ -34,6 +34,7 @@ If DESIGN_PKG is missing, the rules here and in `references/` still apply. Ask t
 | `16-genui-components.md` | Using or adding a gen UI component: catalogue components (the model may place them) and frame components (server-owned), props, states, markup |
 | `18-design-answers/` | Pictures that open larger, the wide picture dialog, a screen's variants, the graph's zoom bar and height, record and scan ids, chips on the selected nav item, accessible names, the recorded map's edges (one file each, with React notes) |
 | `19-console-answers/` | The React console's 13 questions: phase bar, readable map opening, the persona card, Not here and overlay, time axes, table facts, drawer height, disabled segments, recordings on the Screen page, no chat page, scan line words, the A2UI catalogue |
+| `20-navigation-and-canvases/` | Round 4 as tasks T-01…T-14: came from and Previous / Next, pictures in lists, the picture dialog browsing a list, Add to process and the sorting grid, merging processes, how canvases move (engage to zoom), full screen, the Mermaid diagram, **the loader and layout stability (CLS)**, the header store, All portals, a command that didn't start |
 | `17-genui-architecture.md` | Wiring the Workbench: htmx vs React decision, view-spec pipeline, validation, SSE, commands, security, tests and evals, tickets WB-xx |
 | `02-design-decisions.md` | Before "fixing" something that looks odd: it is probably intentional |
 | `01-brand-book.md` | Wordmark, mark, voice |
@@ -79,6 +80,22 @@ for a scan's move. Edges are `aria-hidden`; the List view and the inspector carr
 - **Writes with values the person owns** use the editable command card; secrets only by vault reference.
 - **Scan lines:** status · AI scan / Check run · 13-character id · progress · pages · queued · where or when.
 
+## 2.3 rules (`20-navigation-and-canvases/`)
+
+- **Loading (FE-V45):** every place that loads content reserves its **final size** first (skeleton rows of the real row
+  height, `aspect-ratio` / width + height on pictures, `.sy-reserve` for graphs, `min-width` on counts) and shows
+  `.sy-loader` after **300 ms**, naming what loads ("Loading screens · 12 of 23"). Nothing under 300 ms; once shown, ≥ 300 ms.
+  A refetching list keeps its rows, dimmed with `aria-busy="true"`, plus `.sy-loader--sm` "Updating". No spinners, no bare
+  "Loading…", no banners inserted above content later. CLS ≤ 0.05 per route. Blueprint skeletons are only the assistant's.
+- **Came from:** after an in-app link from a page the crumbs don't lead back to, `.sy-backlink` "← {Kind} {title}" above
+  the crumbs, to the exact address. One step. Not after nav, search or a typed URL.
+- **Previous / Next:** `.sy-pager` in the head's actions only when opened from a list; J / K; ends disabled in place.
+- **Canvases** (graphs, diagrams): drag pans; the wheel goes to the page until the canvas is engaged (click or focus), then
+  zooms at the pointer; Esc releases; full screen is `.sy-dialog--full`. Move the canvas by transform, never native scroll.
+- **Lists of screens show pictures** (`.sy-rowpic`); a picture opened from a list browses that list (← → / J K), variants on
+  Shift ← →.
+- **Adding screens to a process is a scope change**; A stays observed-only.
+
 ## Status enum
 
 `ok` (■ green: OK, observed, confirmed, saved) · `running` (■ cyan, pulses) · `live` (■ cyan) ·
@@ -99,6 +116,7 @@ Console mapping: `[ OK ]`→ok · `[RUN.]`→running · `[INT.]`→stopped ("Int
 <title>MudPuppy · Page name</title>
 <link rel="icon" href="/{DS_PATH}/tag-icon.svg" type="image/svg+xml">
 <link rel="preload" href="/{DS_PATH}/fonts/Archivo-Variable.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="/{DS_PATH}/fonts/IBMPlexMono-Regular.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="/{DS_PATH}/css/tokens.css">
 <link rel="stylesheet" href="/{DS_PATH}/css/fonts.css">
 <link rel="stylesheet" href="/{DS_PATH}/css/salvage.css">
@@ -106,7 +124,7 @@ Console mapping: `[ OK ]`→ok · `[RUN.]`→running · `[INT.]`→stopped ("Int
 <body class="sy-ground">
 <a class="sy-skip" href="#main">Skip to content</a>
 <div class="sy-app">
-  <header class="sy-header">…wordmark · portal picker · search (Ctrl K) · assistant status · Ask the assistant (Ctrl J) · ?</header>
+  <header class="sy-header">…wordmark · portal picker (+ its data store, 2.3) · search (Ctrl K) · Ask the assistant with its status (Ctrl J) · ?</header>
   <div class="sy-app__body">
     <nav class="sy-nav" aria-label="Portal sections">…7 items in v1 (9 in three groups in 2.0, see below), aria-current="page" on the current one…</nav>
     <main id="main" class="sy-main">
@@ -203,6 +221,7 @@ item with `<span class="sy-chip sy-chip--dashed">beta</span>`, and one layout in
 | 2.1 (`18-design-answers/`) | `button.sy-thumb-btn` (`__hint`, `__word`) · `.sy-dialog--wide` + `.sy-dialog__figure[data-fit=width\|page]` + `.sy-dialog__close` · `.sy-variants` > `.sy-variant` (`__head` `__pic` `__body`; `:only-child` = picture left) · `.sy-graphview` (`--embedded`) > `.sy-graph__zoom[role=toolbar]` (`.sy-graph__zoom-level`) + `.sy-graph` · `.sy-id` (`--full`) + `.sy-id__copy` · recorded map: `.sy-edge--tree`, `.sy-edge--offtree` (+ `marker-end`, `.sy-edge-arrow`), `.sy-edge--others`, `.sy-legend__item` |
 | 2.2 (`19-console-answers/`) | `figure.sy-phasebar` > `ol.sy-phasebar__track` > `li.sy-phasebar__phase[data-kind][data-state][data-narrow]` (`--sy-phase`) > `button.sy-phasebar__btn` (`__name`, `__time`) + `__axis` · `.sy-graph--overview` · `.sy-mark--gone` (`[data-shape=line]`) · `.sy-compare--overlay` > `__stack` (`--sy-overlay`) > `__under` + `__over`, `__mix` · `.sy-releases--ranged` + `__range[data-label]` · `dl.sy-facts--table` · `.sy-drawer` sticky (`--sy-header-h`), `--static` · `.sy-seg > [aria-disabled]` · `.sy-dialog__main` > `__figure` + `.sy-dialog__aside` · genui: `.sy-cmd__form` (`__wide`, `__data`, `[data-edited]`) |
 | Gen UI (Workbench, `genui.css`) | `.sy-wb` (`--inline` `--nosheet` `--split` `--focus`; `__conv` `__stage` `__aside` `__head`) · `.sy-pathswitch` (`__why[data-source=assistant\|you]`) · `.sy-genmark` · `.sy-genview` (`--card` `--failure`; `[data-gen-state=composing\|ready\|stale]`; `__head` `__title` `__tools` `__why` `__notice` `__body` `__foot` `__source`) · `.sy-genwhy` (`__switch`) · `.sy-genfeedback` (`__btn[aria-pressed]` `__why`) · `.sy-genskel` (`__label` `__block`) · `.sy-genstatus` (`--done`) · `ol.sy-narration` (`li[data-kind=milestone\|live\|stop]`) · `a.sy-cite` · `ol.sy-evtail` (`__id`) · `ol.sy-evstrip` · `.sy-ctxbar` · `.sy-ctxchip` (`__at` `__remove`) · `.sy-suggest` · `.sy-askable` + `.sy-ask` (`--show`) · `.sy-mini` (`--mock` `--locked` `__img`) · `.sy-order` · `.sy-film` (`__item[aria-pressed][data-state=here\|failed\|frontier]` `__route`) · `.sy-node[data-state=here]` · `.sy-livebar` (`__main`) · `.sy-sheet` (`__head` `__body` `__close`) · `.sy-cmdbar` (`__main` `__reply`) · `.sy-cmd[data-cmd-state=proposed\|running\|done\|failed\|undone\|cancelled\|expired]` (`__head` `__title` `__body` `__foot`) |
+| 2.3 (`20-navigation-and-canvases/`) | `p.sy-backlink` (`__kind`, `__title`) · `nav.sy-pager` (`__pos`) · `.sy-rowpic` (`--sy-thumb-row`) + `.sy-thumb--row` `--none` `--loading` · `.sy-dialog__stepper` `__pick` `__step` `__keys` · `ul.sy-sortgrid` (`--sy-pick-min`) > `li.sy-pick[data-ticked]` (`__tick` `__route` `__meta` `__step`) · `.sy-selbar` (`__count`, `--static`) · `.sy-menu` (`__search` `__label` `__item` `__sep`, `--static`) · `.sy-graph--canvas[data-engaged][data-panning]` + `.sy-graph__hint` · `.sy-dialog--full` + `.sy-graphview--full` · `.sy-graphview--diagram` + `.sy-diagram` · **`.sy-loader`** (`__beads`, `__label`; `--sm`, `--block`) · `.sy-skel` (`__label` `__block` `__line` `__rows`; `--sy-skel-rows` `--sy-skel-row` `--sy-skel-h` `--sy-skel-w`) · `.sy-reserve` (`--sy-ratio`, `--sy-reserve-h`, `--paper`) · `[aria-busy=true]` dims · `.sy-portal--store` + `.sy-store` · `.sy-nav__item[aria-disabled]` + `.sy-nav__note` |
 | 2.0 | `.sy-nav__group` · `.sy-portal--compact` · `.sy-search--compact` · `.sy-status[data-status=overturned]` · `.sy-releases` (`__lane` `--scans`, `__name`, `__track`, `__span` `--current` `--rollout` `--unknown`, `__scan` `--check`, `__axis`, `__range`) · `.sy-compare` (`__side`, `__head`) · `.sy-differs` · `table.sy-table--decision` (`.sy-dt-group` `.sy-dt-n` `.sy-dt-cond` `.sy-dt-any` `.sy-dt-result`) · `ol.sy-queue` (`__group`, `__item[aria-current]`, `__check`, `__main`, `__claim`, `__meta`) · `.sy-keybar` (`--sticky`) · `.sy-edge--unseen` `--unchecked` `--retired` `--process` `--changed` · `.sy-node--process` `.sy-node--dim` `[data-state=retired]` · `.sy-bundle` |
 
 Anything not in this table is not a library class. Product-only layout classes use the `mp-` prefix and live in `@layer app`.
@@ -214,7 +233,8 @@ Anything not in this table is not a library class. Product-only layout classes u
 - Marker orange for success; red for anything but failure or destruction; blue for anything real.
 - Two primary buttons or two intent plates in one view.
 - New `sy-` classes in product code. To extend the library, follow `references/05-css-guide.md` §10.
-- Uppercasing long text; text under 11px; any animation other than the running pulse and the loading caret.
+- Uppercasing long text; text under 11px; any animation other than the running pulse (which also drives the loader's beads) and the loading caret.
+- Spinners, a bare "Loading…", or content that pushes what is already on screen when it arrives (reserve the size; `.sy-loader` after 300 ms).
 - A `<select>` that navigates on change (the portal picker uses a menu of links or an explicit Switch button).
 - Inventing data in UI copy. Show stored values exactly (Polish strings, ids, UTC timestamps with Z).
 
@@ -241,5 +261,6 @@ next move and what still works. No emoji, no exclamation marks, no "oops".
 3. Screenshot the page at **1280** and **390** (v1 pages) or **1280** and **1024** (2.0 and Workbench pages, desktop-first) with reduced motion: no page-level horizontal scroll; compare by eye with `DESIGN_PKG/screenshots/screens/NN-*.png` if a reference exists.
 4. axe-core → 0 serious or critical; keyboard pass (focus visible, Esc closes drawer and dialogs, Ctrl/⌘ K and J).
 5. Count: one `h1`, at most one `.sy-btn--primary`, at most one `.sy-plate--intent`.
-6. In the PR description, list the FE-IDs covered and attach the two screenshots.
-7. Workbench changes: contract tests pass (`workbench/examples/`), golden-prompt evals pass, and the QA list in `references/09-qa-checklist.md` §Workbench is ticked.
+6. Pages that load data: the CLS check (`references/20-navigation-and-canvases/T-14-layout-stability-everywhere.md`) ≤ 0.05 with a 1 s API delay.
+7. In the PR description, list the FE-IDs covered and attach the two screenshots.
+8. Workbench changes: contract tests pass (`workbench/examples/`), golden-prompt evals pass, and the QA list in `references/09-qa-checklist.md` §Workbench is ticked.

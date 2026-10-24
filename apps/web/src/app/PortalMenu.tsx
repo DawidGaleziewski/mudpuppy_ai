@@ -1,7 +1,8 @@
 import { useLocation } from 'react-router';
-import { Disclosure, Row, Rows, Text } from '../design-system';
+import { HeaderPicker, Menu, type MenuEntry } from '../design-system';
 import { usePortals } from './api';
 import { currentAsOf, isModelPage } from './asOf';
+import { StoreMenu } from './StoreMenu';
 
 /** A portal's list pages below a section: a switch stays on them (they exist in every portal). */
 const LIST_PAGES = new Set(['screens/map', 'screens/recorded', 'screens/access', 'scans/plan', 'scans/by-process', 'scans/activity']);
@@ -33,28 +34,23 @@ export function switchHref(pathname: string, search: string, to: string): string
 }
 
 /**
- * The header's portal picker (designer FE-N01, FE-N02; R-103 (3)): the portal this page is in,
- * and a menu of links to the others (the section kept), All portals and + New portal. A menu of
- * links, never a select that navigates.
+ * The header's portal picker (designer FE-N01, FE-N02, T-11; R-103 (3)): "Portal [portal ▾][store
+ * ▾]", the store riding on the portal it follows. The portal menu links the others (the section
+ * kept), All portals and + New portal: a menu of links, never a select that navigates.
  */
 export function PortalMenu({ portal }: { portal: string | undefined }) {
   const { pathname, search } = useLocation();
   const portals = usePortals().data?.portals ?? [];
+  const entries: MenuEntry[] = [
+    ...portals.map((p) => ({ key: p.id, label: p.id, checked: p.id === portal, href: switchHref(pathname, search, p.id) })),
+    { separator: true },
+    { key: 'all', label: 'All portals', checked: portal === undefined && pathname.replace(/\/$/, '') === '/app', href: '/app/' },
+    { key: 'new', label: '+ New portal', href: '/app/portals/new' },
+  ];
   return (
-    <Disclosure summary={`Portal: ${portal ?? 'All portals'}`}>
-      <Rows label="Switch portal">
-        {portals.map((p) => (
-          <Row key={p.id} current={p.id === portal}>
-            <Text href={switchHref(pathname, search, p.id)}>{p.id}</Text>
-          </Row>
-        ))}
-        <Row current={portal === undefined && pathname.replace(/\/$/, '') === '/app'}>
-          <Text href="/app/">All portals</Text>
-        </Row>
-        <Row>
-          <Text href="/app/portals/new">+ New portal</Text>
-        </Row>
-      </Rows>
-    </Disclosure>
+    <HeaderPicker label="Portal" joined>
+      <Menu look="select" label="Switch portal" button={portal ?? 'All portals'} buttonLabel={`Portal: ${portal ?? 'All portals'}`} entries={entries} />
+      <StoreMenu portal={portal} />
+    </HeaderPicker>
   );
 }

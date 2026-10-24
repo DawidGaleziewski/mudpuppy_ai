@@ -267,6 +267,10 @@ def _started_live(rc: Ctx, turn: WbTurn, cards: list[Card]) -> list[Card]:
         card = _with_status(_card(rc, comp, f"t{turn.n}-live-{run[-8:]}"))
         if card.scan is None:
             continue
+        # no model chose it (designer T-13): no generated mark, and its source says who placed it
+        f = card.frame
+        source = f"{f.source} · placed by the server when the scan started"
+        card.frame = replace(f, source=source, placed=True)
         card.turn = turn.n
         live.append(card)
         shown.add(run)
@@ -405,7 +409,12 @@ def _result(rc: Ctx, cmd: WbCommand) -> tuple[str, tuple[tuple[str, str], ...]]:
 def _card_of(rc: Ctx, cmd: WbCommand, facts: tuple[tuple[str, str], ...]) -> CommandCard:
     result, links = _result(rc, cmd)
     base = f"/api/workbench/commands/{cmd.id}"
+    # designer T-13: a start the crawler refused before a run existed
+    starts = cmd.command in ("scan.start", "scan.resume")
+    not_started = starts and cmd.state == "failed" and not cmd.result.get("run_id")
     return CommandCard(
+        not_started=not_started,
+        check_url=f"/app/portals/{rc.portal}/settings" if not_started else None,
         dom_id=f"cmd-{cmd.id}",
         title=LABELS.get(cmd.command, cmd.command),
         state=cmd.state,

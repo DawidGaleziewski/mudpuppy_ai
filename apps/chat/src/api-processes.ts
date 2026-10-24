@@ -15,6 +15,32 @@ const ROUTES: {
   run: (s: ProcessService, a: string[], body: unknown) => Promise<unknown>;
 }[] = [
   { method: 'POST', path: re(`${P}/processes$`), status: 201, run: (s, [p], b) => s.create(p!, b) },
+  // spec 078 (designer T-06): merge two saved processes (or its dry run), and undo / split back
+  {
+    method: 'POST',
+    path: re(`${P}/processes/merge$`),
+    status: 200,
+    run: (s, [p], b) => s.mergeProcesses(p!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/merges/${SEG}/undo$`),
+    status: 200,
+    run: (s, [p, id], b) => s.unmerge(p!, id!, b),
+  },
+  // spec 078 (designer T-05): Add to process is a scope change; its Undo
+  {
+    method: 'POST',
+    path: re(`${P}/processes/${SEG}/scope$`),
+    status: 200,
+    run: (s, [p, id], b) => s.addToScope(p!, id!, b),
+  },
+  {
+    method: 'POST',
+    path: re(`${P}/processes/${SEG}/scope/remove$`),
+    status: 200,
+    run: (s, [p, id], b) => s.removeFromScope(p!, id!, b),
+  },
   {
     method: 'POST',
     path: re(`${P}/processes/from-record$`),

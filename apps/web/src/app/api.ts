@@ -57,8 +57,12 @@ const portalsApi = api.injectEndpoints({
     portals: read<PortalList, void>(b, () => '/api/portals', () => ['portals']),
     scans: read<ScanList, string>(b, (portal) => `${p(portal)}/scans`, (portal) => ['portals', portal, 'scans']),
     portalHome: read<PortalHomeData, string>(b, (portal) => `${p(portal)}/home`, (portal) => ['portals', portal, 'home']),
+    assistantStatus: read<{ up: boolean }, void>(b, () => '/api/assistant-status', () => ['assistant-status']),
   }),
 });
+
+/** Whether the chat service answers (the square inside Ask, designer T-11): looked at every 30 s. */
+export const useAssistantStatus = () => portalsApi.useAssistantStatusQuery(undefined, { pollingInterval: 30_000 });
 
 // The frame reads it on every page (the Workbench switch): kept for 30 s, not fetched per page.
 export const usePortals = () => portalsApi.usePortalsQuery(undefined, { refetchOnMountOrArgChange: 30 });

@@ -40,6 +40,8 @@ export function at(path: string, bodies: Record<string, unknown>, status = 200, 
     );
   });
   vi.stubGlobal('fetch', fetch);
+  // no portal remembered from an earlier test (the first visit to /app/ opens it, designer T-12)
+  localStorage.removeItem('mudpuppy.portal.last');
   // a fresh store per test: no cached read leaks from one test into the next
   render(
     <Provider store={makeStore()}>

@@ -9,3 +9,4 @@ import './assets/css/genui.css';
 // Ours (spec 076): the token utilities (generated from tokens.css), in the designer's sy.utilities
 // layer. A component class of our own goes in styles/ too, in sy.components, on role tokens only.
 import './styles/utilities.css';
+import './styles/components.css';

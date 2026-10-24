@@ -20,6 +20,13 @@ class ProcessRef(BaseModel):
     name: str
 
 
+class RowPictureOut(BaseModel):
+    """The main variant's latest recording, for the list's row picture (designer T-03)."""
+
+    shot: str | None
+    wire: str | None
+
+
 class ScreenOut(BaseModel):
     key: str
     title: str
@@ -39,6 +46,8 @@ class ScreenOut(BaseModel):
     release: str | None
     parts: list[str]
     process: ProcessRef | None
+    #: On the list only; None: nothing recorded (the row says "not recorded yet").
+    picture: RowPictureOut | None = None
 
 
 class Option(BaseModel):
@@ -100,6 +109,8 @@ def screens_data(conn: sqlite3.Connection, portal: str, f: qms.ScreenFilter) -> 
     )
     counts = qms.status_counts(conn, portal)
     every = qms.model_screens(conn, portal, replace(f, part=None, why=None)) if counts else []
+    shown = [r for r in every if f.keeps(r)]
+    pictures = _row_pictures(conn, portal)
     return ScreensData(
         portal=portal,
         has_model=bool(counts),
@@ -110,8 +121,18 @@ def screens_data(conn: sqlite3.Connection, portal: str, f: qms.ScreenFilter) -> 
         parts=sorted({p for r in every for p in r.parts}),
         whys=list(qms.WHY),
         sorts=[Option(value=k, label=label) for k, label in qms.SORTS.items()],
-        screens=[_screen(r) for r in every if f.keeps(r)],
+        screens=[_screen(r).model_copy(update={"picture": pictures.get(r.key)}) for r in shown],
     )
+
+
+def _row_pictures(conn: sqlite3.Connection, portal: str) -> dict[str, RowPictureOut]:
+    """Each screen's main variant (its first member) and that state's latest recording."""
+    found = qms.main_pictures(conn, portal)
+    return {
+        key: RowPictureOut(shot=_evidence(p.shot), wire=_evidence(p.wire))
+        for key, p in found.items()
+        if p.shot or p.wire
+    }
 
 
 class PictureOut(BaseModel):

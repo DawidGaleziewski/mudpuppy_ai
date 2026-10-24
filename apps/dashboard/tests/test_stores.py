@@ -6,9 +6,13 @@ import os
 import sqlite3
 from pathlib import Path
 
+import httpx2
 import pytest
+from fastapi.testclient import TestClient
 
 from mudpuppy_dashboard import stores
+from mudpuppy_dashboard.app import create_app
+from mudpuppy_dashboard.settings import Settings
 
 from .conftest import Store, insert, make_client, make_store
 
@@ -122,3 +126,28 @@ def test_stores_with_portal_names_only_stores_holding_its_runs(
     listed = stores.list_stores(empty_store.data_dir, eval_root)
     found = stores.stores_with_portal(listed, "proving-ground-bank")
     assert [s.key for s in found] == ["eval:pf-eval-proving-ground-bank-AbC123:sandbox"]
+
+
+def test_the_store_menu_names_the_file_and_its_size(empty_store: Store, eval_root: Path) -> None:
+    """Designer T-11: the store's menu shows its file and size (the header shows its name only)."""
+    with make_client(empty_store) as c:
+        body = c.get("/api/stores").json()
+    main, workspace = body["stores"][0], body["stores"][1]
+    assert main["path"].endswith("db/test.sqlite") and main["size"] > 0
+    assert workspace["path"] == "data/db/sandbox.sqlite" and workspace["size"] > 0
+
+
+def test_the_assistant_status_says_whether_the_chat_service_answers(empty_store: Store) -> None:
+    """Designer T-11: the square inside Ask (up, or ✕ "down")."""
+
+    def up(request: httpx2.Request) -> httpx2.Response:
+        return httpx2.Response(200, json={"ok": True})
+
+    def down(request: httpx2.Request) -> httpx2.Response:
+        raise httpx2.ConnectError("refused", request=request)
+
+    settings = Settings(data_dir=empty_store.data_dir, default_env=empty_store.env)
+    for service, want in ((up, True), (down, False)):
+        app = create_app(settings, chat_transport=httpx2.MockTransport(service))
+        with TestClient(app) as c:
+            assert c.get("/api/assistant-status").json() == {"up": want}

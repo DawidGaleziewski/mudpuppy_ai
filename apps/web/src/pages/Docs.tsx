@@ -7,6 +7,7 @@ import { QueryState } from '../app/QueryState';
 import { CursorPager, useSectionParams } from '../app/SectionPaging';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
+import { CapabilityMap } from './DocsCapabilities';
 
 /** The SRS sections with their record counts, the one shown marked. */
 function Index({ page }: { page: DocsPage }) {
@@ -190,7 +191,8 @@ function Section({ page }: { page: DocsPage }) {
       {r ? (
         <Stack>
           <Filters key={JSON.stringify(r.filters)} f={r.filters} />
-          {page.diagram && <Diagram source={page.diagram.source} caption={page.diagram.caption} />}
+          {(page.capabilities ?? []).length > 0 && <CapabilityMap page={page} />}
+          {page.diagram && !(page.capabilities ?? []).length && <Diagram source={page.diagram.source} caption={page.diagram.caption} />}
           <RecordTable page={page} />
         </Stack>
       ) : (

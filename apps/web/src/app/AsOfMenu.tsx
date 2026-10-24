@@ -1,5 +1,5 @@
 import { useLocation } from 'react-router';
-import { Callout, Disclosure, Row, Rows, Text } from '../design-system';
+import { Callout, HeaderPicker, Menu, Text, type MenuEntry } from '../design-system';
 import { currentAsOf } from './asOf';
 import { api, read } from './state/api';
 
@@ -56,17 +56,19 @@ export function AsOfMenu({ portal }: { portal: string }) {
   const chosen = currentAsOf(search);
   if (versions.length < 2) return null;
   const now = versions[0]?.seq;
+  const entries: MenuEntry[] = versions.map((v) => ({
+    key: String(v.seq),
+    label: v.seq === now ? `Now · version ${String(v.seq)}` : `Version ${String(v.seq)}`,
+    aside: v.built_at,
+    note: v.releases.length > 0 ? v.releases.join(' · ') : undefined,
+    checked: (chosen ?? String(now)) === String(v.seq),
+    href: at(pathname, search, v.seq === now ? null : v.seq),
+  }));
+  const word = chosen ? `Version ${chosen}` : 'Now';
   return (
-    <Disclosure summary={chosen ? `As of version ${chosen}` : 'As of: Now'}>
-      <Rows label="Model versions">
-        {versions.map((v) => (
-          <Row key={v.seq} current={(chosen ?? String(now)) === String(v.seq)} aside={<Text mono small>{v.built_at}</Text>}>
-            <Text href={at(pathname, search, v.seq === now ? null : v.seq)}>{v.seq === now ? `Now · version ${String(v.seq)}` : `Version ${String(v.seq)}`}</Text>
-            {v.releases.length > 0 && <Text small muted>{` ${v.releases.join(' · ')}`}</Text>}
-          </Row>
-        ))}
-      </Rows>
-    </Disclosure>
+    <HeaderPicker label="As of">
+      <Menu look="select" label="Model versions" button={word} buttonLabel={`As of: ${word}`} entries={entries} />
+    </HeaderPicker>
   );
 }
 

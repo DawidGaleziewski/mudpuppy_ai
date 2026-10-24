@@ -1,8 +1,9 @@
 import { Callout, Count, LinkButton, PageHead, Plate, Row, Rows, ScanId, Stack, Status, Table, Tag, Tags, Text } from '../design-system';
 import { usePortals, type NeedsItem, type PortalList, type StatusOut } from '../app/api';
 import { api, read } from '../app/state/api';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
+import { useFirstVisit } from '../app/lastPortal';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
 
@@ -110,15 +111,16 @@ function Environment({ list }: { list: PortalList }) {
 export function Portals() {
   const q = usePortals();
   const o = useOverview();
-  const data = q.data;
+  useFirstVisit();
   return (
     <Shell current="portals">
       <PageHead
-        title="Portals"
-        meta={data ? `${String(data.portals.length)} portals · environment ${data.environment}` : undefined}
+        title="All portals"
+        meta={headMeta(q, (d) => `${String(d.portals.length)} portals · environment ${d.environment}`)}
         actions={<LinkButton size="md" href="/app/portals/new">+ New portal</LinkButton>}
       />
-      <QueryState query={q} what="the portals">
+      {/* FE-V45: the body lands once, with the overview (or without it when that read failed), never swapped later */}
+      <QueryState query={{ data: o.data || o.error ? q.data : undefined, isLoading: q.isLoading || o.isLoading, error: q.error }} what="the portals">
         {(list) => (
           <Stack>
             {list.portals.length === 0 ? (

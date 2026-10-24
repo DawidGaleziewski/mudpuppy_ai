@@ -52,8 +52,13 @@ def test_traceability_lists_evidence_and_linked_records(ba_client: TestClient) -
 
 
 def test_the_capability_and_screen_sections_have_their_diagram(ba_client: TestClient) -> None:
-    cap = ba_client.get(f"{API}?section=capabilities").json()["diagram"]
+    page = ba_client.get(f"{API}?section=capabilities").json()
+    cap = page["diagram"]
     assert cap["source"].startswith("flowchart TB") and "subgraph CAP_001" in cap["source"]
+    # designer T-09: the capability map as a list first, the diagram second
+    first = page["capabilities"][0]
+    assert first["key"] == "CAP-001" and isinstance(first["contains"], list)
+    assert ba_client.get(f"{API}?section=screens").json()["capabilities"] == []
     scr = ba_client.get(f"{API}?section=screens").json()["diagram"]
     assert scr["source"].startswith("flowchart LR")
     assert scr["caption"].startswith("Screen navigation")

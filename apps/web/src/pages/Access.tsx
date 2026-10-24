@@ -2,7 +2,7 @@ import { useParams } from 'react-router';
 import { Callout, PageHead, Plate, Stack, Table, Text } from '../design-system';
 import { useAccess, type AccessPage } from '../app/api-lists';
 import { stateHref } from '../app/api-state';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
@@ -53,7 +53,7 @@ export function Access() {
       <PageHead
         crumbs={[{ label: 'Screens', href: `/app/portals/${encodeURIComponent(portal)}/screens` }, { label: 'Access' }]}
         title="Access by persona"
-        meta={q.data ? `${portal} · ${String(q.data.rows.length)} screens · ${String(q.data.personas.length)} personas` : undefined}
+        meta={headMeta(q, (d) => `${portal} · ${String(d.rows.length)} screens · ${String(d.personas.length)} personas`)}
       />
       <ScreensViews portal={portal} current="access" />
       <QueryState query={q} what="who reaches which screen">

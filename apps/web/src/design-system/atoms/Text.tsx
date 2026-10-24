@@ -78,3 +78,8 @@ export function SubHead({ children, section, asIs }: { children: ReactNode; sect
   if (section) return <h2 className={asIs ? 'sy-h2 sy-case-normal' : 'sy-h2'}>{children}</h2>;
   return <h3 className="sy-label">{children}</h3>;
 }
+
+/** Words for assistive technology only ("Assistant up.", "Back to "), never shown. */
+export function SrOnly({ children }: { children: ReactNode }) {
+  return <span className="sy-sr-only">{children}</span>;
+}

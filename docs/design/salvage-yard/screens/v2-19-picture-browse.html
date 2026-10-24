@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · In no process · picture</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Static screen only: a dialog drawn open over the page (the app uses <dialog> + showModal()) */
+  .mp-overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px; background: var(--sy-backdrop); }
+  .mp-overlay > .sy-dialog { max-height: calc(100dvh - 48px); }
+  /* Mock pictures (static screens only; production uses <img class="sy-thumb"> with width and height) */
+  .doc-pic { display: flex; flex-direction: column; gap: 5px; padding: 8px; overflow: hidden; }
+  .doc-pic > i { display: block; height: 5px; background: #c9c6be; flex: none; }
+  .doc-pic > .doc-pic__b { height: 8px; background: #8f8c86; margin-bottom: 3px; }
+  .doc-pic > .doc-pic__l { height: 4px; background: var(--sy-paper-link); opacity: 0.55; }
+  .doc-pic > .doc-pic__f { height: 10px; background: transparent; border: 1px solid #a7a49d; }
+  .mp-tools { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sy-space-3) var(--sy-space-5); }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l"><span class="sy-label" id="portal-l">Portal</span>
+      <select class="sy-select" aria-label="Portal"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+      <button class="sy-select sy-store" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only" title="Data store: data/db/sandbox.sqlite · read-only · writes go through commands"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" focusable="false"><ellipse cx="6" cy="2.6" rx="4.5" ry="1.6"/><path d="M1.5 2.6v6.8c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6V2.6M1.5 6c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6"/></svg>sandbox</button></div>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <a class="sy-btn" href="02-screen-with-assistant.html"><span class="sy-status" data-status="ok"><span class="sy-sr-only">Assistant up.</span></span>Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html" aria-current="page">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="v2-09-processes.html">Processes</a> / <span aria-current="page">In no process</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px"><h1 class="sy-h1">In no process</h1><p class="sy-meta">reference-insurer · 12 screens in no process · as of now (17 Oct)</p></div>
+          <a class="sy-btn" href="v2-09-processes.html">Ask the assistant to regroup</a>
+        </div>
+      </div>
+      <nav class="sy-tabs" aria-label="Processes views">
+        <a class="sy-tab" href="v2-09-processes.html">Processes <span class="sy-count sy-count--muted">6</span></a>
+        <a class="sy-tab" href="v2-18-loose-screens.html" aria-current="page">In no process <span class="sy-count sy-count--muted">12</span></a>
+      </nav>
+      <div class="mp-tools">
+        <div class="sy-seg" role="group" aria-label="Show as"><button type="button" aria-pressed="true">Grid</button><button type="button" aria-pressed="false">List</button></div>
+        <label class="sy-cluster" style="--sy-gap: 8px"><span class="sy-label">Sort</span><select class="sy-select sy-select--md" style="width: 180px"><option>Last seen</option><option>Route</option><option>Part</option></select></label>
+        <p class="sy-small sy-muted">Tick screens, then make a new process from them or add them to one. A picture opens large; <span class="sy-kbd">←</span> <span class="sy-kbd">→</span> step through this list, <span class="sy-kbd">X</span> ticks.</p>
+      </div>
+      <div class="sy-columns">
+        <div class="sy-col-main sy-stack" style="--sy-gap: var(--sy-space-3)">
+          <ul class="sy-sortgrid" aria-label="Screens in no process"><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Ubezpieczenie domu i mieszkania</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Ubezpieczenie domu i mieszkania</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 45%"></i><i class="doc-pic__i" style="width: 85%"></i><i class="doc-pic__i" style="width: 60%"></i><i class="doc-pic__l" style="width: 45%"></i><i class="doc-pic__i" style="width: 75%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/ubezpieczenia/dom</span><span class="sy-pick__meta">seen 17 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Ubezpieczenie turystyczne</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Ubezpieczenie turystyczne</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 45%"></i><i class="doc-pic__i" style="width: 85%"></i><i class="doc-pic__i" style="width: 60%"></i><i class="doc-pic__l" style="width: 45%"></i><i class="doc-pic__i" style="width: 75%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/ubezpieczenia/podroze</span><span class="sy-pick__meta">seen 17 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Słowniczek</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Słowniczek</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 65%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 60%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/slowniczek</span><span class="sy-pick__meta">seen 15 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>FAQ</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">FAQ</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 65%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 60%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/faq</span><span class="sy-pick__meta">seen 15 Oct</span></li><li class="sy-pick" data-ticked><span class="sy-pick__step" aria-hidden="true">1</span><label class="sy-pick__tick"><input type="checkbox" checked> <span>Kontakt</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Kontakt</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 70%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__l" style="width: 25%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/kontakt</span><span class="sy-pick__meta">seen 17 Oct · 2 variants · step 1 of the new process</span></li><li class="sy-pick" data-ticked><span class="sy-pick__step" aria-hidden="true">2</span><label class="sy-pick__tick"><input type="checkbox" checked> <span>Dziękujemy za wiadomość</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Dziękujemy za wiadomość</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 60%"></i><i class="doc-pic__i" style="width: 70%"></i><i class="doc-pic__l" style="width: 30%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/kontakt/dziekujemy</span><span class="sy-pick__meta">seen 6 Oct · step 2 of the new process</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Zaloguj się</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Zaloguj się</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 70%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__f" style="width: 55%"></i><i class="doc-pic__l" style="width: 25%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/moje-polisy</span><span class="sy-pick__meta">seen 17 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Regulamin</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Regulamin</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 65%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 60%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/regulamin</span><span class="sy-pick__meta">seen 4 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Polityka prywatności</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Polityka prywatności</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 65%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 92%"></i><i class="doc-pic__i" style="width: 60%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/polityka-prywatnosci</span><span class="sy-pick__meta">seen 4 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>O nas</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">O nas</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 55%"></i><i class="doc-pic__i" style="width: 90%"></i><i class="doc-pic__i" style="width: 70%"></i><i class="doc-pic__l" style="width: 40%"></i><i class="doc-pic__l" style="width: 55%"></i><i class="doc-pic__i" style="width: 80%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/o-nas</span><span class="sy-pick__meta">seen 4 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Kariera</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Kariera</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 45%"></i><i class="doc-pic__i" style="width: 85%"></i><i class="doc-pic__i" style="width: 60%"></i><i class="doc-pic__l" style="width: 45%"></i><i class="doc-pic__i" style="width: 75%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/kariera</span><span class="sy-pick__meta">seen 4 Oct</span></li><li class="sy-pick"><label class="sy-pick__tick"><input type="checkbox"> <span>Ubezpieczenie NNW</span></label><button class="sy-thumb-btn" type="button" aria-haspopup="dialog"><span class="sy-sr-only">Ubezpieczenie NNW</span><span class="sy-thumb doc-pic" aria-hidden="true"><i class="doc-pic__b" style="width: 45%"></i><i class="doc-pic__i" style="width: 85%"></i><i class="doc-pic__i" style="width: 60%"></i><i class="doc-pic__l" style="width: 45%"></i><i class="doc-pic__i" style="width: 75%"></i></span><span class="sy-thumb-btn__hint" aria-hidden="true"><svg viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M7 1h4v4M11 1L7 5M5 11H1V7M1 11l4-4"/></svg></span><span class="sy-sr-only">, enlarge</span></button><span class="sy-pick__route">/ubezpieczenia/nnw</span><span class="sy-pick__meta">seen 15 Oct</span></li></ul>
+          <div class="sy-selbar" role="region" aria-label="Selection">
+            <span class="sy-selbar__count">2 ticked</span>
+            <button class="sy-btn sy-btn--sm" type="button" aria-haspopup="menu" aria-expanded="false">Add to process ▾</button>
+            <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Clear</button></div>
+        </div>
+        <aside class="sy-col-side sy-stack" style="--sy-gap: var(--sy-space-3)">
+          <section class="sy-plate" aria-labelledby="np-h">
+            <div class="sy-plate__head"><h2 id="np-h" class="sy-plate__title">New process from these</h2><span class="sy-meta">2 steps</span></div>
+            <div class="sy-plate__body" style="--sy-gap: 10px">
+              <label class="sy-field"><span class="sy-field__label">Process name</span><input class="sy-input" value="Napisz do nas"></label>
+              <label class="sy-field"><span class="sy-field__label">Persona</span><select class="sy-select"><option>guest</option><option>client</option></select></label>
+              <ol class="sy-rows" aria-label="Steps, in order">
+                <li class="sy-row"><span><span class="sy-mono sy-mono--sm">1</span> · Kontakt <span class="sy-chip">start</span></span><span class="sy-cluster" style="--sy-gap: 2px"><button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--icon" type="button" aria-label="Move Kontakt up" aria-disabled="true">↑</button><button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--icon" type="button" aria-label="Move Kontakt down">↓</button></span></li>
+                <li class="sy-row"><span><span class="sy-mono sy-mono--sm">2</span> · Dziękujemy za wiadomość <span class="sy-chip">end</span></span><span class="sy-cluster" style="--sy-gap: 2px"><button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--icon" type="button" aria-label="Move Dziękujemy za wiadomość up">↑</button><button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--icon" type="button" aria-label="Move Dziękujemy za wiadomość down" aria-disabled="true">↓</button></span></li>
+              </ol>
+              <p class="sy-small sy-muted">The as-is (A r1) is built from what scans observed between the start and the end.</p>
+            </div>
+            <div class="sy-plate__foot"><button class="sy-btn sy-btn--strong" type="button">Create process</button></div>
+          </section>
+          <p class="sy-small sy-muted">A suggestion covers 2 of these screens: <a href="v2-09-processes.html">Napisz do nas (proposed)</a>.</p>
+        </aside>
+      </div>
+      <div class="mp-overlay"><div class="sy-dialog sy-dialog--wide sy-dialog--static" role="dialog" aria-modal="true" aria-labelledby="br-h" style="--sy-dialog-static-h: 640px; max-width: 1200px">
+  <header class="sy-dialog__head"><div class="sy-split">
+    <div class="sy-stack" style="--sy-gap: 2px"><h2 id="br-h" class="sy-h3">Kontakt</h2>
+      <span class="sy-meta"><span class="sy-route">/kontakt</span> · variant <span class="sy-case-normal">r1</span> of 2 · release <span class="sy-case-normal">3e1a</span> · guest · seen 17 Oct</span></div>
+    <div class="sy-cluster">
+      <div class="sy-seg" role="group" aria-label="Variant"><button type="button" aria-pressed="true"><span class="sy-case-normal">r1</span></button><button type="button" aria-pressed="false"><span class="sy-case-normal">r2</span></button></div>
+      <div class="sy-seg" role="group" aria-label="Fit"><button type="button" aria-pressed="true">Fit width</button><button type="button" aria-pressed="false">Whole page</button></div>
+      <button class="sy-btn sy-btn--icon sy-btn--md sy-dialog__close" type="button" aria-label="Close (Esc)">×</button></div></div></header>
+  <figure class="sy-dialog__figure" data-fit="width"><div><figure class="sy-shot" style="min-height: 520px" aria-label="Kontakt, variant r1, recorded 17 Oct"><u class="sy-shot__link">Towarzystwo Ubezpieczeń Wzorcowych</u>
+    <div class="sy-cluster" style="--sy-gap: 2px 12px"><span class="sy-shot__link">Start</span><span class="sy-shot__link">Samochód</span><span class="sy-shot__link">Dom</span><span class="sy-shot__link">Podróże</span><span class="sy-shot__link">Kontakt</span></div>
+    <span class="sy-shot__title">Napisz do nas</span><span>Imię i nazwisko [ ______________ ]</span><span>E-mail [ ______________ ]</span><span>Temat [ wybierz ▾ ]</span><span>Wiadomość [ ______________________ ]</span><span>[ Wyślij ]</span>
+    <small>Towarzystwo Ubezpieczeń Wzorcowych S.A. — portal demonstracyjny. · v3e1a</small></figure></div></figure>
+  <footer class="sy-dialog__foot">
+    <div class="sy-dialog__stepper"><nav class="sy-pager" aria-label="Screens in no process"><a class="sy-btn sy-btn--sm" href="#" rel="prev" title="Polityka prywatności" aria-label="Previous: Polityka prywatności">← Previous</a><span class="sy-pager__pos">5 of 12</span><a class="sy-btn sy-btn--sm" href="#" rel="next" title="Dziękujemy za wiadomość" aria-label="Next: Dziękujemy za wiadomość">Next →</a></nav><span class="sy-small sy-muted">in no process</span></div>
+    <div class="sy-dialog__pick">
+      <label class="sy-check"><input type="checkbox" checked> In the new process</label><span class="sy-dialog__step">step 1</span>
+      <button class="sy-btn sy-btn--sm" type="button" aria-haspopup="menu" aria-expanded="false">Add to process ▾</button>
+      <a class="sy-small" href="v2-07-screen-detail.html">Open screen page</a></div>
+    <p class="sy-dialog__keys"><span class="sy-kbd">←</span> <span class="sy-kbd">→</span> or <span class="sy-kbd">J</span> <span class="sy-kbd">K</span> list · <span class="sy-kbd">Shift</span> + <span class="sy-kbd">← →</span> variants · <span class="sy-kbd">X</span> tick · <span class="sy-kbd">A</span> add to process · <span class="sy-kbd">Esc</span> close</p>
+  </footer>
+</div></div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

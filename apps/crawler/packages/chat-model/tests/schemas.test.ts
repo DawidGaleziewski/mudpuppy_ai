@@ -283,12 +283,6 @@ describe('BA processes (0018)', () => {
     ),
     'utf-8',
   );
-  const SQL_0028 = readFileSync(
-    fileURLToPath(
-      new URL('../../../../../data/migrations/0028_process_archive_edit.up.sql', import.meta.url),
-    ),
-    'utf-8',
-  );
   const step = {
     id: 's1',
     title: 'Home',
@@ -303,11 +297,18 @@ describe('BA processes (0018)', () => {
   it('Zod enums equal the CHECK lists in the migration', () => {
     expect(BaProcessStage.options).toEqual(inList('ba_processes', 'stage', SQL_0018));
     expect(BaProcessSource.options).toEqual(inList('ba_processes', 'source', SQL_0018));
-    // 0028 rebuilt both revision tables with longer lists (spec 027): archive, unarchive, edit.
-    expect(BaProcessChange.options).toEqual(inList('ba_process_revisions_new', 'change', SQL_0028));
+    // 0028 rebuilt both revision tables with longer lists (spec 027): archive, unarchive, edit;
+    // 0051 rebuilt them again (spec 078): scope, merge, unmerge.
+    const SQL_0051 = readFileSync(
+      fileURLToPath(
+        new URL('../../../../../data/migrations/0051_process_scope_merge.up.sql', import.meta.url),
+      ),
+      'utf-8',
+    );
+    expect(BaProcessChange.options).toEqual(inList('ba_process_revisions_new', 'change', SQL_0051));
     expect(ProcessModelKind.options).toEqual(inList('process_variants', 'kind', SQL_0018));
     expect(ProcessModelChange.options).toEqual(
-      inList('process_variant_revisions_new', 'change', SQL_0028),
+      inList('process_model_revisions_new', 'change', SQL_0051),
     );
     // process_live.environment is a free name since 0021 (spec 030 R-61): a format, not a list.
     for (const name of ['sandbox', 'dev', 'acceptance', 'live-2'])

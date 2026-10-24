@@ -49,6 +49,8 @@ export interface DocsPage {
   sessions: { id: string; short: string; status: StatusOut; started_at: string; summary: string | null; href: string }[];
   records: { items: DocRecordRow[]; total: number; next_cursor: string | null; filters: DocsFilters; matrix: boolean } | null;
   diagram: { source: string; caption: string } | null;
+  /** The capability map as rows (the capabilities section only; designer T-09: the list first). */
+  capabilities?: { key: string; title: string; contains: { key: string; title: string }[] }[];
 }
 
 /** The page's query, as its address keeps it. */

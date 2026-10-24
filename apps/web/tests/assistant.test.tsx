@@ -54,8 +54,14 @@ const page = (over: Record<string, unknown> = {}) => ({
   ...over,
 });
 const docs = { portal: 'shop', sections: [{ id: 'overview', label: 'Overview', count: 0 }], section: { id: 'overview', label: 'Overview', count: 0 }, statuses: [], counts: [], sessions: [], records: null, diagram: null };
-const routes = (assistant: unknown, more: Record<string, unknown> = {}) => ({ '/api/portals/shop/docs': docs, '/api/portals/shop/assistant': assistant, ...more });
-const open = async () => fireEvent.click(await screen.findByRole('button', { name: 'Ask the assistant' }));
+const routes = (assistant: unknown, more: Record<string, unknown> = {}) => ({
+  '/api/portals/shop/docs': docs,
+  '/api/portals/shop/assistant': assistant,
+  '/api/assistant-status': { up: true },
+  ...more,
+});
+// designer T-11: Ask carries the assistant's status, read out first
+const open = async () => fireEvent.click(await screen.findByRole('button', { name: /^Assistant up\.\s?Ask Ctrl J$/ }));
 const drawer = () => screen.getByRole('complementary', { name: 'Assistant' });
 
 describe('The assistant drawer', () => {

@@ -56,6 +56,25 @@ export const writes = {
     path: `/api/portals/${encodeURIComponent(portal)}/processes`,
     body: { name, persona, state_ids: states },
   }),
+  /** Add to process (designer T-05): a scope change; A follows what scans saw. */
+  addToScope: (portal: string, process: string, states: readonly string[]): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/scope`,
+    body: { state_ids: [...states] },
+  }),
+  removeFromScope: (portal: string, process: string, states: readonly string[]): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/scope/remove`,
+    body: { state_ids: [...states] },
+  }),
+  /** Merge two processes (designer T-06): `keep` absorbs `absorb`. */
+  merge: (portal: string, m: { keep: string; absorb: string; name?: string; start?: string; end?: string; reason?: string; dry_run?: boolean }): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/processes/merge`,
+    body: { ...m },
+  }),
+  /** Undo a merge, or Split back later. */
+  unmerge: (portal: string, merge: string): Write => ({
+    path: `/api/portals/${encodeURIComponent(portal)}/merges/${encodeURIComponent(merge)}/undo`,
+    body: {},
+  }),
   unarchive: (portal: string, process: string, baseRev: number): Write => ({
     path: `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(process)}/unarchive`,
     body: { base_rev: baseRev },

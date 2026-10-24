@@ -24,7 +24,7 @@ export interface DialogProps {
   /** The id of the visible title that names the dialog (`aria-labelledby`). */
   labelledBy?: string;
   /** `wide`: the picture dialog (D-45); `recording`: a recording with its facts column (Q10). */
-  size?: 'wide' | 'recording';
+  size?: 'wide' | 'recording' | 'browse' | 'full';
   onKeyDown?: (e: KeyboardEvent<HTMLDialogElement>) => void;
   children: ReactNode;
 }
@@ -45,7 +45,13 @@ function DialogRoot({ open, onClose, label, labelledBy, size, onKeyDown, childre
   return (
     <dialog
       ref={ref}
-      className={cx('sy-dialog', size !== undefined && 'sy-dialog--wide', size === 'recording' && 'sy-dialog--recording')}
+      className={cx(
+        'sy-dialog',
+        size !== undefined && size !== 'full' && 'sy-dialog--wide',
+        size === 'recording' && 'sy-dialog--recording',
+        size === 'browse' && 'sy-dialog--browse',
+        size === 'full' && 'sy-dialog--full',
+      )}
       aria-label={labelledBy === undefined ? label : undefined}
       aria-labelledby={labelledBy}
       onCancel={(e) => {

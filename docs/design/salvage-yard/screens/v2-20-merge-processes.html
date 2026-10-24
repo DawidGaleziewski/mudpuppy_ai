@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Merge 2 processes</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  /* Static screen only: a dialog drawn open over the page (the app uses <dialog> + showModal()) */
+  .mp-overlay { position: fixed; inset: 0; z-index: 30; display: grid; place-items: center; padding: 24px; background: var(--sy-backdrop); }
+  .mp-overlay > .sy-dialog { max-height: calc(100dvh - 48px); }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l"><span class="sy-label" id="portal-l">Portal</span>
+      <select class="sy-select" aria-label="Portal"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+      <button class="sy-select sy-store" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only" title="Data store: data/db/sandbox.sqlite · read-only · writes go through commands"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" focusable="false"><ellipse cx="6" cy="2.6" rx="4.5" ry="1.6"/><path d="M1.5 2.6v6.8c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6V2.6M1.5 6c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6"/></svg>sandbox</button></div>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <a class="sy-btn" href="02-screen-with-assistant.html"><span class="sy-status" data-status="ok"><span class="sy-sr-only">Assistant up.</span></span>Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html" aria-current="page">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><span aria-current="page">Processes</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px"><h1 class="sy-h1">Processes</h1><p class="sy-meta">reference-insurer · 3 accepted · 2 proposed · 1 rejected</p></div>
+          
+        </div>
+      </div>
+      <nav class="sy-tabs" aria-label="Processes views">
+        <a class="sy-tab" href="v2-09-processes.html" aria-current="page">Processes <span class="sy-count sy-count--muted">6</span></a>
+        <a class="sy-tab" href="v2-18-loose-screens.html">In no process <span class="sy-count sy-count--muted">12</span></a>
+      </nav>
+      <section class="sy-stack" aria-labelledby="acc-h" style="--sy-gap: var(--sy-space-3)">
+        <h2 id="acc-h" class="sy-h2">Accepted · 3</h2>
+        <div class="sy-table-wrap"><table class="sy-table sy-table--middle" aria-labelledby="acc-h">
+          <thead><tr><th scope="col"><span class="sy-sr-only">Select</span></th><th scope="col">Process</th><th scope="col">Persona</th><th scope="col">Steps</th><th scope="col">Variants</th><th scope="col">Stage</th></tr></thead>
+          <tbody><tr class="sy-differs"><td><input type="checkbox" aria-label="Select Oblicz składkę OC/AC" checked></td>
+  <th scope="row"><a href="v2-10-process-detail.html">Oblicz składkę OC/AC</a> <span class="sy-mono sy-mono--sm sy-muted">PROC-001</span></th><td>guest</td><td class="sy-num">6</td><td class="sy-mono sy-mono--sm">A r4 · B r2 · C r1</td><td>As-is documented</td></tr><tr><td><input type="checkbox" aria-label="Select Porównaj produkty"></td>
+  <th scope="row"><a href="v2-10-process-detail.html">Porównaj produkty</a> <span class="sy-mono sy-mono--sm sy-muted">PROC-002</span></th><td>guest</td><td class="sy-num">3</td><td class="sy-mono sy-mono--sm">A r2</td><td>Scoped</td></tr><tr class="sy-differs"><td><input type="checkbox" aria-label="Select Test process" checked></td>
+  <th scope="row"><a href="v2-10-process-detail.html">Test process</a> <span class="sy-mono sy-mono--sm sy-muted">PROC-003</span></th><td>guest</td><td class="sy-num">2</td><td class="sy-mono sy-mono--sm">A r1 · B r2</td><td>Scoped</td></tr></tbody></table></div>
+        <div class="sy-selbar" role="region" aria-label="Selection"><span class="sy-selbar__count">2 ticked</span>
+          <button class="sy-btn sy-btn--sm sy-btn--strong" type="button" aria-haspopup="dialog">Merge 2 processes…</button>
+          <button class="sy-btn sy-btn--sm" type="button">Compare</button><button class="sy-btn sy-btn--sm sy-btn--quiet" type="button">Clear</button></div>
+      </section>
+      <div class="mp-overlay"><div class="sy-dialog sy-dialog--static" role="dialog" aria-modal="true" aria-labelledby="mg-h" style="width: min(760px, 100%)">
+  <header class="sy-dialog__head"><h2 id="mg-h" class="sy-h3">Merge 2 processes</h2></header>
+  <form class="sy-dialog__body">
+    <fieldset class="sy-stack" style="--sy-gap: 8px"><legend class="sy-legend-label">Keep</legend>
+      <div class="sy-grid" style="--sy-min: 280px; --sy-gap: 8px">
+        <label class="sy-choice"><input class="sy-choice__input" type="radio" name="keep" checked><span class="sy-choice__body"><b>Oblicz składkę OC/AC</b><span class="sy-small sy-muted">PROC-001 · guest · 6 steps · A r4, B r2, C r1 · as-is documented · cited by 6 rules</span></span></label>
+        <label class="sy-choice"><input class="sy-choice__input" type="radio" name="keep"><span class="sy-choice__body"><b>Test process</b><span class="sy-small sy-muted">PROC-003 · guest · 2 steps · A r1, B r2</span></span></label>
+      </div><span class="sy-field__help">The one you keep keeps its key, its links and its history; the other is archived as "merged into" it.</span></fieldset>
+    <div class="sy-grid" style="--sy-min: 220px; --sy-gap: 10px 16px">
+      <label class="sy-field"><span class="sy-field__label">Name</span><input class="sy-input" value="Oblicz składkę OC/AC"></label>
+      <label class="sy-field"><span class="sy-field__label">Start</span><select class="sy-select"><option>Ubezpieczenia dla Ciebie · / (both)</option></select></label>
+      <label class="sy-field"><span class="sy-field__label">End</span><select class="sy-select"><option>Kalkulator OC/AC — wynik (PROC-001)</option><option>Samochód (Test process)</option></select></label>
+    </div>
+    <dl class="sy-facts">
+      <dt>Persona</dt><dd>guest in both ✓ (processes for different personas can't be merged: compare them instead)</dd>
+      <dt>Scope</dt><dd>7 screens: the 6 of Oblicz składkę OC/AC + Samochód from Test process</dd>
+      <dt>As-is</dt><dd>Rebuilt from what scans observed for the merged scope → <b>A r5</b>. No hand edits: A stays observed-only</dd>
+      <dt>To-be</dt><dd>Test process's B r2 moves over as <b>D · from Test process</b>, marked "branched from another as-is": re-base it before comparing</dd>
+      <dt>Docs</dt><dd>PROC-003's record is marked "merged into PROC-001" and waits in Review ▸ Records to confirm</dd>
+      <dt>Undo</dt><dd>Undo in the toast for 10 s; later, <b>Split back</b> in History restores Test process as it was</dd>
+    </dl>
+    <label class="sy-field"><span class="sy-field__label">Reason (optional)</span><input class="sy-input" placeholder="Why these are one process" value="Test process was an early scope of the same flow"></label>
+  </form>
+  <footer class="sy-dialog__foot"><button class="sy-btn sy-btn--quiet" type="button">Cancel</button><button class="sy-btn sy-btn--primary" type="button">Merge into Oblicz składkę OC/AC</button></footer>
+</div></div>
+    </main>
+  </div>
+</div>
+</body>
+</html>

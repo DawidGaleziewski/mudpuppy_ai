@@ -1068,6 +1068,181 @@
   .sy-dialog__aside { min-height: 0; overflow: auto; display: flex; flex-direction: column; gap: var(--sy-space-3);
     padding: var(--sy-space-4); border-left: var(--sy-weld) solid var(--sy-border-weld); background: var(--sy-bg-plate); font-size: var(--sy-fs-xs); }
   .sy-dialog__aside .sy-facts { font-size: var(--sy-fs-xs); grid-template-columns: max-content minmax(0, 1fr); }
+
+  /* ===== 2.3 · Navigation and canvases (docs/20-navigation-and-canvases/) ============================ */
+
+  /* ----- T-01 · Came from: one link above the crumbs, back to the exact page you left ----- */
+  /* <a class="sy-backlink" href="{the exact address you left}"><span aria-hidden="true">←</span><span class="sy-sr-only">Back to </span>
+       <span class="sy-backlink__kind">Process</span> <span class="sy-backlink__title">Oblicz składkę OC/AC</span></a>
+     Only after an in-app link from a page that the crumbs don't already lead back to. One step; each page keeps its own. */
+  .sy-backlink { display: inline-flex; align-items: baseline; gap: 6px; max-width: 100%; min-height: 24px; padding: 2px 0;
+    font-size: var(--sy-fs-xs); color: var(--sy-text); text-decoration: none; }
+  .sy-backlink__kind { flex: none; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--sy-text-muted); }
+  .sy-backlink__title { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+    text-decoration: underline; text-decoration-color: var(--sy-link-underline, var(--sy-intent)); text-underline-offset: 3px; }
+  .sy-backlink:hover .sy-backlink__title { text-decoration-thickness: 2px; }
+
+  /* ----- T-02 · Previous / Next through the list a page was opened from ----- */
+  /* <nav class="sy-pager" aria-label="Screens in this list"><a class="sy-btn sy-btn--sm" rel="prev" …>← Previous</a>
+       <span class="sy-pager__pos">4 of 37</span><a class="sy-btn sy-btn--sm" rel="next" …>Next →</a></nav>
+     Which list: the nav's aria-label, and on screen the crumb (own list) or the came-from link (another section). */
+  .sy-pager { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .sy-pager__pos { min-width: 7ch; text-align: center; font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); color: var(--sy-text-muted); }
+  .sy-pager > [aria-disabled="true"] { color: var(--sy-text-muted); border-color: var(--sy-border-weld); pointer-events: none; }
+
+  /* ----- T-03 · A picture per row in lists ----- */
+  /* <span class="sy-rowpic"><button class="sy-thumb-btn">…<img class="sy-thumb sy-thumb--row" …></button><span>title · route</span></span> */
+  .sy-rowpic { display: flex; align-items: flex-start; gap: var(--sy-space-3); min-width: 0; }
+  .sy-rowpic > :last-child { min-width: 0; }
+  .sy-thumb--row { width: var(--sy-thumb-row, 96px); flex: none; }
+  .sy-rowpic > .sy-thumb-btn { flex: none; width: var(--sy-thumb-row, 96px); }
+  .sy-table--dense .sy-rowpic { --sy-thumb-row: 72px; }   /* dense tables: a smaller picture, the title keeps its room */
+  /* No picture (behind a login, not recorded yet): hatched, one muted word; the reason is in the row */
+  .sy-thumb--none { display: flex; align-items: center; justify-content: center; background: repeating-linear-gradient(135deg,
+    var(--sy-bg-well) 0 6px, var(--sy-bg-plate) 6px 12px); font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+
+  /* ----- T-04 · The picture dialog browsing a list ----- */
+  /* foot: <div class="sy-dialog__stepper"> ← Previous · 4 of 30 · Next → </div> <div class="sy-dialog__pick"> tick · Add to process ▾ </div>
+     head: the screen's variants as a .sy-seg (Shift + ← / →). The list is on ← / → (and J / K). */
+  .sy-dialog__stepper { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+  .sy-dialog__stepper .sy-pager__pos { min-width: 8ch; }
+  .sy-dialog__pick { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; margin-left: auto; }
+  .sy-dialog__pick .sy-check { font-weight: 600; }
+  .sy-dialog__step { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); color: var(--sy-text-muted); }
+  .sy-dialog__keys { flex-basis: 100%; font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+
+  /* ----- T-05 · Sorting loose screens: a grid of tickable pictures and a selection bar ----- */
+  /* <ul class="sy-sortgrid"><li class="sy-pick" aria-selected …> <label class="sy-pick__tick"><input type="checkbox"> …</label>
+       <button class="sy-thumb-btn">picture</button> <span class="sy-pick__route">…</span> <span class="sy-pick__step">3</span></li></ul>
+     <div class="sy-selbar" role="region" aria-label="Selection"> 4 ticked · New process from these · Add to process ▾ · Clear </div> */
+  .sy-sortgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--sy-pick-min, 200px), 1fr)); gap: var(--sy-space-3); margin: 0; padding: 0; list-style: none; }
+  .sy-pick { position: relative; display: flex; flex-direction: column; gap: 6px; padding: 8px; min-width: 0;
+    background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-pick:hover { border-color: var(--sy-border-control); }
+  .sy-pick[data-ticked] { border-color: var(--sy-text); box-shadow: inset 0 0 0 1px var(--sy-text); }
+  .sy-pick__tick { display: flex; align-items: center; gap: 8px; min-height: 24px; font-size: var(--sy-fs-xs); }
+  .sy-pick__tick input { width: 18px; height: 18px; margin: 0; accent-color: var(--sy-intent); }
+  .sy-pick__route { font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); overflow-wrap: anywhere; }
+  .sy-pick__meta { font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+  .sy-pick__step { position: absolute; top: 6px; right: 6px; display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 4px; background: var(--sy-bg-inverse); color: var(--sy-text-on-paint);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); font-weight: 600; }
+  .sy-selbar { position: sticky; bottom: 0; z-index: 2; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px;
+    padding: 10px var(--sy-space-4); background: var(--sy-bg-raised); border: var(--sy-weld) solid var(--sy-border-control); }
+  .sy-selbar__count { font-weight: 700; margin-right: auto; }
+  .sy-selbar--static { position: static; }
+
+  /* ----- Menu (Add to process, data store): a popup list of actions or choices ----- */
+  /* <div class="sy-menu" role="menu" aria-label="Add to process"> [search] <button class="sy-menu__item" role="menuitem">…</button>
+       <span class="sy-menu__sep" role="separator"></span> … </div>  Opened by a button with aria-haspopup="menu" aria-expanded. */
+  .sy-menu { display: flex; flex-direction: column; min-width: 260px; max-width: min(380px, calc(100vw - 32px)); max-height: 360px; overflow: auto;
+    padding: 4px; background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-control); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45); }
+  .sy-menu__search { margin: 4px 4px 6px; }
+  .sy-menu__label { padding: 8px 8px 4px; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  .sy-menu__item { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 2px 12px; min-height: 36px;
+    padding: 6px 8px; border: 0; background: transparent; color: var(--sy-text); text-align: left; font: inherit; font-size: var(--sy-fs-sm); cursor: pointer; text-decoration: none; }
+  .sy-menu__item:hover, .sy-menu__item:focus-visible { background: var(--sy-bg-raised); }
+  .sy-menu__item small { grid-column: 1 / -1; font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+  .sy-menu__item[aria-disabled="true"] { color: var(--sy-text-muted); cursor: default; }
+  .sy-menu__item[aria-disabled="true"]:hover { background: transparent; }
+  .sy-menu__sep { height: 1px; margin: 4px 0; background: var(--sy-border-weld); }
+  .sy-menu--static { box-shadow: none; }
+
+  /* ----- T-07 · How a canvas moves: engaged, panning, the hint ----- */
+  /* .sy-graph[data-engaged]: the wheel zooms here (Esc, a click outside or Tab out releases it).
+     The canvas moves by transform (translate + scale), never by native scrolling, so a wheel that isn't engaged
+     always reaches the page. Drag pans (grab / grabbing), a click without movement (< 4px) selects. */
+  .sy-graph--canvas { overflow: hidden; touch-action: pan-x pan-y; overscroll-behavior: contain; }
+  .sy-graph--canvas > .sy-graph__canvas { cursor: grab; user-select: none; -webkit-user-select: none; transform-origin: 0 0; }
+  .sy-graph--canvas .sy-node { cursor: pointer; }
+  .sy-graph[data-panning] > .sy-graph__canvas, .sy-graph[data-panning] .sy-node { cursor: grabbing; }
+  .sy-graph[data-engaged] { outline: var(--sy-weld-strong) solid var(--sy-focus); outline-offset: -2px; touch-action: none; }
+  .sy-graph__hint { position: absolute; left: 8px; bottom: 8px; z-index: 2; display: inline-flex; align-items: center; gap: 8px;
+    padding: 4px 8px; background: var(--sy-bg-plate); border: var(--sy-weld) solid var(--sy-border-control);
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); pointer-events: none; }
+  .sy-graph[data-engaged] .sy-graph__hint { color: var(--sy-text); }
+  .sy-graphview { position: relative; }
+
+  /* ----- T-08 · Full screen for graphs and diagrams ----- */
+  /* <dialog class="sy-dialog sy-dialog--full"> head (title · Exit full screen) · <div class="sy-graphview sy-graphview--full">…</div></dialog> */
+  .sy-dialog--full { width: 100vw; max-width: 100vw; height: 100dvh; max-height: 100dvh; margin: 0; border: 0; }
+  .sy-dialog--full[open], .sy-dialog--full.sy-dialog--static { display: flex; flex-direction: column; }
+  .sy-dialog--full.sy-dialog--static { width: 100%; height: var(--sy-dialog-static-h, 520px); border: var(--sy-weld) solid var(--sy-border-plate); }
+  .sy-graphview--full { flex: 1; min-height: 0; max-height: none; }
+  .sy-graphview--full > .sy-graph { border: 0; }
+
+  /* ----- T-09 · Diagram (Mermaid's SVG) in the same frame ----- */
+  /* <div class="sy-graphview sy-graphview--diagram"> zoom bar · <section class="sy-graph sy-graph--canvas sy-diagram">
+       <div class="sy-graph__canvas" style="transform: translate(…) scale(…)"><svg …mermaid…></svg></div></section></div> */
+  .sy-graphview--diagram > .sy-graph { background: var(--sy-bg-plate); }
+  .sy-diagram .sy-graph__canvas > svg { display: block; max-width: none; height: auto; }
+  .sy-diagram text, .sy-diagram .nodeLabel, .sy-diagram .edgeLabel { font-family: var(--sy-font-sans); }
+
+  /* ----- T-10 · The loader: three weld beads and what is being read ----- */
+  /* <span class="sy-loader" role="status"><span class="sy-loader__beads" aria-hidden="true"><i></i><i></i><i></i></span>
+       <span class="sy-loader__label">Loading screens · 12 of 19</span></span>
+     The beads are the status square (6px) pulsing in turn: the sanctioned "running pulse", no new motion. The words say WHAT
+     is loading, never "Please wait". --block: centred in a reserved box (.sy-reserve). --sm: in toolbars, table heads, menus.
+     Reduced motion: the beads stand still at 100 / 60 / 30 % and the words carry the state. */
+  .sy-loader { display: inline-flex; align-items: center; gap: 8px; min-height: 20px; font-family: var(--sy-font-mono);
+    font-size: var(--sy-fs-micro); color: var(--sy-text-muted); white-space: nowrap; }
+  .sy-loader__beads { display: inline-flex; gap: 3px; flex: none; }
+  .sy-loader__beads > i { display: block; width: 6px; height: 6px; background: var(--sy-text-muted);
+    animation: sy-pulse var(--sy-dur-pulse) ease-in-out infinite; }
+  .sy-loader__beads > i:nth-child(2) { animation-delay: calc(var(--sy-dur-pulse) / 6); opacity: 0.6; }
+  .sy-loader__beads > i:nth-child(3) { animation-delay: calc(var(--sy-dur-pulse) / 3); opacity: 0.3; }
+  .sy-loader__label { overflow: hidden; text-overflow: ellipsis; }
+  .sy-loader--sm .sy-loader__beads > i { width: 4px; height: 4px; }
+  .sy-loader--block { flex-direction: column; justify-content: center; gap: 10px; }
+  .sy-loader--block .sy-loader__beads > i { width: 8px; height: 8px; }
+  /* A box that already has its final size while its content loads (pictures, graphs, the dialog's figure) */
+  .sy-reserve { position: relative; display: grid; place-items: center; width: 100%; aspect-ratio: var(--sy-ratio, auto);
+    min-height: var(--sy-reserve-h, 0); background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-reserve--paper { background: var(--sy-paper); border-color: var(--sy-border-plate); }
+  /* A picture not here yet: the thumbnail's own box (aspect-ratio 16 / 10), faintly hatched paper, no loader of its own */
+  .sy-thumb--loading { background: repeating-linear-gradient(135deg, var(--sy-paper) 0 8px, #e6e3dc 8px 9px); }
+  .sy-reserve--paper .sy-loader { color: var(--sy-paper-ink); }
+  .sy-reserve--paper .sy-loader__beads > i { background: var(--sy-paper-ink); }
+  /* Late numbers don't push their neighbours */
+  .sy-nav__count, .sy-count { min-width: 3ch; text-align: right; font-variant-numeric: tabular-nums; }
+  .sy-num, .sy-pager__pos { font-variant-numeric: tabular-nums; }
+
+  /* ----- T-10 · Loading a page: the head at once, the body as a skeleton at its final size (after 300 ms) ----- */
+  /* <div class="sy-skel" aria-busy="true"> <p class="sy-skel__label sy-caret">Loading screens</p>
+       <div class="sy-skel__block" style="--sy-skel-h: 40px"></div> <div class="sy-skel__rows" style="--sy-skel-rows: 8"></div> </div>
+     Neutral steel, not blueprint (blueprint = the assistant composing). No shimmer: the caret is the only motion. */
+  .sy-skel { display: flex; flex-direction: column; gap: var(--sy-space-3); }
+  .sy-skel__label { margin: 0; font-family: var(--sy-font-mono); font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
+  .sy-skel__block { height: var(--sy-skel-h, 80px); background: var(--sy-bg-well); border: var(--sy-weld) solid var(--sy-border-weld); }
+  .sy-skel__line { height: 12px; width: var(--sy-skel-w, 60%); background: var(--sy-bg-raised); }
+  .sy-skel__rows { height: calc(var(--sy-skel-rows, 8) * var(--sy-skel-row, 49px) + 41px); border: var(--sy-weld) solid var(--sy-border-plate);
+    background: linear-gradient(var(--sy-bg-raised), var(--sy-bg-raised)) top / 100% 41px no-repeat,
+      repeating-linear-gradient(to bottom, var(--sy-bg-plate) 0 calc(var(--sy-skel-row, 49px) - 1px), var(--sy-border-weld) calc(var(--sy-skel-row, 49px) - 1px) var(--sy-skel-row, 49px)) 0 41px / 100% calc(100% - 41px) no-repeat; }
+  /* A list re-loading (filter, page): the old rows stay, dimmed, until the new ones arrive */
+  [aria-busy="true"] > .sy-table tbody, .sy-table[aria-busy="true"] tbody, .sy-sortgrid[aria-busy="true"] { opacity: 0.45; pointer-events: none; }
+
+  /* ----- T-11 · Header: the store rides on the portal picker; the assistant's status rides on Ask ----- */
+  /* <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l">
+       <span id="portal-l" class="sy-label">Portal</span><select class="sy-select" aria-label="Portal">…</select>
+       <button class="sy-select sy-store" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only">sandbox</button></div> */
+  .sy-portal--store { gap: 0; }
+  .sy-portal--store > .sy-label { margin-right: var(--sy-space-2); }
+  .sy-portal--store > .sy-select:not(.sy-store) { width: 170px; border-right-width: 0; }
+  .sy-store { display: inline-flex; align-items: center; gap: 6px; width: auto; min-width: 0; max-width: 140px; padding-inline: 8px 24px;
+    font-family: var(--sy-font-mono); font-size: var(--sy-fs-mono-sm); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    background-color: var(--sy-bg-well); }
+  .sy-store > svg { flex: none; color: var(--sy-text-muted); }
+  .sy-portal--store > .sy-store { width: auto; padding-right: 34px; }
+  .sy-store[aria-disabled="true"] { padding-right: 10px; background-image: none; color: var(--sy-text-muted); cursor: default; }
+  .sy-header .sy-search--compact { flex-basis: 120px; }   /* the header keeps one row from 1200px with the store in it */
+  .sy-btn > .sy-status:first-child { margin-right: 2px; }
+  .sy-btn > .sy-status:empty, .sy-btn > .sy-status:has(> .sy-sr-only:only-child) { gap: 0; }
+
+  /* ----- T-12 · Nav sections that need one portal, on All portals ----- */
+  .sy-nav__item[aria-disabled="true"] { color: var(--sy-text-muted); cursor: not-allowed; }
+  .sy-nav__item[aria-disabled="true"]:hover { background: transparent; color: var(--sy-text-muted); }
+  .sy-nav__note { padding: 0 var(--sy-space-3) 6px; font-size: var(--sy-fs-micro); color: var(--sy-text-muted); }
 }
 
 /* -------------------------------------------------------------------------- */
@@ -1113,6 +1288,11 @@
   .sy-dialog__aside { max-height: 40dvh; border-left: 0; border-top: var(--sy-weld) solid var(--sy-border-weld); }
 }
 @media (max-width: 639px) {
+  /* Came from replaces the crumbs on phones; the row picture shrinks */
+  .sy-pagehead:has(> .sy-backlink) > .sy-crumbs { display: none; }
+  .sy-rowpic { --sy-thumb-row: 64px; }
+  .sy-sortgrid { --sy-pick-min: 150px; }
+  .sy-dialog__pick { margin-left: 0; }
   /* A recording on a phone: one scroll, the picture first, its facts after */
   .sy-dialog__main { display: block; overflow: auto; }
   .sy-dialog__main > .sy-dialog__figure { overflow: visible; }
@@ -1174,7 +1354,14 @@
   .sy-phasebar__phase[data-kind="wait"] > .sy-phasebar__btn, .sy-phasebar__key[data-kind="wait"] { border-style: double; border-width: 3px; }
   .sy-phasebar__phase[data-state="running"] > .sy-phasebar__btn, .sy-phasebar__key[data-state="running"] { border-right-width: 3px; border-right-style: dashed; }
   .sy-seg > [aria-disabled="true"], .sy-seg > :disabled { color: GrayText; }
-  .sy-mark--gone { outline-color: Highlight; }   /* the only 4px line: tells apart from the 2px tree without colour */
+  .sy-mark--gone { outline-color: Highlight; }
+  .sy-graph[data-engaged] { outline-color: Highlight; }
+  .sy-pick[data-ticked] { outline: 2px solid Highlight; box-shadow: none; }
+  .sy-pick__step { forced-color-adjust: none; background: CanvasText; color: Canvas; }
+  .sy-skel__block, .sy-skel__rows, .sy-thumb--none { border: 1px dashed CanvasText; }
+  .sy-nav__item[aria-disabled="true"], .sy-menu__item[aria-disabled="true"], .sy-pager > [aria-disabled="true"] { color: GrayText; }
+  .sy-loader__beads > i { forced-color-adjust: none; background: CanvasText; }
+  .sy-reserve { border: 1px dashed CanvasText; }   /* the only 4px line: tells apart from the 2px tree without colour */
   .sy-edge-label { fill: CanvasText; }
   .sy-releases__span, .sy-releases__track { border-color: CanvasText; }
   .sy-releases__scan::before { forced-color-adjust: none; background-color: CanvasText; }

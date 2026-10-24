@@ -1,5 +1,8 @@
 # Q3 · Fit on open (F-01@061): a large map opens at 34–47 % and can't be read
 
+> **24 Oct (round 4):** still valid. How the canvas moves (wheel, drag, engage) and full screen are now in
+> `../20-navigation-and-canvases/T-07-canvas-movement.md` and `T-08-full-screen.md`; the zoom steps there include 80 %.
+
 **Question.** Should Fit stop at 50 % and scroll instead?
 
 ## Decision

@@ -9,7 +9,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from . import pager, queries_process_doc, queries_processes
+from . import pager, queries_process_doc, queries_process_scope, queries_processes
 from .queries_app import StatusOut, status_out
 
 
@@ -61,6 +61,23 @@ class LooseScreen(BaseModel):
     shot: str | None
     wire: str | None
     scans: int
+    #: The model screen it is a variant of (its page, its variants in the picture dialog), if any.
+    screen_key: str | None = None
+    #: When a scan last saw it, and how many variants its screen has (the sorting grid's line).
+    last_seen: str | None = None
+    variants: int = 1
+
+
+class TargetOut(BaseModel):
+    """A saved process the Add to process menu offers (designer T-05): its persona, step count,
+    and the screens already in it (shown "already in", disabled)."""
+
+    id: str
+    key: str
+    name: str
+    persona: str
+    steps: int
+    states: list[str]
 
 
 class ProcessList(BaseModel):
@@ -79,6 +96,8 @@ class ProcessList(BaseModel):
     loose: list[LooseScreen]
     #: The persona a new process starts with.
     default_persona: str
+    #: Every saved process in use, A–Z (the Add to process menu; the list itself is paged).
+    targets: list[TargetOut] = []
 
 
 def _evidence(ref: str | None) -> str | None:
@@ -134,8 +153,11 @@ def process_list(
         queries_processes.portal_processes(conn, portal, archived=archived),
         pager.page_number(page),
     )
-    loose = queries_processes.loose_screens(conn, portal)
+    # a screen in a process's scope (off the observed path) is in a process (designer T-05)
+    scoped = queries_process_scope.scoped_states(conn, portal)
+    loose = [s for s in queries_processes.loose_screens(conn, portal) if s.id not in scoped]
     pictures = queries_process_doc.pictures(conn, [s.id for s in loose])
+    facts = queries_process_scope.loose_facts(conn, [s.id for s in loose])
     return ProcessList(
         portal=portal,
         archived=archived,
@@ -159,9 +181,16 @@ def process_list(
                 shot=_evidence(pictures[s.id].shot),
                 wire=_evidence(pictures[s.id].wire),
                 scans=pictures[s.id].scans,
+                **facts.get(s.id, {}),
             )
             for s in loose
         ],
         suggested=_not_saved(),
         default_persona="guest",
+        targets=[
+            TargetOut(
+                id=t.id, key=t.key, name=t.name, persona=t.persona, steps=t.steps, states=t.states
+            )
+            for t in queries_process_scope.targets(conn, portal)
+        ],
     )

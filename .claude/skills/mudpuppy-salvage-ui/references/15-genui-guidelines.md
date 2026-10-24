@@ -111,6 +111,9 @@ The model never chooses layout. The server places each component from its catalo
 - **Reserve space before content arrives.** A composing view takes its final size at once (`.sy-genskel__block` with
   `--sy-skel-h` set to the real component's height). Miniatures have a fixed height (`--sy-mini-h`), the graph canvas a
   fixed size from the server's layout. Nothing below a view moves when its content lands.
+- **The console loader is not the assistant's skeleton.** Outside generated views (console pages, lists, pictures, the live
+  map before its first page) loading uses `.sy-loader` in steel with the words of what loads, and boxes of their final size
+  (`20-navigation-and-canvases/T-10`, T-14). Blueprint `.sy-genskel` stays reserved for "the assistant is composing this".
 - **Never reflow under the cursor.** New items append where the eye expects them: filmstrip to the right, narration and
   event tail at the bottom, map nodes into the reserved canvas. If a new view spec arrives while the pointer is over the stage
   or focus is inside it, do not swap: show a notice in the view (`.sy-genview__notice`) "New view ready · Show".

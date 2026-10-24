@@ -2,7 +2,7 @@ import type { FormEvent } from 'react';
 import { useParams, useSearchParams } from 'react-router';
 import { Button, Cluster, Field, Input, LinkButton, PageHead, Picture, Plate, Stack, Table, Tag, Text } from '../design-system';
 import { useRecordedPages, type RecordedPage, type RecordedPages as Pages } from '../app/api-recorded';
-import { QueryState } from '../app/QueryState';
+import { headMeta, QueryState } from '../app/QueryState';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
@@ -144,7 +144,7 @@ export function RecordedPages() {
           { label: 'Recorded pages' },
         ]}
         title="Recorded pages"
-        meta={q.data ? meta(q.data) : undefined}
+        meta={headMeta(q, meta)}
       />
       <ScreensViews portal={portal} current="recorded" />
       <QueryState query={q} what="the recorded pages">

@@ -50,6 +50,8 @@ export const PORTAL_TABLES = [
   'process_model_revisions',
   'process_drafts',
   'process_live',
+  'process_scope_screens',
+  'process_merges',
   'change_spec_revisions',
   'form_steps',
   'probe_outcomes',
@@ -163,6 +165,8 @@ export const DELETE_ORDER: readonly PortalTable[] = [
   'followup_tasks',
   'doc_revisions',
   'doc_records',
+  'process_scope_screens', // 0051: reference ba_processes and states
+  'process_merges', // 0051: reference ba_processes
   'change_spec_revisions', // 0018: the BA process tables, children first
   'process_live',
   'process_drafts',
@@ -261,6 +265,7 @@ const OWN_PORTAL_ID: readonly PortalTable[] = [
   'chat_proposals',
   'screens',
   'ba_processes',
+  'process_merges',
   'grouping_suggestions',
   'form_steps',
   'probe_suites',
@@ -316,6 +321,7 @@ const PORTAL_CLAUSE: Partial<Record<PortalTable, Clause>> = {
   process_triggers: ofProcesses,
   process_explorations: ofProcesses,
   process_live: ofProcesses,
+  process_scope_screens: ofProcesses,
   change_spec_revisions: ofProcesses,
   process_model_revisions: (op) =>
     `model_id IN (SELECT id FROM process_models WHERE process_id IN (${BA_PROCESSES_OF_PORTAL(op)}))`,

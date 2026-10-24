@@ -91,6 +91,20 @@ class Records(BaseModel):
     matrix: bool
 
 
+class Contained(BaseModel):
+    key: str
+    title: str
+
+
+class CapabilityRow(BaseModel):
+    """A capability with the records it contains: the capability map as a list (designer T-09,
+    the list first and the diagram second)."""
+
+    key: str
+    title: str
+    contains: list[Contained]
+
+
 class Diagram(BaseModel):
     source: str
     caption: str
@@ -106,6 +120,8 @@ class DocsPage(BaseModel):
     sessions: list[SessionRow]
     records: Records | None
     diagram: Diagram | None
+    #: The capability map as rows (the capabilities section only; empty elsewhere).
+    capabilities: list[CapabilityRow] = []
 
 
 NOT_OBSERVED = StatusOut(shape="unobserved", word="Not observed")
@@ -253,4 +269,17 @@ def docs_page(conn: sqlite3.Connection, portal: str, q: DocsQuery, at: PageAt) -
         sessions=_sessions(conn, portal) if overview else [],
         records=None if overview else _records(conn, portal, q, at.limit),
         diagram=_diagram(conn, portal, section),
+        capabilities=_capabilities(conn, portal) if section == "capabilities" else [],
     )
+
+
+def _capabilities(conn: sqlite3.Connection, portal: str) -> list[CapabilityRow]:
+    caps = qd.capability_diagram_input(conn, portal)["capabilities"]
+    return [
+        CapabilityRow(
+            key=c["key"],
+            title=c["title"],
+            contains=[Contained(key=p["key"], title=p["title"]) for p in c["contains"]],
+        )
+        for c in sorted(caps, key=lambda c: c["key"])
+    ]

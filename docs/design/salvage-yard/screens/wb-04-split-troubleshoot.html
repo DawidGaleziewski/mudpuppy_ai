@@ -16,16 +16,16 @@
 <div class="sy-app">
   <header class="sy-header">
     <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
-    <label class="sy-portal sy-portal--compact"><span class="sy-label">Portal</span>
-      <select class="sy-select"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select></label>
+    <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l"><span class="sy-label" id="portal-l">Portal</span>
+      <select class="sy-select" aria-label="Portal"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+      <button class="sy-select sy-store" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only" title="Data store: data/db/sandbox.sqlite · read-only · writes go through commands"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" focusable="false"><ellipse cx="6" cy="2.6" rx="4.5" ry="1.6"/><path d="M1.5 2.6v6.8c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6V2.6M1.5 6c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6"/></svg>sandbox</button></div>
     <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
       <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
     <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
     <label class="sy-search sy-search--compact">
       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
       <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
-    <span class="sy-status" data-status="ok">Assistant up</span>
-    <a class="sy-btn" href="02-screen-with-assistant.html">Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn" href="02-screen-with-assistant.html"><span class="sy-status" data-status="ok"><span class="sy-sr-only">Assistant up.</span></span>Ask <span class="sy-kbd">Ctrl J</span></a>
     <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
   </header>
   <div class="sy-app__body">
@@ -42,7 +42,6 @@
       <div class="sy-nav__group" aria-hidden="true">Machine</div>
       <a class="sy-nav__item" href="10-scans.html">Scans</a>
       <a class="sy-nav__item" href="11-settings.html">Settings</a>
-      <div class="sy-nav__foot">store: sandbox · writes go through commands</div>
     </nav>
     <main id="main" class="sy-main">
 <div class="sy-wb__head"><div class="sy-stack" style="--sy-gap: 4px"><h1 class="sy-h1">Workbench</h1><p class="sy-meta">Beta · the assistant composes this screen for what you are doing · reference-insurer · Now</p></div><div class="sy-pathswitch"><span class="sy-label" id="path-l">Path</span><div class="sy-seg" role="group" aria-labelledby="path-l"><button type="button" aria-pressed="false">Chat</button><button type="button" aria-pressed="false">Mapping</button><button type="button" aria-pressed="true">Troubleshoot</button></div><span class="sy-pathswitch__why" data-source="assistant">Picked by the assistant: you asked to troubleshoot.</span></div></div><div class="sy-sr-only" role="status" aria-live="polite"></div>

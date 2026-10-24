@@ -21,7 +21,7 @@ import {
 import { planHref } from '../app/api-plan';
 import { MapControls } from '../app/MapControls';
 import { recordedQuery, useRecordedMap, type RecordedFilter, type RecordedMap, type RecordedNode } from '../app/api-recorded';
-import { QueryState } from '../app/QueryState';
+import { GraphSkeleton, QueryState } from '../app/QueryState';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
 import { RecordedInspector, stateHref } from './RecordedInspector';
@@ -268,7 +268,7 @@ export function RecordedMapBody({ portal }: { portal: string }) {
   };
   const q = useRecordedMap(portal, v.f);
   return (
-    <QueryState query={q} what="the recorded map">
+    <QueryState query={q} what="the recorded map" skeleton={<GraphSkeleton />}>
       {(m) => <Body m={m} v={v} set={set} />}
     </QueryState>
   );

@@ -28,6 +28,21 @@ def test_screens_list_needs_you_first_with_mapped_statuses(empty_store: Store) -
     assert {"value": "needs", "label": "Needs you first"} in body["sorts"]
 
 
+def test_each_row_has_its_main_variants_picture(empty_store: Store) -> None:
+    """Designer T-03: the list shows r1's latest recording; a screen without one has none."""
+    seed_screens(empty_store)
+    shot = "a" * 64 + ".png"
+    conn = empty_store.connect()
+    conn.execute("UPDATE states SET screenshot_ref = ? WHERE id = 'st-a'", (shot,))
+    conn.execute("UPDATE states SET screenshot_ref = ? WHERE id = 'st-b'", ("b" * 64 + ".png",))
+    conn.commit()
+    conn.close()
+    with client(empty_store) as c:
+        rows = {s["key"]: s for s in c.get(f"/api/portals/{P}/screens").json()["screens"]}
+    assert rows["SC-0001"]["picture"] == {"shot": f"/evidence/{shot}", "wire": None}
+    assert rows["SC-0002"]["picture"] is None
+
+
 def test_an_unknown_why_or_sort_falls_back(empty_store: Store) -> None:
     seed_screens(empty_store)
     with client(empty_store) as c:

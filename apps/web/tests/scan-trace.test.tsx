@@ -221,7 +221,10 @@ describe('Diagram', () => {
     const source = 'flowchart TD\n  s1["1. navigate: Open the calculator"] --> s2["2. fill: Enter the car model"]';
     render(<Diagram embedded source={source} caption="Process map" />);
     const bar = await screen.findByRole('toolbar', { name: 'Zoom the diagram' });
-    expect(bar.parentElement?.className).toBe('sy-graphview sy-graphview--embedded');
+    // designer T-09: the map's frame, as a diagram (`--diagram`), moving as a canvas
+    expect(bar.parentElement?.className).toBe('sy-graphview sy-graphview--embedded sy-graphview--diagram');
+    expect(screen.getByRole('button', { name: 'Full screen' })).toBeTruthy();
+    expect(render_.mock.calls[0]?.[1]).toContain('classDef failed');
     expect(render_.mock.calls[0]?.[1]).toContain('s1["1\\. navigate: Open the calculator"]');
     fireEvent.click(screen.getByRole('button', { name: 'Zoom in' }));
     expect(screen.getByRole('button', { name: /reset to 100%/ }).textContent).toBe('125%');

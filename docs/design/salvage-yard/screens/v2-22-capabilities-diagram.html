@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>MudPuppy 2.0 · Capabilities · diagram</title>
+<link rel="icon" href="../brand/logo/tag-icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="../design-system/css/tokens.css">
+<link rel="stylesheet" href="../design-system/css/fonts.css">
+<link rel="stylesheet" href="../design-system/css/salvage.css">
+<style>
+  .mp-tools { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--sy-space-3); }
+</style>
+</head>
+<body class="sy-ground">
+<a class="sy-skip" href="#main">Skip to content</a>
+<div class="sy-app">
+  <header class="sy-header">
+    <a class="sy-wordmark" href="v2-01-home.html"><span class="sy-wordmark__paint">MUD</span>PUPPY</a>
+    <div class="sy-portal sy-portal--compact sy-portal--store" role="group" aria-labelledby="portal-l"><span class="sy-label" id="portal-l">Portal</span>
+      <select class="sy-select" aria-label="Portal"><option selected>reference-insurer</option><option>wikipedia</option><option>All portals</option><option>+ New portal</option></select>
+      <button class="sy-select sy-store" type="button" aria-haspopup="menu" aria-expanded="false" aria-label="Data store: sandbox, read-only" title="Data store: data/db/sandbox.sqlite · read-only · writes go through commands"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3" aria-hidden="true" focusable="false"><ellipse cx="6" cy="2.6" rx="4.5" ry="1.6"/><path d="M1.5 2.6v6.8c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6V2.6M1.5 6c0 .9 2 1.6 4.5 1.6s4.5-.7 4.5-1.6"/></svg>sandbox</button></div>
+    <div class="sy-portal sy-portal--compact"><span class="sy-label" id="asof-l">As of</span>
+      <button class="sy-select" type="button" aria-haspopup="menu" aria-expanded="false" aria-labelledby="asof-l asof-v" aria-describedby="asof-help"><span id="asof-v">Now · 17 Oct</span></button></div>
+    <span id="asof-help" class="sy-sr-only">Shows the portal model as it was at a release or scan. Changes compares two points.</span>
+    <label class="sy-search sy-search--compact">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.5-3.5"/></svg>
+      <input type="search" aria-label="Search screens, processes and rules" placeholder="Search"><span class="sy-kbd">Ctrl K</span></label>
+    <a class="sy-btn" href="02-screen-with-assistant.html"><span class="sy-status" data-status="ok"><span class="sy-sr-only">Assistant up.</span></span>Ask <span class="sy-kbd">Ctrl J</span></a>
+    <a class="sy-btn sy-btn--icon" href="#" aria-label="Help and glossary">?</a>
+  </header>
+  <div class="sy-app__body">
+    <nav class="sy-nav" aria-label="Portal sections">
+      <a class="sy-nav__item" href="v2-01-home.html">Home</a>
+      <a class="sy-nav__item" href="v2-02-changes.html">Changes <span class="sy-nav__count">41</span></a>
+      <a class="sy-nav__item" href="v2-04-review.html">Review <span class="sy-count">24</span></a>
+      <div class="sy-nav__group" aria-hidden="true">Portal model</div>
+      <a class="sy-nav__item" href="v2-09-processes.html">Processes <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="v2-06-screens.html">Screens <span class="sy-nav__count">19</span></a>
+      <a class="sy-nav__item" href="v2-11-rules.html">Rules <span class="sy-nav__count">6</span></a>
+      <a class="sy-nav__item" href="#" aria-current="page">Docs</a>
+      <div class="sy-nav__group" aria-hidden="true">Machine</div>
+      <a class="sy-nav__item" href="10-scans.html">Scans</a>
+      <a class="sy-nav__item" href="11-settings.html">Settings</a>
+    </nav>
+    <main id="main" class="sy-main">
+<div class="sy-pagehead">
+        <nav class="sy-crumbs" aria-label="Breadcrumb"><a href="#">Docs</a> / <span aria-current="page">Capabilities</span></nav>
+        <div class="sy-pagehead__row">
+          <div class="sy-stack" style="--sy-gap: 4px"><h1 class="sy-h1">Capabilities</h1><p class="sy-meta">reference-insurer · 3 groups · 7 capabilities · illustrative content</p></div>
+          
+        </div>
+      </div>
+      <nav class="sy-tabs" aria-label="Documentation sections">
+        <a class="sy-tab" href="#">Overview</a><a class="sy-tab" href="v2-21-capabilities.html" aria-current="page">Capabilities <span class="sy-count sy-count--muted">10</span></a>
+        <a class="sy-tab" href="#">Screens <span class="sy-count sy-count--muted">19</span></a><a class="sy-tab" href="#">Processes <span class="sy-count sy-count--muted">3</span></a>
+        <a class="sy-tab" href="#">Rules <span class="sy-count sy-count--muted">6</span></a><a class="sy-tab" href="#">Glossary</a></nav>
+      <div class="mp-tools"><div class="sy-seg" role="group" aria-label="Show as"><button type="button" aria-pressed="false">List</button><button type="button" aria-pressed="true">Diagram</button></div>
+        <span class="sy-small sy-muted">Opens readable at its top-left · drag pans · click in, then the wheel zooms · <span class="sy-kbd">F</span> full screen</span></div>
+      <div class="sy-graphview sy-graphview--diagram">
+        <div class="sy-graph__zoom" role="toolbar" aria-label="Zoom the diagram" aria-controls="cap-dg">
+          <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom out">−</button>
+          <button class="sy-btn sy-btn--sm sy-btn--quiet sy-graph__zoom-level" type="button" aria-label="Zoom 100%, reset">100%</button>
+          <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-label="Zoom in">+</button>
+          <button class="sy-btn sy-btn--sm sy-btn--quiet" type="button" aria-pressed="false">Fit</button>
+          <button class="sy-btn sy-btn--sm sy-btn--quiet sy-btn--icon" type="button" aria-label="Full screen" title="Full screen (F)"><svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true" focusable="false"><path d="M1 5V1h4M9 1h4v4M13 9v4H9M5 13H1V9"/></svg></button></div>
+        <section id="cap-dg" class="sy-graph sy-graph--canvas sy-diagram" data-engaged aria-label="Capability map of reference-insurer" tabindex="0" style="height: 420px">
+          <div class="sy-graph__canvas" style="width: 1384px; height: 290px; transform: translate(16px, 24px)"><svg role="img" aria-label="Capability map of reference-insurer: 3 groups, 7 capabilities" width="1384" height="290" viewBox="0 0 1384 290"><g class="node"><rect x="592.0" y="10" width="200" height="44" style="fill: var(--sy-bg-inverse); stroke: var(--sy-bg-inverse)"/><text x="692.0" y="37" text-anchor="middle" style="fill: var(--sy-text-on-paint); font: 700 13px var(--sy-font-sans)">reference-insurer</text></g><path d="M692.0 54 C692.0 80 300.0 80 300.0 104" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="190.0" y="104" width="220" height="52" style="fill: var(--sy-bg-raised); stroke: var(--sy-text); stroke-width: 1.5"/><text x="300.0" y="125" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-001</text><text x="300.0" y="143" text-anchor="middle" style="fill: var(--sy-text); font: 600 13px var(--sy-font-sans)">Sprzedaż ubezpieczeń</text></g><path d="M300.0 156 C300.0 186 108.0 186 108.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="20" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; "/><text x="108.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-002</text><text x="108.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Kalkulacja składki OC/AC</text><text x="108.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">5 screens</text></g><path d="M300.0 156 C300.0 186 300.0 186 300.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="212" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; "/><text x="300.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-003</text><text x="300.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Porównanie produktów</text><text x="300.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">2 screens</text></g><path d="M300.0 156 C300.0 186 492.0 186 492.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="404" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; "/><text x="492.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-004</text><text x="492.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Oferty: dom, podróże, NNW</text><text x="492.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">3 screens</text></g><path d="M692.0 54 C692.0 80 780.0 80 780.0 104" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="670.0" y="104" width="220" height="52" style="fill: var(--sy-bg-raised); stroke: var(--sy-text); stroke-width: 1.5"/><text x="780.0" y="125" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-005</text><text x="780.0" y="143" text-anchor="middle" style="fill: var(--sy-text); font: 600 13px var(--sy-font-sans)">Obsługa klienta</text></g><path d="M780.0 156 C780.0 186 684.0 186 684.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="596" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; "/><text x="684.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-006</text><text x="684.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Kontakt i reklamacje</text><text x="684.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">2 screens</text></g><path d="M780.0 156 C780.0 186 876.0 186 876.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="788" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; "/><text x="876.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-007</text><text x="876.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">FAQ i słowniczek</text><text x="876.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">2 screens</text></g><path d="M692.0 54 C692.0 80 1164.0 80 1164.0 104" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="1054.0" y="104" width="220" height="52" style="fill: var(--sy-bg-raised); stroke: var(--sy-text); stroke-width: 1.5"/><text x="1164.0" y="125" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-008</text><text x="1164.0" y="143" text-anchor="middle" style="fill: var(--sy-text); font: 600 13px var(--sy-font-sans)">Konto klienta</text></g><path d="M1164.0 156 C1164.0 186 1068.0 186 1068.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="980" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; stroke-dasharray: 5 4;"/><text x="1068.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-009</text><text x="1068.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Przedłużenie polisy</text><text x="1068.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">locked · needs sign-in</text></g><path d="M1164.0 156 C1164.0 186 1260.0 186 1260.0 206" style="fill: none; stroke: var(--sy-text-muted); stroke-width: 1.5"/><g class="node"><rect x="1172" y="206" width="176" height="64" style="fill: var(--sy-bg-raised); stroke: var(--sy-border-control); stroke-width: 1.5; stroke-dasharray: 5 4;"/><text x="1260.0" y="226" text-anchor="middle" style="fill: var(--sy-text-muted); font: 500 11px var(--sy-font-mono)">CAP-010</text><text x="1260.0" y="244" text-anchor="middle" style="fill: var(--sy-text); font: 400 12.5px var(--sy-font-sans)">Moje polisy</text><text x="1260.0" y="261" text-anchor="middle" style="fill: var(--sy-text-muted); font: 400 11px var(--sy-font-mono)">locked · needs sign-in</text></g></svg></div>
+          <span class="sy-graph__hint" aria-hidden="true">Wheel zooms · Drag pans · Esc to leave</span></section>
+      </div>
+      <ul class="sy-legend" aria-label="Diagram">
+        <li class="sy-legend__item"><span class="sy-phasebar__key" aria-hidden="true"></span>Capability</li>
+        <li class="sy-legend__item"><span class="sy-phasebar__key" data-kind="quiet" aria-hidden="true"></span>Not reached by scans (behind a sign-in)</li>
+        <li class="sy-legend__item">CAP-… keys open the record</li></ul>
+    </main>
+  </div>
+</div>
+</body>
+</html>

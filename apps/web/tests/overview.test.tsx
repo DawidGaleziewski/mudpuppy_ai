@@ -1,4 +1,4 @@
-import { screen, waitFor, within } from '@testing-library/react';
+import { fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { withAsOf } from '../src/app/asOf';
 import { currentStore, withStore } from '../src/app/store';
@@ -58,16 +58,22 @@ describe('Data store', () => {
   });
 
   it('names the eval workspace it reads and offers the other stores, keeping the store on links', async () => {
-    const main = { key: 'main:test', label: 'test', kind: 'main', workspace: null };
-    const evalStore = { key: EVAL, label: 'eval · shop · 2026-10-22', kind: 'eval', workspace: 'pf-eval-shop-AbC123' };
-    at(`/app/?store=${EVAL}`, {
-      '/api/stores': { current: evalStore, note: null, stores: [main, evalStore] },
-      '/api/portals': { environment: 'sandbox', portals: [], other_environments: [] },
-      '/api/portals/overview': { rows: [], changes: 0, review: 0, preview: [] },
+    const main = { key: 'main:test', label: 'test', kind: 'main', workspace: null, path: 'data/db/test.sqlite', size: 22_000_000 };
+    const evalStore = { key: EVAL, label: 'eval · shop · 2026-10-22', kind: 'eval', workspace: 'pf-eval-shop-AbC123', path: 'data/db/sandbox.sqlite', size: 900_000 };
+    at(`/app/portals/shop/scans?store=${EVAL}`, {
+      '/api/stores?portal=shop': { current: evalStore, note: null, stores: [main, evalStore] },
+      '/api/portals': { environment: 'sandbox', portals: [{ id: 'shop', scans: 0, running: 0, last_scan_at: null }], other_environments: [] },
+      '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] },
     });
     expect(await screen.findByText('pf-eval-shop-AbC123')).toBeTruthy();
-    expect(screen.getByText('Data store: eval · shop · 2026-10-22')).toBeTruthy();
-    expect(screen.getByRole('link', { name: 'test' }).getAttribute('href')).toBe('/app/?store=main%3Atest');
+    // designer T-11: the store's name rides on the portal picker; read-only is in its name and menu
+    const store = await screen.findByRole('button', { name: 'Data store: eval · shop · 2026-10-22, read-only' });
+    fireEvent.click(store);
+    const menu = screen.getByRole('menu', { name: 'Data store' });
+    const test = within(menu).getByRole('menuitemradio', { name: /^test/ });
+    expect(test.getAttribute('href')).toBe('/app/portals/shop/scans?store=main%3Atest');
+    expect(test.textContent).toContain('data/db/test.sqlite · 22 MB · writes go through commands');
+    expect(within(menu).getByRole('menuitem', { name: 'Data store settings' }).getAttribute('href')).toContain('/app/portals/shop/settings');
     expect(screen.getByRole('link', { name: 'Help and glossary' }).getAttribute('href')).toBe(`/app/glossary?store=${encodeURIComponent(EVAL)}`);
   });
 
@@ -110,7 +116,8 @@ describe('As of', () => {
     });
     expect(await screen.findByText('As of model version 1')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Back to now' }).getAttribute('href')).toBe('/app/portals/shop/rules?as_of=now');
-    expect(await screen.findByText('As of version 1')).toBeTruthy();
+    fireEvent.click(await screen.findByRole('button', { name: 'As of: Version 1' }));
+    expect(within(screen.getByRole('menu', { name: 'Model versions' })).getByRole('menuitemradio', { name: /^Version 1/ }).getAttribute('aria-checked')).toBe('true');
   });
 
   it('asks for the versions one rule is in on its page (spec 042 F-09)', async () => {

@@ -218,11 +218,19 @@ exports[`where > names the same rows for every portal table 1`] = `
     "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
     "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
   },
+  "process_merges": {
+    "mine": "portal_id = ?",
+    "others": "portal_id <> ?",
+  },
   "process_model_revisions": {
     "mine": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?))",
     "others": "model_id IN (SELECT id FROM process_models WHERE process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?))",
   },
   "process_models": {
+    "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
+    "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
+  },
+  "process_scope_screens": {
     "mine": "process_id IN (SELECT id FROM ba_processes WHERE portal_id = ?)",
     "others": "process_id IN (SELECT id FROM ba_processes WHERE portal_id <> ?)",
   },

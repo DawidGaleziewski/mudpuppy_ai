@@ -22,7 +22,7 @@ import { planHref, recoverHref } from '../app/api-plan';
 import { scanKey, useScanGraph, useScanHead, type ScanFailure, type ScanGraph as Data, type ScanNode } from '../app/api-scan';
 import { writes } from '../app/api-write';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
-import { QueryState } from '../app/QueryState';
+import { GraphSkeleton, QueryState } from '../app/QueryState';
 import { ShownChip } from '../app/ShownChip';
 import { ShownStatus } from '../app/ShownStatus';
 import { stateHref } from './RecordedInspector';
@@ -311,7 +311,7 @@ function Body({ g }: { g: Data }) {
 export function ScanGraph({ scan }: { scan: string }) {
   const q = useScanGraph(scan);
   return (
-    <QueryState query={q} what="the scan's graph">
+    <QueryState query={q} what="the scan's graph" skeleton={<GraphSkeleton />}>
       {(g) => <Body g={g} />}
     </QueryState>
   );

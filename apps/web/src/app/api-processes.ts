@@ -35,6 +35,20 @@ export interface LooseScreen {
   shot: string | null;
   wire: string | null;
   scans: number;
+  /** The model screen it is a variant of (its page, its variants in the dialog). */
+  screen_key?: string | null;
+  last_seen?: string | null;
+  variants?: number;
+}
+
+/** A saved process the Add to process menu offers, with the screens already in it (designer T-05). */
+export interface Target {
+  id: string;
+  key: string;
+  name: string;
+  persona: string;
+  steps: number;
+  states: string[];
 }
 
 export interface ProcessList {
@@ -51,7 +65,12 @@ export interface ProcessList {
   suggested: StatusOut;
   loose: LooseScreen[];
   default_persona: string;
+  /** Every saved process in use, A–Z: what a screen can be added to (the list itself is paged). */
+  targets: Target[];
 }
+
+/** The screens in no process, sorted into processes (designer T-05). */
+export const looseHref = (portal: string) => `/app/portals/${encodeURIComponent(portal)}/processes/loose`;
 
 export const processesKey = (portal: string) => ['portals', portal, 'processes'] as const;
 
@@ -71,7 +90,8 @@ const processesApi = api.injectEndpoints({
   }),
 });
 
-export const useProcesses = (portal: string, archived: boolean, page: number) => processesApi.useProcessesQuery({ portal, archived, page });
+/** `enabled` false: not asked yet (a process page asks for the list only when Merge with… opens). */
+export const useProcesses = (portal: string, archived: boolean, page: number, enabled = true) => processesApi.useProcessesQuery({ portal, archived, page }, { skip: !enabled });
 
 /** One process's page, on a model (its default when left out). */
 export const processHref = (portal: string, key: string, model?: string) =>

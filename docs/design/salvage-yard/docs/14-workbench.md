@@ -275,6 +275,12 @@ Numbered so tests and tickets can cite them. "Generated view" = a `.sy-genview` 
 - **WB-UI-23** Confirm → `running` (cyan, "Resuming…", the button busy with the caret) → `done` (green, the result with links:
   "Resumed as scan 01a110e7-2068 · continues 01a110d5-2028") or `failed` (red, the command's message and ERR reference, "Try again").
   The result is also a line in the conversation.
+- **WB-UI-23a** (2.3, T-13) A command whose run **never starts** (the start call errors, or returns no run id within 30 s)
+  ends `failed` with the status word **Didn't start**, the fact **Created: nothing** (no scan, no pages, nothing in Scans),
+  the crawler's own sentence quoted under Why, and **Start again** (same arguments). The card binds only to the run id its
+  own start call returned; it never adopts another scan. When the run does start, the server places the **Live map** card at
+  `scan.started` (data lane, D-39), before any assistant text, with no generated mark and no "Why this view?"; until the
+  first page it shows `.sy-loader--block` "Waiting for the first page" in its final size.
 - **WB-UI-24** Undo exists only where the API can reverse it: `mark.add` shows Undo until a scan uses the mark → `undone`.
   Scans and attempts are never "undone"; the card says how to stop them instead.
 - **WB-UI-25** Commands run only on environments allowed for the beta (sandbox only during the beta, OW-1). Elsewhere the card shows the reason
