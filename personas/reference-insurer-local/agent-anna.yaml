@@ -1,0 +1,9 @@
+# An insurance agent who signs in
+
+id: agent-anna
+extends:
+  - ../_mixins/anonymous-base.yaml
+auth:
+  login: ref:AGENT_ANNA_LOGIN
+  password: ref:AGENT_ANNA_PASSWORD
+max_action_class: external-side-effect
