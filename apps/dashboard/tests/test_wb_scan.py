@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
 from pathlib import Path
 
@@ -52,6 +53,24 @@ def test_a_stopped_scan_names_where_and_why(tmp_path: Path) -> None:
     assert live.failed_at is not None and live.failed_at.route == "/kontakt"
     assert live.stop_reason == STOP_ERROR
     assert live.checkpoint == "/porownanie"
+
+
+def test_a_scan_the_person_stopped_says_so_not_the_crawlers_refusal(tmp_path: Path) -> None:
+    """R-104 (5): after a confirmed Stop the last call's error is the crawler's refusal."""
+    conn = _conn(tmp_path)
+    at = "2026-10-06T11:00:00.000Z"
+    insert(
+        conn, "workbench_commands", id="cmd-stop", conversation_id="conv-1", turn=1,
+        command="scan.stop", args_json=json.dumps({"scan": RUN}), reason="enough for now",
+        source="button", state="done", result_json=json.dumps({"run_id": RUN}), token_hash="0" * 64,
+        precondition_hash="x", idempotency_key="k-stop", expires_at="2999-01-01T00:00:00Z",
+        confirmed_at=at, confirmed_by="owner", created_at=at, updated_at=at,
+    )  # fmt: skip
+    live = q.scan_live(conn, RUN)
+    assert live is not None
+    assert live.stop_reason == q.STOPPED_BY_YOU
+    assert live.failed_at is None
+    assert not any(p.failed for p in live.route_pages)
 
 
 def test_a_running_scan_has_no_end_event_and_the_crawler_is_on_its_last_page(

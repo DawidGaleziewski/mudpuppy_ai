@@ -197,6 +197,34 @@ async function cleanStep(sc: ReplayScope, stateId: string): Promise<string | nul
   return readFile(sc.ctx.evidence.resolve(row.evidence_ref), 'utf8').catch(() => null);
 }
 
+/** What the page said after a press: alerts and native messages, else new text on a validation try. */
+async function pressMessages(
+  sc: ReplayScope,
+  target: ProbeTarget,
+  p: Pressed,
+  o: { group: ProbeTry['group']; sameStep: boolean; after: string },
+): Promise<FieldMessage[]> {
+  const messages = [...domMessages(o.after), ...p.native];
+  // Only for a validation try (a filter's happy press also shows new text, F-18@032), and against
+  // the step as first recorded: an earlier try's message can still be on the page.
+  if (messages.length === 0 && o.sameStep && o.group === 'validation')
+    messages.push(...textMessages((await cleanStep(sc, target.stateId)) ?? p.before, o.after));
+  return messages;
+}
+
+/** The press's HTTP status: an injected fault's, else the highest of its transition's calls. */
+async function pressHttpStatus(sc: ReplayScope, p: Pressed): Promise<number | null> {
+  const injected = p.fault?.status ?? null;
+  if (injected !== null) return injected;
+  if (!p.result.transition_id) return null;
+  const calls = await sc.ctx.db
+    .selectFrom('network_calls')
+    .select((eb) => eb.fn.max('status').as('status'))
+    .where('transition_id', '=', p.result.transition_id)
+    .executeTakeFirst();
+  return calls?.status ? Number(calls.status) : null;
+}
+
 /** The facts of a press, classified (plan decision 7). */
 export async function classifyPress(
   sc: ReplayScope,
@@ -208,19 +236,8 @@ export async function classifyPress(
   const stepAfter = rs.stepOfState.get(p.result.state_id) ?? null;
   const sameStep = p.result.route_template === target.route && stepAfter === target.stepId;
   const after = rs.lastObserved?.snapshot ?? '';
-  const messages = [...domMessages(after), ...p.native];
-  // Only for a validation try (a filter's happy press also shows new text, F-18@032), and against
-  // the step as first recorded: an earlier try's message can still be on the page.
-  if (messages.length === 0 && sameStep && t.group === 'validation')
-    messages.push(...textMessages((await cleanStep(sc, target.stateId)) ?? p.before, after));
-  const calls = p.result.transition_id
-    ? await ctx.db
-        .selectFrom('network_calls')
-        .select((eb) => eb.fn.max('status').as('status'))
-        .where('transition_id', '=', p.result.transition_id)
-        .executeTakeFirst()
-    : undefined;
-  const httpStatus = p.fault?.status ?? (calls?.status ? Number(calls.status) : null);
+  const messages = await pressMessages(sc, target, p, { group: t.group, sameStep, after });
+  const httpStatus = await pressHttpStatus(sc, p);
   const text = await rs.session.page.innerText('body').catch(() => '');
   const screen = await ctx.db
     .selectFrom('states')

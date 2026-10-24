@@ -7,21 +7,19 @@ import { Amendment, AmendmentRevision, type AmendmentChange } from '@mudpuppy/ch
 import { type MudPuppyDb } from '@mudpuppy/store';
 import { HttpError } from './http-error.js';
 
-type Row = Omit<Amendment, 'anchor_element'> & { anchor_element: string | null };
+/** An `amendments` row as stored: the anchor element is JSON text. */
+export type AmendmentRow = Omit<Amendment, 'anchor_element'> & { anchor_element: string | null };
 type RevisionRow = Omit<AmendmentRevision, 'anchor_element'> & { anchor_element: string | null };
 
-export function parseAmendment(row: Row): Amendment {
-  return Amendment.parse({
-    ...row,
-    anchor_element: row.anchor_element === null ? null : JSON.parse(row.anchor_element),
-  });
+/** A stored anchor element (JSON text or null); the schema checks its shape. */
+const anchorOf = (text: string | null): unknown => (text === null ? null : JSON.parse(text));
+
+export function parseAmendment(row: AmendmentRow): Amendment {
+  return Amendment.parse({ ...row, anchor_element: anchorOf(row.anchor_element) });
 }
 
 export function parseRevision(row: RevisionRow): AmendmentRevision {
-  return AmendmentRevision.parse({
-    ...row,
-    anchor_element: row.anchor_element === null ? null : JSON.parse(row.anchor_element),
-  });
+  return AmendmentRevision.parse({ ...row, anchor_element: anchorOf(row.anchor_element) });
 }
 
 const json = (a: Amendment['anchor_element']): string | null =>

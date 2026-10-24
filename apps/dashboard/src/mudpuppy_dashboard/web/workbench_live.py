@@ -236,7 +236,8 @@ def _messages(turns: list[WbTurn]) -> list[dict[str, Any]]:
     out: list[dict[str, Any]] = []
     for t in turns:
         role = "system" if t.is_event else "user"
-        out.append({"id": f"t{t.n}-asked", "role": role, "content": t.asked, "turn": t.n})
+        asked = queries_wb.event_line(t.asked) if t.is_event else t.asked
+        out.append({"id": f"t{t.n}-asked", "role": role, "content": asked, "turn": t.n})
         out += [
             {"id": f"t{t.n}-a{i}", "role": "assistant", "content": a, "turn": t.n}
             for i, a in enumerate(t.answer)

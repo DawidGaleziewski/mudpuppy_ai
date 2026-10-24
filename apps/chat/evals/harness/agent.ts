@@ -1,7 +1,9 @@
 /**
  * One headless assistant session: `claude -p` with the orchestrator's own system prompt and only
- * the chat server's two grouping tools (spec 038 FR-002). No other tool, so the assistant groups
- * from what `list_grouping_inputs` returns, as in the chat; it cannot read the ground truth.
+ * the chat server's two grouping tools (spec 038 FR-002), plus the read-only `workflow_state` the
+ * prompt tells it to call before guessing (R-97 (6): refused, one trial in three gave up, spec 045
+ * F-04). No other tool, so the assistant groups from what `list_grouping_inputs` returns, as in
+ * the chat; it cannot read the ground truth.
  */
 import { spawnSync } from 'node:child_process';
 import { join } from 'node:path';
@@ -13,6 +15,7 @@ import type { Workspace } from './workspace.js';
 export const GROUPING_TOOLS = [
   'mcp__mudpuppy-chat__list_grouping_inputs',
   'mcp__mudpuppy-chat__suggest_grouping',
+  'mcp__mudpuppy-chat__workflow_state',
 ] as const;
 
 /** Built-in tools the session must not use (the agent harness offers them by default). */

@@ -32,9 +32,9 @@ const STATUS: Record<CommandRefusal['code'], number> = {
   PAUSED: 409,
 };
 
-/** One line the assistant gets when a person confirms a scan command (D-5). */
+/** What the assistant gets when a person confirms a scan command (D-5): the fact, then the work. */
 export function launchText(label: string, prompt: string): string {
-  return `[event] The person confirmed: ${label}. Start the crawler agent with exactly this prompt:\n\n${prompt}`;
+  return `[event] The person confirmed: ${label}.\n\nStart the crawler agent with exactly this prompt:\n\n${prompt}`;
 }
 
 function refusing<T>(work: () => T): T {

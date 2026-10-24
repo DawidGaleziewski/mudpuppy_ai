@@ -69,4 +69,33 @@ describe('error flow', () => {
     service.close();
     await mem.opened.close();
   });
+
+  it('a turn whose setup throws still gets one error event with a logged reference (075 F-01)', async () => {
+    const mem = memoryStore();
+    const logsDir = join(dir, 'logs');
+    const service = new ChatService({
+      store: mem.store,
+      launch: () => {
+        throw new Error('launch failed before the session');
+      },
+      sessionRequest: () => ({ cwd: dir, mcpServers: [] }),
+      policy: () => ({ allow: true, reason: '' }),
+      logError: (input) => logError(input, { logsDir }),
+    });
+    const { conversation } = await service.createConversation({ portal: 'reference-insurer' });
+    const events: ChatEvent[] = [];
+    service.subscribe(conversation.id, null, (e) => events.push(e.event));
+    await service.send(conversation.id, 'hello');
+    await until(() => events.some((e) => e.type === 'idle'));
+    await service.drain(conversation.id);
+
+    const errors = events.filter(
+      (e): e is Extract<ChatEvent, { type: 'error' }> => e.type === 'error',
+    );
+    expect(errors).toHaveLength(1);
+    const record = await findError(errors[0]!.ref, { logsDir });
+    expect(record).toMatchObject({ where: 'chat-service turn', conversation_id: conversation.id });
+    service.close();
+    await mem.opened.close();
+  });
 });

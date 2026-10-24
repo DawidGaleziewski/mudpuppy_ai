@@ -56,7 +56,9 @@ for (const width of WIDTHS) {
       primary: document.querySelectorAll('.sy-btn--primary').length,
       intent: document.querySelectorAll('.sy-plate--intent').length,
     }));
-    await page.addScriptTag({ content: AXE });
+    // evaluated by the browser's tools, not as a page script: the console's CSP refuses inline
+    // scripts (R-94 (6)), and a CSP violation of the page itself still shows as a console error
+    await page.evaluate(AXE);
     const axe = await page.evaluate(async () => {
       // @ts-ignore axe is injected above
       const r = await window.axe.run(document, { resultTypes: ['violations'] });

@@ -26,6 +26,8 @@ refuses `className` and `style` in `src/pages`, `src/app` and `src/features`).
   `src/features/` (a feature's own organisms: the live Workbench); `src/pages/` (one file per
   page); `tests/`.
 - **Where each page's files live: `LAYOUT.md`.** Read it before adding a page or a hook.
+- A page's route goes through `page(path, () => import('../pages/X'), 'X')` in `App.tsx`: each
+  page is its own chunk (spec 077); `tests/render-at.tsx` loads them before a test renders.
 - Every link inside the app moves through React Router (`RouterAnchor.tsx`); a raw `<a>` is
   refused by lint. Links and API calls keep `?store=` and, on the model pages, `?as_of=`.
 - Every page renders inside `Shell` (one frame, drawn once); every write goes through

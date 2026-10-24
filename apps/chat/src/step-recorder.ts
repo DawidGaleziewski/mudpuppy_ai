@@ -175,6 +175,17 @@ export class StepRecorder {
     );
   }
 
+  /** Why a step whose work ended but did not complete failed. */
+  private stoppedMessage(row: StepRow, work: Work): string {
+    if (work.kind !== 'run') return 'The documentation stopped before it finished.';
+    if (work.status !== 'interrupted')
+      return `The ${row.step} stopped before it finished${work.warning ? `: ${work.warning}` : '.'}`;
+    // Nothing to resume (spec 011 F-07): usually an address nothing answers.
+    if (this.pagesOf(work.id) === 0)
+      return `The ${row.step} ended without recording any page (run ${work.id}). The portal's address may be wrong or the site down: check it under [settings], or ask the assistant what the crawler saw.`;
+    return `The ${row.step} was stopped before it finished (run ${work.id}). Ask the assistant to resume it; it continues from the pages still queued.`;
+  }
+
   /** Move open steps on from the recorded work. Returns the changes per conversation. */
   async reconcile(conversationId: string | null = null): Promise<Map<string, ChatEvent[]>> {
     const out = new Map<string, ChatEvent[]>();
@@ -214,23 +225,12 @@ export class StepRecorder {
         this.change(row, row.status, link);
         push(
           row,
-          await this.fail(
-            row,
-            work.kind === 'run'
-              ? work.status === 'interrupted'
-                ? this.pagesOf(work.id) === 0
-                  ? // Nothing to resume (spec 011 F-07): usually an address nothing answers.
-                    `The ${row.step} ended without recording any page (run ${work.id}). The portal's address may be wrong or the site down: check it under [settings], or ask the assistant what the crawler saw.`
-                  : `The ${row.step} was stopped before it finished (run ${work.id}). Ask the assistant to resume it; it continues from the pages still queued.`
-                : `The ${row.step} stopped before it finished${work.warning ? `: ${work.warning}` : '.'}`
-              : 'The documentation stopped before it finished.',
-            {
-              [work.kind]: work.id,
-              status: work.status,
-              warning: work.warning,
-              ...(work.kind === 'run' ? { pages: this.pagesOf(work.id) } : {}),
-            },
-          ),
+          await this.fail(row, this.stoppedMessage(row, work), {
+            [work.kind]: work.id,
+            status: work.status,
+            warning: work.warning,
+            ...(work.kind === 'run' ? { pages: this.pagesOf(work.id) } : {}),
+          }),
         );
       }
     }
@@ -248,15 +248,7 @@ export class StepRecorder {
     this.agentCalls.set(conversationId, calls);
     if (event.type === 'tool_started' && event.tool === 'Agent' && event.agent !== null) {
       calls.set(event.toolCallId, event.agent);
-      const steps = STEPS_OF_AGENT[event.agent];
-      if (steps === undefined) return [];
-      const events: StepEvent[] = [];
-      for (const row of this.openRows(conversationId))
-        if (steps.includes(row.step) && row.status === 'pending') {
-          const e = this.change(row, 'in_progress');
-          if (e !== null) events.push(e);
-        }
-      return events;
+      return this.agentStarted(conversationId, event.agent);
     }
     // The agent name may be known only at the end: its input streams in after the call starts.
     const finishedAgent =
@@ -275,15 +267,31 @@ export class StepRecorder {
       }
       return this.endChecks(conversationId, finishedAgent, event.toolCallId, event.status);
     }
-    if (event.type === 'idle') {
-      const waiting = this.backgroundCalls.get(conversationId) ?? [];
-      this.backgroundCalls.delete(conversationId);
-      const events: ChatEvent[] = [];
-      for (const w of waiting)
-        events.push(...(await this.endChecks(conversationId, w.agent, w.toolCallId, 'completed')));
-      return events;
-    }
+    if (event.type === 'idle') return this.turnEnded(conversationId);
     return [];
+  }
+
+  /** A crawler/ba subagent started: its pending steps are in progress. */
+  private agentStarted(conversationId: string, agent: string): StepEvent[] {
+    const steps = STEPS_OF_AGENT[agent];
+    if (steps === undefined) return [];
+    const events: StepEvent[] = [];
+    for (const row of this.openRows(conversationId))
+      if (steps.includes(row.step) && row.status === 'pending') {
+        const e = this.change(row, 'in_progress');
+        if (e !== null) events.push(e);
+      }
+    return events;
+  }
+
+  /** The turn ended: the subagents launched in the background are done, so check their steps. */
+  private async turnEnded(conversationId: string): Promise<ChatEvent[]> {
+    const waiting = this.backgroundCalls.get(conversationId) ?? [];
+    this.backgroundCalls.delete(conversationId);
+    const events: ChatEvent[] = [];
+    for (const w of waiting)
+      events.push(...(await this.endChecks(conversationId, w.agent, w.toolCallId, 'completed')));
+    return events;
   }
 
   /** Mark a run left running `interrupted`; false when it is no longer running. */

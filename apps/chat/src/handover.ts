@@ -41,41 +41,49 @@ function missedNotices(messages: readonly ChatMessage[]): ChatMessage[] {
     .slice(-MAX_NOTICES);
 }
 
-/** The context block, or null when there is nothing to pass. */
-export function handover(input: HandoverInput): string | null {
-  const lines: string[] = [];
-  // Newest row per step; a conversation can hold a step's portal before its own is set (F-22).
+/** Newest row per step; a conversation can hold a step's portal before its own is set (F-22). */
+function latestSteps(steps: readonly WorkflowStep[]): WorkflowStep[] {
   const latest = new Map<string, WorkflowStep>();
-  for (const s of [...input.steps].sort((a, b) => a.updated_at.localeCompare(b.updated_at)))
+  for (const s of [...steps].sort((a, b) => a.updated_at.localeCompare(b.updated_at)))
     latest.set(s.step, s);
-  const steps = [...latest.values()];
+  return [...latest.values()];
+}
+
+/** A new session's lines: that it is new, the portal and the steps. */
+function sessionLines(input: HandoverInput): string[] {
+  const steps = latestSteps(input.steps);
   const portal = input.conversation.portal_id ?? steps.at(-1)?.portal_id ?? null;
   // A brand-new conversation has nothing to hand over yet.
   const blank = input.kind === 'fresh' && portal === null && steps.length === 0;
-  if (input.kind !== 'continuing' && !blank) {
-    lines.push(
-      input.kind === 'restart'
-        ? 'Your earlier session of this conversation was lost; this is a new one.'
-        : 'This is a new session of this conversation.',
-    );
-    lines.push(portal === null ? 'Portal: not chosen yet.' : `Portal: ${portal}.`);
-    if (steps.length > 0)
-      lines.push(
-        `Steps: ${steps
-          .map((s) => `${s.step} ${s.status}${s.run_id === null ? '' : ` (run ${s.run_id})`}`)
-          .join('; ')}. Call workflow_state for details.`,
-      );
-  }
-  if (input.kind === 'restart') {
-    const recent = input.messages
-      .filter((m) => m.role === 'user' || m.role === 'assistant')
-      .slice(-RECENT_MESSAGES);
-    if (recent.length > 0) {
-      lines.push('Last messages:');
-      for (const m of recent)
-        lines.push(`- ${m.role === 'user' ? 'BA' : 'You'}: ${clip(m.content)}`);
-    }
-  }
+  if (input.kind === 'continuing' || blank) return [];
+  const lines = [
+    input.kind === 'restart'
+      ? 'Your earlier session of this conversation was lost; this is a new one.'
+      : 'This is a new session of this conversation.',
+    portal === null ? 'Portal: not chosen yet.' : `Portal: ${portal}.`,
+  ];
+  const step = (s: WorkflowStep) => `${s.step} ${s.status}${s.run_id === null ? '' : ` (run ${s.run_id})`}`;
+  if (steps.length > 0)
+    lines.push(`Steps: ${steps.map(step).join('; ')}. Call workflow_state for details.`);
+  return lines;
+}
+
+/** After a lost session, the last messages it had seen. */
+function recentLines(input: HandoverInput): string[] {
+  if (input.kind !== 'restart') return [];
+  const recent = input.messages
+    .filter((m) => m.role === 'user' || m.role === 'assistant')
+    .slice(-RECENT_MESSAGES);
+  if (recent.length === 0) return [];
+  return [
+    'Last messages:',
+    ...recent.map((m) => `- ${m.role === 'user' ? 'BA' : 'You'}: ${clip(m.content)}`),
+  ];
+}
+
+/** The context block, or null when there is nothing to pass. */
+export function handover(input: HandoverInput): string | null {
+  const lines = [...sessionLines(input), ...recentLines(input)];
   const notices = missedNotices(input.messages);
   if (notices.length > 0) {
     lines.push('Shown to the BA since your last reply:');

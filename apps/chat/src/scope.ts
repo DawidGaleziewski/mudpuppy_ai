@@ -79,6 +79,39 @@ function score(query: string[], text: string): number {
   return hit.length / query.length;
 }
 
+/** The traced processes, each with its states in step order. */
+function tracedCandidates(
+  raw: BetterSqlite3.Database,
+  portal: string,
+  q: string[],
+  byId: Map<string, StateRef>,
+): Candidate[] {
+  const traced = raw
+    .prepare(`SELECT id, name, goal FROM processes WHERE portal_id = ? AND outcome IS NOT NULL`)
+    .all(portal) as { id: string; name: string; goal: string }[];
+  const stepsOf = raw.prepare(
+    `SELECT state_before, state_after FROM process_steps WHERE process_id = ? ORDER BY ord`,
+  );
+  return traced.map((p) => {
+    const ids: string[] = [];
+    for (const s of stepsOf.all(p.id) as {
+      state_before: string | null;
+      state_after: string | null;
+    }[])
+      for (const id of [s.state_before, s.state_after])
+        if (id !== null && !ids.includes(id)) ids.push(id);
+    const refs = ids.map((id) => byId.get(id)).filter((s): s is StateRef => s !== undefined);
+    return {
+      source: 'traced_process',
+      name: p.name,
+      startStateId: refs[0]?.id ?? null,
+      endStateId: refs.at(-1)?.id ?? null,
+      states: refs,
+      score: score(q, `${p.name} ${p.goal} ${refs.map((r) => r.title).join(' ')}`),
+    };
+  });
+}
+
 export function listProcessCandidates(
   raw: BetterSqlite3.Database,
   portal: string,
@@ -95,32 +128,7 @@ export function listProcessCandidates(
   if (states.length === 0)
     return { candidates: [], hint: 'nothing is mapped for this portal yet: scan it first' };
 
-  const out: Candidate[] = [];
-
-  const traced = raw
-    .prepare(`SELECT id, name, goal FROM processes WHERE portal_id = ? AND outcome IS NOT NULL`)
-    .all(portal) as { id: string; name: string; goal: string }[];
-  const stepsOf = raw.prepare(
-    `SELECT state_before, state_after FROM process_steps WHERE process_id = ? ORDER BY ord`,
-  );
-  for (const p of traced) {
-    const ids: string[] = [];
-    for (const s of stepsOf.all(p.id) as {
-      state_before: string | null;
-      state_after: string | null;
-    }[])
-      for (const id of [s.state_before, s.state_after])
-        if (id !== null && !ids.includes(id)) ids.push(id);
-    const refs = ids.map((id) => byId.get(id)).filter((s): s is StateRef => s !== undefined);
-    out.push({
-      source: 'traced_process',
-      name: p.name,
-      startStateId: refs[0]?.id ?? null,
-      endStateId: refs.at(-1)?.id ?? null,
-      states: refs,
-      score: score(q, `${p.name} ${p.goal} ${refs.map((r) => r.title).join(' ')}`),
-    });
-  }
+  const out = tracedCandidates(raw, portal, q, byId);
 
   const documented = raw
     .prepare(

@@ -63,6 +63,8 @@ interface Runtime {
   /** Serialises persistence and publishing so events keep their order. */
   queue: Promise<void>;
   idleWaiters: (() => void)[];
+  /** An `error` event was handled in the running turn (AcpChat logs and emits its own). */
+  turnErrored: boolean;
 }
 
 export type AgentStatus = 'up' | 'down' | 'idle';
@@ -230,6 +232,7 @@ export class ChatService {
         text: '',
         queue: Promise.resolve(),
         idleWaiters: [],
+        turnErrored: false,
       };
       this.runtimes.set(conversationId, rt);
     }
@@ -259,6 +262,7 @@ export class ChatService {
 
   /** Persist what needs persisting, then publish; strictly in arrival order. */
   private handle(conversationId: string, rt: Runtime, event: ChatEvent, observe = true): void {
+    if (event.type === 'error') rt.turnErrored = true;
     let extra: ChatEvent[] = [];
     rt.queue = rt.queue
       .then(async () => {
@@ -402,6 +406,17 @@ export class ChatService {
     return promptWithHandover(handover({ kind, conversation, steps, messages }), text);
   }
 
+  private async failTurn(conversationId: string, rt: Runtime, error: unknown): Promise<void> {
+    const message = 'The assistant could not start this turn.';
+    const { ref, logged } = await this.opts.logError({
+      conversation_id: conversationId,
+      where: 'chat-service turn',
+      message,
+      detail: error,
+    });
+    this.handle(conversationId, rt, { type: 'error', ref, message, logged });
+  }
+
   private async runTurn(
     conversationId: string,
     rt: Runtime,
@@ -409,6 +424,7 @@ export class ChatService {
     seq: number,
   ): Promise<void> {
     let finished = false;
+    rt.turnErrored = false;
     try {
       const { chat, kind } = await this.ensureChat(conversationId, rt);
       const idle = new Promise<void>((resolve) => {
@@ -418,8 +434,10 @@ export class ChatService {
       finished = true;
       // The agent's own message_done and idle events arrive on the update pump; wait briefly.
       await Promise.race([idle, new Promise<void>((r) => setTimeout(r, 1000))]);
-    } catch {
-      // AcpChat already logged and emitted an error event with a ref.
+    } catch (error) {
+      // AcpChat logs and emits its own failures; a setup step's (a conversation row that does
+      // not parse, a launch that throws) would otherwise leave the person waiting (spec 075 F-01).
+      if (!rt.turnErrored) await this.failTurn(conversationId, rt, error);
       rt.needsRestart = rt.chat === null || !rt.chat.alive;
     } finally {
       if (!finished) this.handle(conversationId, rt, { type: 'idle' });

@@ -18,8 +18,10 @@ pnpm --dir apps/chat eval reference-insurer [--store <workspace>] [--budget-usd 
   person stands after scanning, before the narrow step. The source is only read.
 - **The trial**: one headless `claude -p` session with the orchestrator's own system prompt
   (`apps/chat/agents/orchestrator.md`), the chat service's fresh-session handover and exactly what
-  the "Ask the assistant to regroup" button says. Only the chat server's `list_grouping_inputs` and
-  `suggest_grouping` are allowed; the built-in tools are off, so it cannot read the ground truth.
+  the "Ask the assistant to regroup" button says. Only the chat server's `list_grouping_inputs`,
+  `suggest_grouping` and the read-only `workflow_state` (since spec 077, R-97 (6): its prompt says
+  to call it, and a refusal made one trial in three give up) are allowed; the built-in tools are
+  off, so it cannot read the ground truth.
 - **Outcome**: the open `grouping_suggestions` in the workspace store. The workspace is kept for
   reading (removed only after a dry run).
 - `--dry-run` builds the workspace and grades the empty outcome (everything 0) without a paid call.

@@ -4080,7 +4080,9 @@ Storybook) and reads the dashboard's JSON API under `/api`. The dashboard serves
 Older addresses (`/states/…`, `/docs/…`, `/runs/…`) redirect to their React page. The
 header's data-store menu and As of are kept in the page address. Every UI change follows
 the skill `mudpuppy-react-ui`; the code's shape follows `frontend-architecture` (server
-state in RTK Query, multi-field forms in React Hook Form with a zod schema).
+state in RTK Query, multi-field forms in React Hook Form with a zod schema). Each page's
+code loads when the page is first opened, and the page is sent with a Content Security
+Policy: scripts and connections from the dashboard's own address only.
 
 *Example:* http://127.0.0.1:8765/app/portals/reference-insurer-local/scans
 

@@ -1,42 +1,9 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, type ComponentType } from 'react';
 import { Provider, useDispatch } from 'react-redux';
 import { createBrowserRouter, NavigationType, Outlet, RouterProvider, useLocation, useNavigationType } from 'react-router';
-import { LinkProvider } from '../design-system';
-import { Access } from '../pages/Access';
-import { Activity } from '../pages/Activity';
-import { Change } from '../pages/Change';
-import { ScansByProcess } from '../pages/ScansByProcess';
-import { Workbench } from '../pages/Workbench';
-import { Search } from '../pages/Search';
-import { Changes } from '../pages/Changes';
-import { DocRecord } from '../pages/DocRecord';
-import { Docs } from '../pages/Docs';
-import { DocSession } from '../pages/DocSession';
-import { ErrorRef } from '../pages/ErrorRef';
-import { Glossary, GlossaryArticle, Wiki, WikiArticle } from '../pages/Glossary';
-import { NewPortal } from '../pages/NewPortal';
+import { LinkProvider, State } from '../design-system';
 import { NotFound } from '../pages/NotFound';
-import { PortalHome } from '../pages/PortalHome';
-import { Portals } from '../pages/Portals';
-import { Process } from '../pages/Process';
-import { ProcessCompare } from '../pages/ProcessCompare';
-import { ProcessDocumentation } from '../pages/ProcessDocumentation';
-import { ProcessHistory } from '../pages/ProcessHistory';
-import { Processes } from '../pages/Processes';
-import { RecordedPages } from '../pages/RecordedPages';
 import { RecordingRedirect } from './Recording';
-import { Review } from '../pages/Review';
-import { Rule } from '../pages/Rule';
-import { Rules } from '../pages/Rules';
-import { SameScreen } from '../pages/SameScreen';
-import { Scan } from '../pages/Scan';
-import { ScanPlan } from '../pages/ScanPlan';
-import { ScanRecover } from '../pages/ScanRecover';
-import { Scans } from '../pages/Scans';
-import { Screen } from '../pages/Screen';
-import { Settings } from '../pages/Settings';
-import { Screens } from '../pages/Screens';
-import { ScreensMap } from '../pages/ScreensMap';
 import { currentAsOf } from './asOf';
 import { currentStore } from './store';
 import { rememberAddress } from './listAddress';
@@ -133,55 +100,66 @@ function Routed() {
   );
 }
 
+/**
+ * A page whose code loads when it is first opened (R-105 (1)): each page is its own chunk, so the
+ * first load holds the frame, the design system and the state libraries only.
+ */
+function page<K extends string>(path: string, load: () => Promise<Record<K, ComponentType>>, name: K) {
+  return { path, lazy: { Component: async () => (await load())[name] } };
+}
+
 /** The console's pages, under `/app/` (served by the dashboard; Vite in development). */
 const pages = [
-  { path: '/app/', element: <Portals /> },
-  { path: '/app/portals/new', element: <NewPortal /> },
-  { path: '/app/portals/:portal', element: <PortalHome /> },
-  { path: '/app/portals/:portal/changes', element: <Changes /> },
-  { path: '/app/portals/:portal/changes/:id', element: <Change /> },
-  { path: '/app/portals/:portal/docs', element: <Docs /> },
-  { path: '/app/portals/:portal/docs/sessions/:session', element: <DocSession /> },
-  { path: '/app/portals/:portal/docs/:key', element: <DocRecord /> },
-  { path: '/app/portals/:portal/processes', element: <Processes /> },
-  { path: '/app/portals/:portal/processes/:key', element: <Process /> },
-  { path: '/app/portals/:portal/processes/:key/compare', element: <ProcessCompare /> },
-  { path: '/app/portals/:portal/processes/:key/history', element: <ProcessHistory /> },
-  { path: '/app/portals/:portal/processes/:key/documentation', element: <ProcessDocumentation /> },
-  { path: '/app/portals/:portal/review', element: <Review /> },
-  { path: '/app/portals/:portal/rules', element: <Rules /> },
-  { path: '/app/portals/:portal/same-screen', element: <SameScreen /> },
-  { path: '/app/portals/:portal/rules/:key', element: <Rule /> },
-  { path: '/app/portals/:portal/scans', element: <Scans /> },
-  { path: '/app/portals/:portal/settings', element: <Settings /> },
-  { path: '/app/portals/:portal/screens', element: <Screens /> },
-  { path: '/app/portals/:portal/screens/map', element: <ScreensMap /> },
-  { path: '/app/portals/:portal/screens/recorded', element: <RecordedPages /> },
-  { path: '/app/portals/:portal/screens/:screenKey', element: <Screen /> },
+  page('/app/', () => import('../pages/Portals'), 'Portals'),
+  page('/app/portals/new', () => import('../pages/NewPortal'), 'NewPortal'),
+  page('/app/portals/:portal', () => import('../pages/PortalHome'), 'PortalHome'),
+  page('/app/portals/:portal/changes', () => import('../pages/Changes'), 'Changes'),
+  page('/app/portals/:portal/changes/:id', () => import('../pages/Change'), 'Change'),
+  page('/app/portals/:portal/docs', () => import('../pages/Docs'), 'Docs'),
+  page('/app/portals/:portal/docs/sessions/:session', () => import('../pages/DocSession'), 'DocSession'),
+  page('/app/portals/:portal/docs/:key', () => import('../pages/DocRecord'), 'DocRecord'),
+  page('/app/portals/:portal/processes', () => import('../pages/Processes'), 'Processes'),
+  page('/app/portals/:portal/processes/:key', () => import('../pages/Process'), 'Process'),
+  page('/app/portals/:portal/processes/:key/compare', () => import('../pages/ProcessCompare'), 'ProcessCompare'),
+  page('/app/portals/:portal/processes/:key/history', () => import('../pages/ProcessHistory'), 'ProcessHistory'),
+  page('/app/portals/:portal/processes/:key/documentation', () => import('../pages/ProcessDocumentation'), 'ProcessDocumentation'),
+  page('/app/portals/:portal/review', () => import('../pages/Review'), 'Review'),
+  page('/app/portals/:portal/rules', () => import('../pages/Rules'), 'Rules'),
+  page('/app/portals/:portal/same-screen', () => import('../pages/SameScreen'), 'SameScreen'),
+  page('/app/portals/:portal/rules/:key', () => import('../pages/Rule'), 'Rule'),
+  page('/app/portals/:portal/scans', () => import('../pages/Scans'), 'Scans'),
+  page('/app/portals/:portal/settings', () => import('../pages/Settings'), 'Settings'),
+  page('/app/portals/:portal/screens', () => import('../pages/Screens'), 'Screens'),
+  page('/app/portals/:portal/screens/map', () => import('../pages/ScreensMap'), 'ScreensMap'),
+  page('/app/portals/:portal/screens/recorded', () => import('../pages/RecordedPages'), 'RecordedPages'),
+  page('/app/portals/:portal/screens/:screenKey', () => import('../pages/Screen'), 'Screen'),
   { path: '/app/states/:state', element: <RecordingRedirect /> },
-  { path: '/app/errors/:ref', element: <ErrorRef /> },
-  { path: '/app/portals/:portal/scans/plan', element: <ScanPlan /> },
-  { path: '/app/portals/:portal/scans/by-process', element: <ScansByProcess /> },
-  { path: '/app/portals/:portal/scans/activity', element: <Activity /> },
-  { path: '/app/portals/:portal/screens/access', element: <Access /> },
-  { path: '/app/search', element: <Search /> },
-  { path: '/app/portals/:portal/workbench', element: <Workbench /> },
-  // spec 075: the live Workbench (A2UI, ~450 kB) loads only when opened
-  {
-    path: '/app/portals/:portal/workbench/live',
-    lazy: async () => ({ Component: (await import('../features/workbench-live/LiveWorkbench')).LiveWorkbench }),
-  },
-  { path: '/app/glossary', element: <Glossary /> },
-  { path: '/app/glossary/pages/:slug', element: <GlossaryArticle /> },
-  { path: '/app/glossary/wiki', element: <Wiki /> },
-  { path: '/app/glossary/wiki/:slug', element: <WikiArticle /> },
-  { path: '/app/scans/:scan/recover', element: <ScanRecover /> },
-  { path: '/app/scans/:scan', element: <Scan /> },
-  { path: '/app/scans/:scan/:tab', element: <Scan /> },
+  page('/app/errors/:ref', () => import('../pages/ErrorRef'), 'ErrorRef'),
+  page('/app/portals/:portal/scans/plan', () => import('../pages/ScanPlan'), 'ScanPlan'),
+  page('/app/portals/:portal/scans/by-process', () => import('../pages/ScansByProcess'), 'ScansByProcess'),
+  page('/app/portals/:portal/scans/activity', () => import('../pages/Activity'), 'Activity'),
+  page('/app/portals/:portal/screens/access', () => import('../pages/Access'), 'Access'),
+  page('/app/search', () => import('../pages/Search'), 'Search'),
+  page('/app/portals/:portal/workbench', () => import('../pages/Workbench'), 'Workbench'),
+  page('/app/portals/:portal/workbench/live', () => import('../features/workbench-live/LiveWorkbench'), 'LiveWorkbench'),
+  page('/app/glossary', () => import('../pages/Glossary'), 'Glossary'),
+  page('/app/glossary/pages/:slug', () => import('../pages/Glossary'), 'GlossaryArticle'),
+  page('/app/glossary/wiki', () => import('../pages/Glossary'), 'Wiki'),
+  page('/app/glossary/wiki/:slug', () => import('../pages/Glossary'), 'WikiArticle'),
+  page('/app/scans/:scan/recover', () => import('../pages/ScanRecover'), 'ScanRecover'),
+  page('/app/scans/:scan', () => import('../pages/Scan'), 'Scan'),
+  page('/app/scans/:scan/:tab', () => import('../pages/Scan'), 'Scan'),
   { path: '*', element: <NotFound /> },
 ];
 
-export const routes = [{ element: <Routed />, children: pages }];
+export const routes = [
+  {
+    element: <Routed />,
+    children: pages,
+    // the first page's code is still on its way (a move between pages keeps the old page instead)
+    hydrateFallbackElement: <State loading title="Opening the page" />,
+  },
+];
 
 const store = makeStore();
 const router = createBrowserRouter(routes);

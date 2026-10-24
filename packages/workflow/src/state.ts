@@ -131,6 +131,23 @@ function fromRuns(runs: readonly RunFact[], noun: string): Omit<StepState, 'step
   return { status: 'todo', detail: `no ${noun} yet`, errorRef: null };
 }
 
+/** The process-trace step: running, how many processes were traced, or how the last one ended. */
+function mapStep(input: WorkflowInput, traceRuns: WorkflowInput['runs']): Omit<StepState, 'step'> {
+  if (traceRuns.some((r) => r.status === 'running'))
+    return { status: 'in_progress', detail: 'process trace running', errorRef: null };
+  const mapped = input.processes.filter((p) => p.outcome !== null);
+  if (mapped.length > 0)
+    return {
+      status: 'done',
+      detail: `${String(mapped.length)} process(es) traced`,
+      errorRef: null,
+    };
+  const last = fromRuns(traceRuns, 'process trace');
+  const detail =
+    last.status === 'failed' ? 'last process trace did not finish' : 'no process traced yet';
+  return { ...last, detail };
+}
+
 function derived(input: WorkflowInput): Record<Step, Omit<StepState, 'step'>> {
   const mapRuns = input.runs.filter((r) => r.mode === MAP_MODE);
   const traceRuns = input.runs.filter((r) => r.mode === TRACE_MODE);
@@ -138,26 +155,7 @@ function derived(input: WorkflowInput): Record<Step, Omit<StepState, 'step'>> {
   if (scan.status === 'done' && input.frontierPending > 0)
     scan.detail = `${scan.detail}; ${String(input.frontierPending)} pages still queued`;
 
-  const mapped = input.processes.filter((p) => p.outcome !== null);
-  let map: Omit<StepState, 'step'>;
-  if (traceRuns.some((r) => r.status === 'running'))
-    map = {
-      status: 'in_progress',
-      detail: 'process trace running',
-      errorRef: null,
-    };
-  else if (mapped.length > 0)
-    map = {
-      status: 'done',
-      detail: `${String(mapped.length)} process(es) traced`,
-      errorRef: null,
-    };
-  else
-    map = {
-      ...fromRuns(traceRuns, 'process trace'),
-      detail: 'no process traced yet',
-    };
-  if (map.status === 'failed') map.detail = 'last process trace did not finish';
+  const map = mapStep(input, traceRuns);
 
   const narrow: Omit<StepState, 'step'> =
     input.scopes.length > 0
@@ -285,14 +283,47 @@ function newestRecorded(rows: readonly RecordedStep[]): Map<Step, RecordedStep> 
   return out;
 }
 
+/** What a scan still needs before it can start. */
+function missingScanInputs(input: WorkflowInput): string[] {
+  const missing: [boolean, string][] = [
+    [input.portal === null, 'portal'],
+    [!input.portalConfigured, 'portal URL'],
+    [input.personas.length === 0, 'persona'],
+    [!input.credentialsStored, 'test-user credentials'],
+  ];
+  return missing.filter(([lacking]) => lacking).map(([, what]) => what);
+}
+
+/** Why the scan cannot be continued, if it cannot. */
+function continueMissing(scanned: boolean, scanBusy: boolean, unfinished: boolean): string[] {
+  if (!scanned) return ['a completed scan'];
+  if (scanBusy) return ['the running scan to finish'];
+  return unfinished ? [] : ['queued pages (the scan has nothing left to visit)'];
+}
+
+/** Documenting needs a scan, a scoped process and no documentation already running. */
+function documentMove(
+  input: WorkflowInput,
+  steps: Record<Step, Omit<StepState, 'step'>>,
+  needScan: string[],
+): NextMove {
+  const unscoped = input.scopes.length === 0;
+  const running = steps.document.status === 'in_progress';
+  return {
+    move: 'document',
+    valid: needScan.length === 0 && !unscoped && !running,
+    missing: [
+      ...needScan,
+      ...(unscoped ? ['a process scope (pick its start and end)'] : []),
+      ...(running ? ['the running documentation to finish'] : []),
+    ],
+  };
+}
+
 function moves(input: WorkflowInput, steps: Record<Step, Omit<StepState, 'step'>>): NextMove[] {
   const scanned = input.statesRecorded > 0;
   const scanBusy = steps.scan.status === 'in_progress' || steps.scan.status === 'pending';
-  const missingScanInputs: string[] = [];
-  if (input.portal === null) missingScanInputs.push('portal');
-  if (!input.portalConfigured) missingScanInputs.push('portal URL');
-  if (input.personas.length === 0) missingScanInputs.push('persona');
-  if (!input.credentialsStored) missingScanInputs.push('test-user credentials');
+  const scanInputs = missingScanInputs(input);
   const needScan = scanned ? [] : ['a completed scan'];
   const noOther = (busy: boolean): string[] => (busy ? ['the running scan to finish'] : []);
   const unfinished =
@@ -302,19 +333,13 @@ function moves(input: WorkflowInput, steps: Record<Step, Omit<StepState, 'step'>
     {
       // A scanned portal may get a new scan too, e.g. one focused on a part (spec 011 FR-018).
       move: 'scan',
-      valid: !scanBusy && missingScanInputs.length === 0,
-      missing: [...noOther(scanBusy), ...missingScanInputs],
+      valid: !scanBusy && scanInputs.length === 0,
+      missing: [...noOther(scanBusy), ...scanInputs],
     },
     {
       move: 'continue_scan',
       valid: scanned && !scanBusy && unfinished,
-      missing: !scanned
-        ? needScan
-        : scanBusy
-          ? noOther(true)
-          : unfinished
-            ? []
-            : ['queued pages (the scan has nothing left to visit)'],
+      missing: continueMissing(scanned, scanBusy, unfinished),
     },
     {
       move: 'map_process',
@@ -322,15 +347,7 @@ function moves(input: WorkflowInput, steps: Record<Step, Omit<StepState, 'step'>
       missing: [...needScan, ...noOther(scanBusy)],
     },
     { move: 'narrow_process', valid: scanned, missing: needScan },
-    {
-      move: 'document',
-      valid: scanned && input.scopes.length > 0 && steps.document.status !== 'in_progress',
-      missing: [
-        ...needScan,
-        ...(input.scopes.length === 0 ? ['a process scope (pick its start and end)'] : []),
-        ...(steps.document.status === 'in_progress' ? ['the running documentation to finish'] : []),
-      ],
-    },
+    documentMove(input, steps, needScan),
     { move: 'amend', valid: scanned, missing: needScan },
     {
       move: 'review_superseded',

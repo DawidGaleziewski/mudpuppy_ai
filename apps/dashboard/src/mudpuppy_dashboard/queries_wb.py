@@ -17,6 +17,14 @@ EVENT = "workbench_event"  # chat_messages.tool_name of an event turn (apps/chat
 # and the goal of a live conversation (workbench-live.ts).
 CHOICE = "workbench_choice"
 LIVE_GOAL = "workbench-live"
+EVENT_PREFIX = "[event] "
+
+
+def event_line(text: str) -> str:
+    """An event as the person reads it: its fact, without the marker or what the assistant is
+    told to do after the blank line (apps/chat `liveConfirmedText`; R-104 (5))."""
+    fact = text.split("\n\n", 1)[0]
+    return fact.removeprefix(EVENT_PREFIX)
 
 
 @dataclass(frozen=True)

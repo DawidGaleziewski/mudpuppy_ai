@@ -1,16 +1,33 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { Provider } from 'react-redux';
-import { createMemoryRouter, RouterProvider } from 'react-router';
+import type { ComponentType } from 'react';
+import { createMemoryRouter, RouterProvider, type RouteObject } from 'react-router';
 import { vi } from 'vitest';
 import { routes } from '../src/app/App';
 import { makeStore } from '../src/app/state/store';
 
+type Lazy = { Component?: () => Promise<ComponentType> };
+
+/** The routes with every page's code already loaded: a test waits for its page's data only. */
+async function loaded(list: RouteObject[]): Promise<RouteObject[]> {
+  return Promise.all(
+    list.map(async ({ lazy, children, ...route }) => {
+      const load = (lazy as Lazy | undefined)?.Component;
+      const kids = children ? { children: await loaded(children) } : {};
+      return { ...route, ...kids, ...(load ? { Component: await load() } : {}) } as RouteObject;
+    }),
+  );
+}
+
+const pages = await loaded(routes);
+
 /**
  * Render the app at `path` with the API answering `bodies[url]` (status `status`) and 404 for any
  * other URL; a key "POST /api/…" answers only that method (a list and its create share a URL).
- * Returns the fetch mock, to read the URLs the page asked for.
+ * Returns the fetch mock, to read the URLs the page asked for. `table` is the app's own lazy
+ * routes for a test of the code splitting itself.
  */
-export function at(path: string, bodies: Record<string, unknown>, status = 200) {
+export function at(path: string, bodies: Record<string, unknown>, status = 200, table: RouteObject[] = pages) {
   const fetch = vi.fn((url: string, init?: RequestInit) => {
     // "POST /api/…" answers only that method; a plain URL answers every method.
     const method = init?.method ?? 'GET';
@@ -26,7 +43,7 @@ export function at(path: string, bodies: Record<string, unknown>, status = 200) 
   // a fresh store per test: no cached read leaks from one test into the next
   render(
     <Provider store={makeStore()}>
-      <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
+      <RouterProvider router={createMemoryRouter(table, { initialEntries: [path] })} />
     </Provider>,
   );
   return fetch;

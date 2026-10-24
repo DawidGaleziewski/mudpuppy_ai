@@ -17,6 +17,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   assistant's views as Google's A2UI drawn by `@a2ui/react`, loaded only on that page.
 
 ### Fixed
+- **React and 2.0 leftovers that needed no owner input** (spec 077, v2.9.2, 2026-10-24; R-104
+  (3), (5), R-105 (1), (4), R-94 (6), R-97 (5), (6), (8)). The live Workbench: a turn that fails
+  before the assistant starts now shows an error with its reference instead of waiting forever;
+  after you press Stop the scan says "You pressed Stop." (not the crawler's refusal) and no page
+  is marked failed; event lines show the fact only, without the instructions meant for the
+  assistant. The console loads each page's code when it is opened (first load 859 → 230 kB) and
+  is sent with a Content Security Policy (scripts and connections from its own address only). The
+  crawler eval's `--dry-run` starts both MCP servers and lists their tools, so a broken server
+  shows before a paid trial; the grouping eval may call the read-only `workflow_state`. Chat and
+  workflow code split where it was too complex (lint warnings 32 → 14 and 4 → 0).
 - A credential can be stored from the console for any environment a portal declares, local-dev
   too (spec 075 F-02).
 - **R-102: what the React port left behind** (spec 074, v2.8.2, 2026-10-24). Six things the htmx

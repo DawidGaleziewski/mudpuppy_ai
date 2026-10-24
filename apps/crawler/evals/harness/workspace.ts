@@ -7,6 +7,15 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 
+/** What every workspace holds besides its store: the portals, personas and migrations. */
+export const WORKSPACE_PARTS = ['portals', 'personas', join('data', 'migrations')];
+
+/** Copy each of `parts` that `from` has into `to` (the new workspace and the BA replay's). */
+export function copyParts(from: string, to: string, parts: readonly string[]): void {
+  for (const part of parts)
+    if (existsSync(join(from, part))) cpSync(join(from, part), join(to, part), { recursive: true });
+}
+
 /**
  * A fresh workspace with copies of portals/, personas/ and the migrations, so the developer's
  * store is never touched. The portal's credential rows are copied in (they stay encrypted; the
@@ -14,9 +23,7 @@ import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
  */
 export function createWorkspace(root: string, portal: string, env: string): string {
   const ws = mkdtempSync(join(tmpdir(), `pf-eval-${portal}-`));
-  cpSync(join(root, 'portals'), join(ws, 'portals'), { recursive: true });
-  cpSync(join(root, 'personas'), join(ws, 'personas'), { recursive: true });
-  cpSync(join(root, 'data', 'migrations'), join(ws, 'data', 'migrations'), { recursive: true });
+  copyParts(root, ws, WORKSPACE_PARTS);
   const main = dbPathFor(join(root, 'data'), env);
   const target = openDb(dbPathFor(join(ws, 'data'), env));
   migrateUp(target.raw, join(ws, 'data', 'migrations'));

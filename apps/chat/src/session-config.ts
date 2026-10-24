@@ -25,18 +25,18 @@ export function readAgentFile(path: string): AgentFile {
   const m = /^---\n([\s\S]*?)\n---\n([\s\S]*)$/.exec(text);
   if (m === null) throw new Error(`${path}: no frontmatter`);
   const front = parse(m[1] ?? '') as Record<string, unknown>;
-  const list = (v: unknown): string[] =>
-    typeof v === 'string'
-      ? v
-          .split(',')
-          .map((s) => s.trim())
-          .filter((s) => s !== '')
-      : Array.isArray(v)
-        ? v.map(String)
-        : [];
+  const list = (v: unknown): string[] => {
+    if (Array.isArray(v)) return v.map(String);
+    if (typeof v !== 'string') return [];
+    return v
+      .split(',')
+      .map((s) => s.trim())
+      .filter((s) => s !== '');
+  };
+  const words = (v: unknown): string => (typeof v === 'string' ? v : '');
   return {
-    name: String(front.name ?? ''),
-    description: String(front.description ?? ''),
+    name: words(front.name),
+    description: words(front.description),
     tools: list(front.tools),
     model: typeof front.model === 'string' ? front.model : null,
     skills: list(front.skills),

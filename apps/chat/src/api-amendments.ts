@@ -31,19 +31,50 @@ function decideFromQuery(url: URL): unknown {
   };
 }
 
+/** One amendment's write or read: `portal`, `id`, the request (for its body or query). */
+type Act = (
+  s: AmendmentService,
+  portal: string,
+  id: string,
+  req: IncomingMessage,
+) => Promise<unknown>;
+
+const reapply: Act = async (s, portal, id, req) =>
+  s.reapply(portal, id, parseBody(ReapplyBody, await readJson(req)));
+
+/** `METHOD verb` (on `/amendments/{id}/{verb}`) or `METHOD` (on `/amendments/{id}`). */
+const ACTS: Record<string, Act> = {
+  'GET revisions': (s, portal, id) => s.revisions(portal, id),
+  'POST reapply': reapply,
+  'POST reanchor': reapply,
+  'POST dismiss': async (s, portal, id, req) =>
+    s.dismiss(portal, id, parseBody(DecideBody, await readJson(req))),
+  'POST restore': async (s, portal, id, req) =>
+    s.restore(portal, id, parseBody(RestoreBody, await readJson(req))),
+  PATCH: async (s, portal, id, req) =>
+    s.edit(portal, id, parseBody(EditBody, await readJson(req))),
+  DELETE: async (s, portal, id, req) => {
+    const fromBody = (await readJson(req)) as Record<string, unknown>;
+    const url = new URL(req.url ?? '/', 'http://127.0.0.1');
+    return s.withdraw(
+      portal,
+      id,
+      parseBody(DecideBody, { ...(decideFromQuery(url) as object), ...fromBody }),
+    );
+  },
+};
+
 /** Handles the request when it is an amendment route; returns false otherwise. */
 export async function amendmentRoutes(
   req: IncomingMessage,
   res: ServerResponse,
   method: string,
   path: string,
-  url: URL,
   amendments: AmendmentService | undefined,
 ): Promise<boolean> {
   const root = ROOT.exec(path);
-  const one = ONE.exec(path);
-  const action = ACTION.exec(path);
-  if (root === null && one === null && action === null) return false;
+  const item = ACTION.exec(path) ?? ONE.exec(path);
+  if (root === null && item === null) return false;
   if (amendments === undefined) throw new HttpError(404, 'This address does not exist.');
 
   if (root !== null && method === 'POST') {
@@ -51,56 +82,10 @@ export async function amendmentRoutes(
     sendJson(res, 201, await amendments.create(decodeURIComponent(root[1]!), body));
     return true;
   }
-  if (one !== null) {
-    const portal = decodeURIComponent(one[1]!);
-    const id = decodeURIComponent(one[2]!);
-    if (method === 'DELETE') {
-      const fromBody = (await readJson(req)) as Record<string, unknown>;
-      const body = parseBody(DecideBody, { ...(decideFromQuery(url) as object), ...fromBody });
-      sendJson(res, 200, await amendments.withdraw(portal, id, body));
-      return true;
-    }
-    if (method === 'PATCH') {
-      sendJson(
-        res,
-        200,
-        await amendments.edit(portal, id, parseBody(EditBody, await readJson(req))),
-      );
-      return true;
-    }
-  }
-  if (action !== null) {
-    const portal = decodeURIComponent(action[1]!);
-    const id = decodeURIComponent(action[2]!);
-    const verb = action[3];
-    if (method === 'GET' && verb === 'revisions') {
-      sendJson(res, 200, await amendments.revisions(portal, id));
-      return true;
-    }
-    if (method === 'POST' && (verb === 'reapply' || verb === 'reanchor')) {
-      sendJson(
-        res,
-        200,
-        await amendments.reapply(portal, id, parseBody(ReapplyBody, await readJson(req))),
-      );
-      return true;
-    }
-    if (method === 'POST' && verb === 'dismiss') {
-      sendJson(
-        res,
-        200,
-        await amendments.dismiss(portal, id, parseBody(DecideBody, await readJson(req))),
-      );
-      return true;
-    }
-    if (method === 'POST' && verb === 'restore') {
-      sendJson(
-        res,
-        200,
-        await amendments.restore(portal, id, parseBody(RestoreBody, await readJson(req))),
-      );
-      return true;
-    }
-  }
-  throw new HttpError(405, 'This method is not allowed here.');
+  const act = item === null ? undefined : ACTS[item[3] ? `${method} ${item[3]}` : method];
+  if (item === null || act === undefined)
+    throw new HttpError(405, 'This method is not allowed here.');
+  const portal = decodeURIComponent(item[1]!);
+  sendJson(res, 200, await act(amendments, portal, decodeURIComponent(item[2]!), req));
+  return true;
 }

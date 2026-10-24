@@ -28,7 +28,8 @@ export interface NewMessage {
 type ConversationRow = Omit<ChatConversation, 'persona_draft'> & { persona_draft: string };
 
 function parseConversation(row: ConversationRow): ChatConversation {
-  return ChatConversation.parse({ ...row, persona_draft: JSON.parse(row.persona_draft) });
+  const draft: unknown = JSON.parse(row.persona_draft);
+  return ChatConversation.parse({ ...row, persona_draft: draft });
 }
 
 export class ChatStore {

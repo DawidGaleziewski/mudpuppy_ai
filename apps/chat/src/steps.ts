@@ -20,6 +20,22 @@ export interface StepChange {
   now?: Date;
 }
 
+const OPEN: ReadonlySet<string> = new Set(['pending', 'in_progress']);
+const FINISHED: ReadonlySet<string> = new Set(['done', 'failed', 'stopped']);
+
+/** A link the change sets (even to null), else the one the step had. */
+const linked = (set: string | null | undefined, had: string | null | undefined): string | null =>
+  set !== undefined ? set : (had ?? null);
+
+/**
+ * When the step was first requested: the step recorder matches runs and sessions that started
+ * after it, so pending → in_progress must not move it.
+ */
+function startedAt(existing: WorkflowStep | undefined, status: string, now: string): string | null {
+  const reopened = OPEN.has(status) && !OPEN.has(existing?.status ?? '');
+  return reopened ? now : (existing?.started_at ?? null);
+}
+
 export function recordStep(raw: BetterSqlite3.Database, change: StepChange): WorkflowStep {
   const now = nowIso(change.now);
   const existing = raw
@@ -27,25 +43,17 @@ export function recordStep(raw: BetterSqlite3.Database, change: StepChange): Wor
       `SELECT * FROM workflow_steps WHERE conversation_id = ? AND portal_id = ? AND step = ?`,
     )
     .get(change.conversationId, change.portalId, change.step) as WorkflowStep | undefined;
-  const starting = change.status === 'pending' || change.status === 'in_progress';
-  const finishing =
-    change.status === 'done' || change.status === 'failed' || change.status === 'stopped';
   const row = WorkflowStep.parse({
     id: existing?.id ?? newId(),
     conversation_id: change.conversationId,
     portal_id: change.portalId,
     step: change.step,
     status: change.status,
-    run_id: change.runId !== undefined ? change.runId : (existing?.run_id ?? null),
-    session_id: change.sessionId !== undefined ? change.sessionId : (existing?.session_id ?? null),
+    run_id: linked(change.runId, existing?.run_id),
+    session_id: linked(change.sessionId, existing?.session_id),
     error_ref: change.status === 'failed' ? (change.errorRef ?? null) : null,
-    // started_at = when the step was first requested; the step recorder matches runs and
-    // sessions that started after it, so pending → in_progress must not move it.
-    started_at:
-      starting && !(existing?.status === 'pending' || existing?.status === 'in_progress')
-        ? now
-        : (existing?.started_at ?? null),
-    finished_at: finishing ? now : null,
+    started_at: startedAt(existing, change.status, now),
+    finished_at: FINISHED.has(change.status) ? now : null,
     updated_at: now,
   });
   raw

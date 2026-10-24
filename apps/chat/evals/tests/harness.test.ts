@@ -98,9 +98,12 @@ describe('createWorkspace', () => {
     expect(Object.keys(mcp.mcpServers)).toEqual(['mudpuppy-chat']);
     expect(mcp.mcpServers['mudpuppy-chat']!.env.MUDPUPPY_ROOT).toBe(ws.dir);
 
-    // Only the two grouping tools, the orchestrator's own prompt, the chat's handover shape.
+    // Only the two grouping tools and the read-only workflow state (R-97 (6)), the
+    // orchestrator's own prompt, the chat's handover shape.
     const args = cliArgs(parsed.config, ws, regroupPrompt('reference-insurer'), 'sid');
     expect(args[args.indexOf('--allowedTools') + 1]).toBe(GROUPING_TOOLS.join(','));
+    expect(GROUPING_TOOLS).toContain('mcp__mudpuppy-chat__workflow_state');
+    expect(GROUPING_TOOLS.filter((t) => !/grouping|workflow_state/.test(t))).toEqual([]);
     expect(args[args.indexOf('--disallowedTools') + 1]).toContain('Read');
     expect(args[args.indexOf('--system-prompt') + 1]).toContain('suggest_grouping');
     expect(args[1]).toContain("BA's message:\nCut this portal into processes");

@@ -252,6 +252,12 @@ RUN_SQL = (
     " WHERE id = ?"
 )
 QUEUED_SQL = "SELECT count(*) FROM frontier WHERE run_id = ? AND status = 'pending'"
+# A confirmed Stop of the run (the chat's milestones ask the same, spec 075 F-08).
+STOPPED_BY_YOU_SQL = (
+    "SELECT 1 FROM workbench_commands WHERE command = 'scan.stop' AND state = 'done'"
+    " AND json_extract(result_json, '$.run_id') = ? LIMIT 1"
+)
+STOPPED_BY_YOU = "You pressed Stop."
 CHECKPOINT_SQL = (
     "SELECT s.route_template FROM checkpoints c JOIN states s ON s.id = c.state_id"
     " WHERE c.run_id = ? ORDER BY c.updated_at DESC LIMIT 1"
@@ -281,7 +287,11 @@ def scan_live(conn: sqlite3.Connection, run_id: str) -> ScanLive | None:
         continues=run["parent_run_id"] if run["run_type"] == "continue" else None,
         events=events,
     )
-    if status == "stopped" and events:
+    if status == "stopped" and conn.execute(STOPPED_BY_YOU_SQL, (run_id,)).fetchone():
+        # The crawler's next call after a Stop is refused ("run … is interrupted; no further
+        # actions are possible"): that is not why it stopped, and no page failed (R-104 (5)).
+        live.stop_reason = STOPPED_BY_YOU
+    elif status == "stopped" and events:
         live.stop_reason = events[-1].error
         if live.here is not None and live.stop_reason:
             live.here.failed = True

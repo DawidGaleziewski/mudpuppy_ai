@@ -101,3 +101,19 @@ def test_the_app_serves_files_and_falls_back_to_index(empty_store: Store, tmp_pa
         # R-100: hashed assets are cached for good, the page shell is asked for every time
         assert "immutable" in c.get("/app/assets/app.js").headers["cache-control"]
         assert c.get("/app/portals/shop").headers["cache-control"] == "no-cache"
+
+
+def test_the_console_page_sends_a_content_security_policy(
+    empty_store: Store, tmp_path: Path
+) -> None:
+    """R-94 (6): code and connections from this origin only; no plugins, no framing."""
+    dist = tmp_path / "dist"
+    dist.mkdir()
+    (dist / "index.html").write_text("<div id=root></div>")
+    with _client(empty_store, tmp_path, dist) as c:
+        policy = c.get("/app/portals/shop").headers["content-security-policy"]
+    rules = dict(part.strip().split(" ", 1) for part in policy.split(";"))
+    assert rules["script-src"] == "'self'"
+    assert rules["connect-src"] == "'self'"
+    assert rules["object-src"] == "'none'"
+    assert rules["frame-ancestors"] == "'none'"

@@ -2,7 +2,7 @@
  * One headless agent session: `claude -p --agent <crawler|ba>` with only that agent's MCP server.
  */
 import { spawnSync } from 'node:child_process';
-import { readFileSync, writeFileSync } from 'node:fs';
+import { readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { EvalConfig } from '../config.js';
@@ -31,6 +31,9 @@ const AGENT_SERVER: Record<AgentName, string> = {
   ba: 'mcp__mudpuppy-ba',
 };
 
+/** The eval process removes its MCP config file when it exits (set on the first write). */
+let cleanupSet = false;
+
 interface McpConfig {
   mcpServers: Record<string, { env?: Record<string, string> } & Record<string, unknown>>;
 }
@@ -48,8 +51,11 @@ export function evalMcpConfig(root: string, ws: string, env: string): string {
       { ...s, env: { ...s.env, MUDPUPPY_ENV: env, MUDPUPPY_ROOT: ws } },
     ]),
   );
-  // Not in `ws`: with `--in-place` that is the repo root.
+  // Not in `ws`: with `--in-place` that is the repo root. One file per eval process, removed when
+  // it exits (R-97 (8)).
   const path = join(tmpdir(), `pf-eval-mcp-${String(process.pid)}.json`);
+  if (!cleanupSet) process.once('exit', () => rmSync(path, { force: true }));
+  cleanupSet = true;
   writeFileSync(path, JSON.stringify({ mcpServers: servers }, null, 2));
   return path;
 }

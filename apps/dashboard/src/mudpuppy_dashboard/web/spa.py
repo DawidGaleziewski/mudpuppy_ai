@@ -24,6 +24,16 @@ NO_BUILD = (
 
 
 IMMUTABLE = "public, max-age=31536000, immutable"
+# The designer's policy (17-genui-architecture.md § 6; R-94 (6), spec 043 F-08): code, fonts,
+# pictures and connections (the API, the chat relay, the live Workbench's WebSocket) from this
+# origin only. Styles allow inline: the design system sets custom properties in `style`, and
+# Mermaid writes a `<style>` into each diagram; they never carry model strings. The page is a
+# static build, so there is no per-response nonce.
+CSP = (
+    "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; font-src 'self'; "
+    "img-src 'self' data: blob:; connect-src 'self'; object-src 'none'; base-uri 'none'; "
+    "frame-ancestors 'none'; form-action 'self'"
+)
 
 
 def _inside(root: Path, rel: str) -> Path | None:
@@ -40,7 +50,10 @@ def app_file(request: Request, rest: str = "") -> Response:
     file = _inside(dist, rest) if rest else None
     if file is None:
         # The page shell names the build's assets, so it is asked for again every time.
-        return FileResponse(dist / "index.html", headers={"Cache-Control": "no-cache"})
+        return FileResponse(
+            dist / "index.html",
+            headers={"Cache-Control": "no-cache", "Content-Security-Policy": CSP},
+        )
     # A build's assets carry their content hash in the name: cached for good (R-100).
     cache = IMMUTABLE if rest.startswith("assets/") else "no-cache"
     return FileResponse(file, headers={"Cache-Control": cache})

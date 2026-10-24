@@ -23,12 +23,15 @@ import {
   addCost,
   createWorkspace,
   emptyCost,
+  evalMcpConfig,
   ensurePortal,
   findCrawlRun,
   preflight,
   runAgent,
   runFormProbing,
   runProcessTraces,
+  serverReport,
+  serverTools,
   stopServer,
   type CliOut,
   type FormProbingRun,
@@ -89,7 +92,10 @@ async function dryRun(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise<n
     `dry run ok: ${c.portal} as ${c.persona}, budget $${c.budgetUsd}/agent, ground truth ${gt.portal_id}, ${secrets.length} secret(s) to sweep for, ${traces.length} process trace(s), ${probe.length ? `a form-probing scan of ${probe.join(', ')}` : 'no form probing'}`,
   );
   console.log(judgeLoginLine(c));
-  return 0;
+  // The agents' MCP servers on this workspace (R-97 (5)): a server that cannot start fails here.
+  const servers = serverReport(await serverTools(evalMcpConfig(c.root, ws, c.env), c.root));
+  for (const line of servers.lines) console.log(line);
+  return servers.ok ? 0 : 2;
 }
 
 /**

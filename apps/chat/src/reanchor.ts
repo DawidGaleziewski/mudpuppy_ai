@@ -16,6 +16,7 @@ import {
   type ObservedState,
 } from '@mudpuppy/workflow';
 import { Amendment, AmendmentRevision } from '@mudpuppy/chat-model';
+import { parseAmendment, type AmendmentRow } from './amendment-revisions.js';
 
 interface AnchorRow {
   id: string;
@@ -226,19 +227,15 @@ export function reanchorAfterRun(
 
   raw.transaction(() => {
     for (const o of outcomes) {
-      const found = write.load.get(o.amendmentId) as Record<string, unknown> | undefined;
+      const found = write.load.get(o.amendmentId) as (AmendmentRow & { ref_id: string }) | undefined;
       if (found === undefined) continue; // changed meanwhile: leave it for the next scan
-      const head = Amendment.parse({
-        ...found,
-        anchor_element:
-          found.anchor_element === null ? null : JSON.parse(String(found.anchor_element)),
-      });
+      const head = parseAmendment(found);
       const next = nextHead(raw, head, o, runId, at);
       // Carried forward to the successor state: a new target ref (spec 039 § 15, migration 0041).
       const [stateId, ...key] = next.target_id.split('#');
       const ref_id =
         next.target_id === head.target_id
-          ? String(found.ref_id)
+          ? found.ref_id
           : insertRef(raw, 'state_id', stateId!, key.length > 0 ? key.join('#') : null);
       write.updateHead.run({ ...next, ref_id, base_rev: head.rev });
       const revision = revisionOf(next, head.rev, o, { author, runId, at });

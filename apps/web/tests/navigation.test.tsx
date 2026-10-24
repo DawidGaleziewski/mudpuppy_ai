@@ -1,6 +1,7 @@
 import { fireEvent, render, screen, within } from '@testing-library/react';
 import { MemoryRouter } from 'react-router';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { routes } from '../src/app/App';
 import { switchHref } from '../src/app/PortalMenu';
 import { routerLink } from '../src/app/RouterAnchor';
 import { at } from './render-at';
@@ -89,4 +90,24 @@ describe('Navigation', () => {
       expect(event.defaultPrevented).toBe(false);
     }
   });
+});
+
+// R-105 (1): each page is its own chunk, loaded when it is first opened.
+describe('Code splitting', () => {
+  const wait = { timeout: 10_000 };
+  it('loads the code of each page when it is opened, and of the next one on a move', async () => {
+    at(
+      '/app/',
+      {
+        '/api/portals': { environment: 'local-dev', portals: [{ id: 'shop', scans: 1, running: 0, last_scan_at: null }], other_environments: [] },
+        '/api/portals/shop/scans': { portal: 'shop', total: 0, scans: [] },
+      },
+      200,
+      routes,
+    );
+    const main = await screen.findByRole('main', {}, wait);
+    fireEvent.click(await within(main).findByRole('link', { name: 'shop' }, wait));
+    fireEvent.click(await screen.findByRole('link', { name: /Scans/ }, wait));
+    expect(await screen.findByRole('heading', { level: 1, name: /Scans/ }, wait)).toBeTruthy();
+  }, 30_000);
 });

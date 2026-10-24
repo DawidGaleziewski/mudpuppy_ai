@@ -88,7 +88,10 @@ export function createRunnerFence(
   };
 }
 
-/** What the live assistant hears when the person confirmed a scan: it runs without it. */
+/**
+ * What the live assistant hears when the person confirmed a scan: it runs without it. An event
+ * is its fact, then a blank line and what the assistant should do; the console shows the fact only.
+ */
 export function liveConfirmedText(label: string): string {
-  return `[event] The person confirmed: ${label}. The scan runs in the background; its graph and progress are on the person's screen and update live. Say in one line that it is starting. You will get an event when it starts, finishes or stops.`;
+  return `[event] The person confirmed: ${label}.\n\nThe scan runs in the background; its graph and progress are on the person's screen and update live. Say in one line that it is starting. You will get an event when it starts, finishes or stops.`;
 }

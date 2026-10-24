@@ -65,6 +65,15 @@ describe('error log', () => {
     });
   });
 
+  it('names the class of a detail that is not JSON (a cycle) instead of [object Object]', async () => {
+    class Handle {
+      self: unknown = this;
+    }
+    const r = await logError({ where: 'x', message: 'x', detail: new Handle() }, { logsDir: dir });
+    const rec = await findError(r.ref, { logsDir: dir });
+    expect(rec?.detail).toBe('[Handle]');
+  });
+
   it('finds a ref in an older file', async () => {
     const old = await logError(
       { where: 'w', message: 'old' },

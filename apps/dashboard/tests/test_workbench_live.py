@@ -156,6 +156,25 @@ def test_connect_sends_the_state_the_surfaces_and_the_messages(live: TestClient)
     assert [(m["role"], m["turn"]) for m in messages] == [("user", 1), ("assistant", 1)]
 
 
+def test_an_event_shows_its_fact_without_the_assistants_instructions(
+    empty_store: Store, live: TestClient
+) -> None:
+    """R-104 (5): the `[event]` marker and what the assistant is told to do stay out of sight."""
+    conn = empty_store.connect()
+    insert(
+        conn, "chat_messages", id="m-event", conversation_id=CONV, seq=50, role="system",
+        content="[event] The person confirmed: Start a scan.\n\nSay in one line it is starting.",
+        tool_name="workbench_event", created_at="2026-10-06T10:50:00.000Z",
+    )  # fmt: skip
+    conn.commit()
+    conn.close()
+    with live.websocket_connect(WS, headers=ORIGIN) as s:
+        frames = _until(s, lambda fs: _of(fs, "MESSAGES_SNAPSHOT"))
+    messages = _of(frames, "MESSAGES_SNAPSHOT")[0]["messages"]
+    events = [m["content"] for m in messages if m["role"] == "system"]
+    assert events == ["The person confirmed: Start a scan."]
+
+
 def test_the_assistants_words_arrive_as_agui_text_and_run_events(live: TestClient) -> None:
     with live.websocket_connect(WS, headers=ORIGIN) as s:
         frames = _until(s, lambda fs: _of(fs, "RUN_FINISHED"))

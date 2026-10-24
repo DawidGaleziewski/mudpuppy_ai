@@ -3,12 +3,13 @@
  * everything the BA and the narrow step wrote taken out, so the BA documents the same crawl
  * evidence again. The kept workspace is only read.
  */
-import { cpSync, existsSync, mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { EvalResult } from '@mudpuppy/gates';
 import { dbPathFor, migrateUp, openDb } from '@mudpuppy/store';
 import { die } from '../failures.js';
+import { copyParts, WORKSPACE_PARTS } from './workspace.js';
 
 /** What the BA sessions and the narrow step wrote, children first (foreign keys). */
 const BA_TABLES = [
@@ -68,9 +69,7 @@ export function replaySource(file: string): ReplaySource {
 /** A fresh copy of the kept workspace without its documentation. */
 export function replayWorkspace(source: string, portal: string, env: string): string {
   const ws = mkdtempSync(join(tmpdir(), `pf-eval-${portal}-replay-`));
-  for (const part of ['portals', 'personas', join('data', 'migrations'), join('data', 'evidence')])
-    if (existsSync(join(source, part)))
-      cpSync(join(source, part), join(ws, part), { recursive: true });
+  copyParts(source, ws, [...WORKSPACE_PARTS, join('data', 'evidence')]);
   const target = dbPathFor(join(ws, 'data'), env);
   mkdirSync(dirname(target), { recursive: true });
   const from = openDb(dbPathFor(join(source, 'data'), env));

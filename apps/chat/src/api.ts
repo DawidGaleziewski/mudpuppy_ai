@@ -65,7 +65,7 @@ function routesOf(opts: ApiOptions): Route[] {
     (req, res, method, path) => portalRoutes(req, res, method, path, opts.portals),
     (req, res, method, path) => conversationRoutes(req, res, method, path, opts),
     // Amendments with revisions (T030, T033; spec 022 contracts/amendments-api.md).
-    (req, res, method, path, url) => amendmentRoutes(req, res, method, path, url, opts.amendments),
+    (req, res, method, path) => amendmentRoutes(req, res, method, path, opts.amendments),
     (req, res, method, path) => proposalRoutes(req, res, method, path, opts.proposals),
     (req, res, method, path) => processRoutes(req, res, method, path, opts.processes),
     (req, res, method, path) => probeSuiteRoutes(req, res, method, path, opts.probeSuites),

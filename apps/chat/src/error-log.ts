@@ -94,7 +94,9 @@ function redactDetail(detail: unknown, extra: readonly string[] | undefined): un
       ),
     );
   } catch {
-    plain = String(detail);
+    // a bigint, or a cycle, a function: its class name is enough ("[object Object]" says nothing)
+    plain =
+      typeof detail === 'bigint' ? detail.toString() : `[${(detail as object).constructor.name}]`;
   }
   const r = createRedactor();
   for (const s of extra ?? []) r.add(s);
