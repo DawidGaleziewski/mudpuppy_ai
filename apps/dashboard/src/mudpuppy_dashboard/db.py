@@ -67,11 +67,6 @@ def connect(
     return conn
 
 
-def data_version(conn: sqlite3.Connection) -> int:
-    """Changes whenever another connection commits to the file (SQLite `data_version`)."""
-    return conn.execute("PRAGMA data_version").fetchone()[0]
-
-
 def store_info(data_dir: Path, env: str) -> StoreInfo:
     path = store_path(data_dir, env)
     return StoreInfo(

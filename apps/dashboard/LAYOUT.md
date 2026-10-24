@@ -28,7 +28,7 @@ files, and the console itself at `/app/`.
 
 | Router | Addresses | Read model |
 |---|---|---|
-| `api_app` | `/api/portals`, `…/overview`, `…/{p}/home`, `…/{p}/scans`, `…/{p}/model-versions`, `/api/stores` | `queries_app`, `queries_app_all_portals`, `queries_app_home`, `queries_app_stores` |
+| `api_app` | `/api/portals`, `…/overview`, `…/{p}/home`, `…/{p}/scans`, `…/{p}/model-versions` (`kind`, `key`: only the versions one item is in), `/api/stores` (`follow`: the store a portal lands in) | `queries_app`, `queries_app_all_portals`, `queries_app_home`, `queries_app_stores` |
 | `api_screens`, `api_map` | `/api/portals/{p}/screens[/{key}]`, `…/map` | `queries_app_screens`, `queries_app_map` |
 | `api_recorded` | `…/map/recorded[/{screen}]`, `…/screens/recorded` | `queries_app_recorded`, `queries_app_recorded_pages` |
 | `api_state` | `/api/states/{id}`, `…/screens/{key}/recordings` | `queries_app_state`, `queries_app_state_side`, `queries_app_screen_recordings` |
@@ -71,7 +71,8 @@ files, and the console itself at `/app/`.
   `queries_trace.py`, `queries_screens.py`, `queries_revisions.py`, `queries_proposals.py`,
   `queries_access.py` (checked against `apps/crawler/tests/fixtures/access/three-personas.json`),
   `queries_run_groups.py` (checked against `apps/crawler/tests/fixtures/run-groups/cases.json`),
-  `queries_suites.py`, `queries_scans.py`, `queries_settings.py`, `queries_plan.py`.
+  `queries_suites.py`, `queries_scans.py` (a scan's step limit only), `queries_settings.py`,
+  `queries_plan.py`.
 - Processes: `queries_processes.py`, `queries_process_doc.py`, `process_views.py`,
   `process_diff.py`, `change_spec.py`.
 - Scan lines: `scan_words.py` (pure: the one grammar of a scan line, spec 072 FR-010; kind, progress,

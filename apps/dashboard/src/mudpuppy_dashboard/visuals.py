@@ -99,14 +99,6 @@ class Figure(BaseModel):
     cut: bool
     highlights: list[Highlight]
 
-    @property
-    def has_screenshot(self) -> bool:
-        return self.state.screenshot_ref is not None
-
-    @property
-    def has_picture(self) -> bool:
-        return self.has_screenshot or self.wireframe is not None
-
 
 def highlights(layout: Layout | None, regions: list[tuple[str, str | None]]) -> list[Highlight]:
     """Number the regions in order and place each one over the screenshot."""

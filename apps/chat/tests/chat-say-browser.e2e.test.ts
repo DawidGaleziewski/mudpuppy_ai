@@ -1,5 +1,5 @@
-// R-78 (6), spec 038 FR-001, in a real browser: "Ask the assistant to regroup" on Processes is a
-// link to the chat. Before, the text was lost when the drawer was closed (no assistant wired on the
+// R-78 (6), spec 038 FR-001, in a real browser: "Ask the assistant to regroup" on Processes says
+// its request in the assistant drawer (the React console since spec 074). Before, the text was lost when the drawer was closed (no assistant wired on the
 // page) and dropped without a word when the assistant was busy. Now the chat sends it on arrival,
 // or shows it waiting and sends it when the assistant is free.
 import { chromium, type Browser, type Page } from 'playwright';
@@ -28,11 +28,12 @@ async function until(check: () => boolean, ms = 20_000): Promise<void> {
   }
 }
 
+/** The React console (R-100; ported in spec 074): the button says it in the assistant drawer. */
 async function regroup(): Promise<Page> {
   const page = await browser!.newPage();
-  await page.goto(`${base}/processes?portal=${P}`);
-  await page.getByRole('link', { name: 'Ask the assistant to regroup' }).click();
-  await page.waitForURL(/\/chat/);
+  await page.goto(`${base}/app/portals/${P}/processes`);
+  await page.getByRole('button', { name: 'Ask the assistant to regroup' }).click();
+  await page.getByRole('complementary', { name: 'Assistant' }).waitFor();
   return page;
 }
 
@@ -45,7 +46,7 @@ beforeAll(async () => {
     )
     .run(CONV, P, T, T);
   seedStates(stack.opened, [['s-home', '/', 'Home']]);
-  base = await stack.dashboard('Anna', `/processes?portal=${P}`);
+  base = await stack.dashboard('Anna', `/api/portals/${P}/processes`);
 }, 120_000);
 
 afterAll(async () => {

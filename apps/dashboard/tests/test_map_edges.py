@@ -5,6 +5,7 @@ one page, other scans' moves only on their layer."""
 from __future__ import annotations
 
 from dataclasses import dataclass
+from itertools import pairwise
 
 from mudpuppy_dashboard.map_edges import TIMES, Pair, edges
 
@@ -58,6 +59,33 @@ def test_other_scans_moves_are_on_their_layer_with_how_many_scans() -> None:
     assert [(e.kind, e.label) for e in shown.edges] == [("others", "2 scans")]
     hidden = edges(boxes, pairs, parents, frozenset(), SIZE)
     assert hidden.edges == [] and hidden.others == 1
+
+
+def test_arc_labels_over_the_top_row_never_share_a_place() -> None:
+    """R-102 (7): two moves back up the tree with close midpoints had their labels on top of each
+    other; the labels are spread along the row, in the arcs' order, one label's room apart."""
+    boxes = {
+        "home": B(0, 28, 0),
+        "a": B(0, 128, 1),
+        "b": B(200, 128, 1),
+        "c": B(0, 228, 2),
+        "d": B(200, 228, 2),
+    }
+    parents = {"home": None, "a": "home", "b": "home", "c": "a", "d": "b"}
+    pairs = {
+        ("home", "a"): pair(1),
+        ("home", "b"): pair(2),
+        ("a", "c"): pair(3),
+        ("b", "d"): pair(4),
+        ("c", "home"): pair(10),  # an arc from x 50 up to x 50: midpoint 50
+        ("d", "a"): pair(12),  # an arc from x 250 up to x 50: midpoint 150 (was close enough)
+        ("c", "b"): pair(14),  # from x 50 up to x 250: midpoint 150, the same place
+    }
+    arcs = [e for e in edges(boxes, pairs, parents, ALL, SIZE).edges if e.label_y == 16]
+    assert len(arcs) == 3
+    xs = sorted(e.label_x for e in arcs if e.label_x is not None)
+    room = max(len(e.label or "") for e in arcs) * 7
+    assert all(b - a >= room for a, b in pairwise(xs))
 
 
 def test_a_failed_move_is_always_drawn() -> None:

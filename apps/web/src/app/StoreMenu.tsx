@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query';
-import { useLocation } from 'react-router';
+import { useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router';
 import { Callout, Disclosure, Row, Rows, Text } from '../design-system';
 import { getJson } from './api';
 
@@ -14,6 +15,8 @@ interface StoreList {
   current: StoreOut;
   note: string | null;
   stores: StoreOut[];
+  /** The store to read this portal in, when the open one lacks it and another holds it. */
+  follow?: StoreOut | null;
 }
 
 const useStores = (portal: string | undefined) =>
@@ -49,6 +52,20 @@ export function StoreMenu({ portal }: { portal: string | undefined }) {
       </Rows>
     </Disclosure>
   );
+}
+
+/**
+ * The store follows the portal (R-71 (d), R-103 (3)): arriving at a portal the open store does not
+ * hold (from the portal picker or a link), the page is read again in the store that holds it; the
+ * history entry is replaced, so Back does not return to the empty one.
+ */
+export function useStoreFollowsPortal(portal: string | undefined) {
+  const { pathname, search, hash } = useLocation();
+  const navigate = useNavigate();
+  const follow = useStores(portal).data?.follow;
+  useEffect(() => {
+    if (portal && follow) void navigate(`${inStore(pathname, search, follow.key)}${hash}`, { replace: true });
+  }, [portal, follow, pathname, search, hash, navigate]);
 }
 
 /** A gone store (the default one shown instead), or the eval workspace being read. */

@@ -236,91 +236,124 @@ def load_glossary(docs_dir: Path) -> Glossary | GlossaryError:
     return result
 
 
-def _load(docs_dir: Path) -> Glossary | GlossaryError:
-    gdir = docs_dir / "glossary"
-    source = gdir / "glossary.yaml"
-    rel = "glossary/glossary.yaml"
-    try:
-        raw = yaml.load(source.read_text(encoding="utf-8"), Loader=_YAML_LOADER)
-    except OSError as e:
-        return GlossaryError([f"{rel}: cannot read: {e.strerror or e}"])
-    except yaml.YAMLError as e:
-        return GlossaryError([f"{rel}: invalid YAML: {e}"])
-    if not isinstance(raw, dict) or not isinstance(raw.get("entries"), list):
-        return GlossaryError([f"{rel}: must be a mapping with `scope` and an `entries` list"])
+_REL = "glossary/glossary.yaml"
 
+
+def _load(docs_dir: Path) -> Glossary | GlossaryError:
+    """The glossary with its long pages and the wiki, or every problem found, in file order:
+    the YAML itself, the scope, each entry, each wiki page, then the links between them."""
+    gdir = docs_dir / "glossary"
+    raw = _read_yaml(gdir / "glossary.yaml")
+    if isinstance(raw, GlossaryError):
+        return raw
     problems: list[str] = []
     scope = raw.get("scope")
     if not isinstance(scope, str) or not scope.strip():
-        problems.append(f"{rel}: scope: required text")
+        problems.append(f"{_REL}: scope: required text")
+    entries = _entries(raw["entries"], problems)
+    pages = _pages(gdir / "pages")
+    wdir = docs_dir / "wiki"
+    wiki = _wiki(wdir, problems)
+    for e in entries:
+        problems.extend(_entry_links(e, {x.id for x in entries}, pages, wiki, wdir))
+    problems.extend(_wiki_links(entries, wiki))
+    if problems:
+        return GlossaryError(problems)
+    return Glossary(scope=str(scope).strip(), entries=entries, pages=pages, wiki=wiki)
 
+
+def _read_yaml(source: Path) -> dict[str, Any] | GlossaryError:
+    """`glossary.yaml` as a mapping with an `entries` list, or why it is not one."""
+    try:
+        raw = yaml.load(source.read_text(encoding="utf-8"), Loader=_YAML_LOADER)
+    except OSError as e:
+        return GlossaryError([f"{_REL}: cannot read: {e.strerror or e}"])
+    except yaml.YAMLError as e:
+        return GlossaryError([f"{_REL}: invalid YAML: {e}"])
+    if not isinstance(raw, dict) or not isinstance(raw.get("entries"), list):
+        return GlossaryError([f"{_REL}: must be a mapping with `scope` and an `entries` list"])
+    return raw
+
+
+def _entries(items: list[Any], problems: list[str]) -> list[Entry]:
+    """The valid entries; an invalid or duplicate one adds its problems."""
     entries: list[Entry] = []
     seen: set[str] = set()
-    for i, item in enumerate(raw["entries"]):
+    for i, item in enumerate(items):
         ident = item.get("id") if isinstance(item, dict) else None
         try:
             entry = Entry.model_validate(item)
         except ValidationError as e:
-            problems.extend(_fmt(rel, ident or f"entries[{i}]", e))
+            problems.extend(_fmt(_REL, ident or f"entries[{i}]", e))
             continue
         if entry.id in seen:
-            problems.append(f"{rel}: {entry.id}: id: duplicate")
+            problems.append(f"{_REL}: {entry.id}: id: duplicate")
         seen.add(entry.id)
         entries.append(entry)
+    return entries
 
-    pages: dict[str, str] = {}
-    pdir = gdir / "pages"
-    if pdir.is_dir():
-        for p in sorted(pdir.glob("*.md")):
-            pages[p.stem] = p.read_text(encoding="utf-8")
 
+def _pages(pdir: Path) -> dict[str, str]:
+    """The long pages (`glossary/pages/*.md`) by name."""
+    if not pdir.is_dir():
+        return {}
+    return {p.stem: p.read_text(encoding="utf-8") for p in sorted(pdir.glob("*.md"))}
+
+
+def _wiki(wdir: Path, problems: list[str]) -> dict[str, WikiPage]:
+    """The BA wiki's pages by slug; one without valid front matter adds its problem."""
     wiki: dict[str, WikiPage] = {}
-    wdir = docs_dir / "wiki"
-    if wdir.is_dir():
-        for p in sorted(wdir.glob("*.md")):
-            if p.name == "README.md":
-                continue
-            wrel = f"wiki/{p.name}"
-            try:
-                front, body = _split_front_matter(p.read_text(encoding="utf-8"))
-            except yaml.YAMLError as e:
-                problems.append(f"{wrel}: invalid front matter: {e}")
-                continue
-            if front is None:
-                problems.append(f"{wrel}: missing YAML front matter")
-                continue
-            try:
-                wiki[p.stem] = WikiPage(p.stem, WikiFront.model_validate(front), body)
-            except ValidationError as e:
-                problems.extend(_fmt(wrel, p.stem, e))
+    if not wdir.is_dir():
+        return wiki
+    for p in sorted(wdir.glob("*.md")):
+        if p.name == "README.md":
+            continue
+        wrel = f"wiki/{p.name}"
+        try:
+            front, body = _split_front_matter(p.read_text(encoding="utf-8"))
+        except yaml.YAMLError as e:
+            problems.append(f"{wrel}: invalid front matter: {e}")
+            continue
+        if front is None:
+            problems.append(f"{wrel}: missing YAML front matter")
+            continue
+        try:
+            wiki[p.stem] = WikiPage(p.stem, WikiFront.model_validate(front), body)
+        except ValidationError as e:
+            problems.extend(_fmt(wrel, p.stem, e))
+    return wiki
 
-    ids = {e.id for e in entries}
-    for e in entries:
-        for r in e.related:
-            if r not in ids:
-                problems.append(f"{rel}: {e.id}: related: unknown id {r!r}")
-        if e.retired and e.retired.replaced_by and e.retired.replaced_by not in ids:
-            problems.append(f"{rel}: {e.id}: retired.replaced_by: unknown id")
-        if e.page and e.page not in pages:
-            problems.append(f"{rel}: {e.id}: page: no file glossary/pages/{e.page}.md")
-        if e.wiki:
-            page = wiki.get(e.wiki)
-            if page is None:
-                if not (wdir / f"{e.wiki}.md").exists():
-                    problems.append(f"{rel}: {e.id}: wiki: no file wiki/{e.wiki}.md")
-            elif e.id not in page.front.glossary:
-                problems.append(f"wiki/{e.wiki}.md: {e.wiki}: glossary: does not list {e.id!r}")
+
+def _entry_links(
+    e: Entry, ids: set[str], pages: dict[str, str], wiki: dict[str, WikiPage], wdir: Path
+) -> list[str]:
+    """What an entry names that is not there: related ids, its replacement, its page, its wiki."""
+    problems = [f"{_REL}: {e.id}: related: unknown id {r!r}" for r in e.related if r not in ids]
+    if e.retired and e.retired.replaced_by and e.retired.replaced_by not in ids:
+        problems.append(f"{_REL}: {e.id}: retired.replaced_by: unknown id")
+    if e.page and e.page not in pages:
+        problems.append(f"{_REL}: {e.id}: page: no file glossary/pages/{e.page}.md")
+    if e.wiki:
+        page = wiki.get(e.wiki)
+        if page is None:
+            if not (wdir / f"{e.wiki}.md").exists():
+                problems.append(f"{_REL}: {e.id}: wiki: no file wiki/{e.wiki}.md")
+        elif e.id not in page.front.glossary:
+            problems.append(f"wiki/{e.wiki}.md: {e.wiki}: glossary: does not list {e.id!r}")
+    return problems
+
+
+def _wiki_links(entries: list[Entry], wiki: dict[str, WikiPage]) -> list[str]:
+    """Each wiki page's glossary ids: known, and naming that page back."""
+    problems: list[str] = []
     for slug, page in wiki.items():
         for gid in page.front.glossary:
             entry = next((e for e in entries if e.id == gid), None)
             if entry is None:
                 problems.append(f"wiki/{slug}.md: {slug}: glossary: unknown id {gid!r}")
             elif entry.wiki != slug:
-                problems.append(f"{rel}: {gid}: wiki: should be {slug!r} (listed by that page)")
-
-    if problems:
-        return GlossaryError(problems)
-    return Glossary(scope=str(scope).strip(), entries=entries, pages=pages, wiki=wiki)
+                problems.append(f"{_REL}: {gid}: wiki: should be {slug!r} (listed by that page)")
+    return problems
 
 
 # ---- HTML (dashboard) -------------------------------------------------------------------------

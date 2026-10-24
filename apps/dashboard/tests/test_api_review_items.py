@@ -83,16 +83,22 @@ def test_a_proposal_shows_its_change_and_is_applied(liveinsurer: Store) -> None:
     service.routes[("POST", "/portals/liveinsurer/proposals/p-open/apply")] = httpx2.Response(
         200, json={"applied_rev": 2}
     )
+    service.routes[("POST", "/portals/liveinsurer/proposals/p-open/undo")] = httpx2.Response(
+        200, json={"rev": 3}
+    )
     api = "/api/portals/liveinsurer/review"
     with inbox_client(liveinsurer) as c:
         c.app.state.web.chat_transport = httpx2.MockTransport(service)  # type: ignore[attr-defined]
         detail = c.get(f"{api}?show=proposals&select=proposals:p-open").json()["selected"]
         applied = c.post(f"{api}/proposals/p-open/apply", json={}, headers=ORIGIN)
-        wrong = c.post(f"{api}/proposals/p-open/undo", json={}, headers=ORIGIN)
+        undone = c.post(f"{api}/proposals/p-open/undo", json={}, headers=ORIGIN)
+        wrong = c.post(f"{api}/proposals/p-open/delete", json={}, headers=ORIGIN)
     p = detail["proposal"]
     assert p["key"] == "AMD-001" and p["next_rev"] == 2 and p["stale"] is False
     assert p["status"]["word"]
-    assert applied.json()["message"] == "Applied as r2."
+    # FE-A04: the applied state offers Undo, which restores the one before as a new revision
+    assert applied.json()["message"] == "Applied as r2." and applied.json()["undo"] == "p-open"
+    assert undone.status_code == 200 and "undo" not in undone.json()
     assert wrong.status_code == 422
 
 

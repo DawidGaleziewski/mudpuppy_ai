@@ -5,7 +5,7 @@ import type { PageContext } from './api-assistant';
 import { usePortals } from './api';
 import { searchHref } from './api-lists';
 import { AsOfBanner, AsOfMenu } from './AsOfMenu';
-import { StoreBanner, StoreMenu } from './StoreMenu';
+import { StoreBanner, StoreMenu, useStoreFollowsPortal } from './StoreMenu';
 import { useGo } from './RouterAnchor';
 import { AssistantContext, keepSay } from './assistant-context';
 import { AssistantDrawer } from './AssistantDrawer';
@@ -241,6 +241,7 @@ function Frame({ current, portal: given, context = null, children }: FrameOf & {
   const portals = usePortals().data;
   const workbench = portals?.workbench === true;
   const last = useLastPortal(portal, portals?.portals.map((p) => p.id));
+  useStoreFollowsPortal(portal);
   // All portals keeps the whole nav, for the portal used last (designer v2-15, R-103 (3))
   const nav = navOf(portal ?? last, current, workbench);
   // the model pages follow As of (spec 040 FR-001)

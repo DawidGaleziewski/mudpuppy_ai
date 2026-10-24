@@ -1,4 +1,4 @@
-import { screen, within } from '@testing-library/react';
+import { screen, waitFor, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { withAsOf } from '../src/app/asOf';
 import { currentStore, withStore } from '../src/app/store';
@@ -71,6 +71,19 @@ describe('Data store', () => {
     expect(screen.getByRole('link', { name: 'Help and glossary' }).getAttribute('href')).toBe(`/app/glossary?store=${encodeURIComponent(EVAL)}`);
   });
 
+  it('follows the portal into the store that holds it (R-71 (d), R-103 (3))', async () => {
+    const main = { key: 'main:test', label: 'test', kind: 'main', workspace: null };
+    const evalStore = { key: EVAL, label: 'eval · shop · 2026-10-22', kind: 'eval', workspace: 'pf-eval-shop-AbC123' };
+    at('/app/portals/shop/scans', {
+      '/api/stores?portal=shop': { current: main, note: null, stores: [main, evalStore], follow: evalStore },
+      '/api/portals': { environment: 'test', portals: [{ id: 'shop', scans: 0, running: 0, last_scan_at: null }], other_environments: [] },
+    });
+    // the address now names the store that holds shop (links read the router's address)
+    await waitFor(() =>
+      expect(screen.getByRole('link', { name: 'Help and glossary' }).getAttribute('href')).toBe(`/app/glossary?store=${encodeURIComponent(EVAL)}`),
+    );
+  });
+
   it('says when the store asked for is gone', async () => {
     const main = { key: 'main:test', label: 'test', kind: 'main', workspace: null };
     at('/app/?store=eval:gone:sandbox', {
@@ -98,5 +111,11 @@ describe('As of', () => {
     expect(await screen.findByText('As of model version 1')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Back to now' }).getAttribute('href')).toBe('/app/portals/shop/rules?as_of=now');
     expect(await screen.findByText('As of version 1')).toBeTruthy();
+  });
+
+  it('asks for the versions one rule is in on its page (spec 042 F-09)', async () => {
+    const fetch = at('/app/portals/shop/rules/BR-021', {});
+    await screen.findByRole('heading', { level: 1 });
+    await waitFor(() => expect(fetch.mock.calls.some(([url]) => url === '/api/portals/shop/model-versions?kind=rule&key=BR-021')).toBe(true));
   });
 });

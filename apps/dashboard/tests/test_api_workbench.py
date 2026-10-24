@@ -136,6 +136,19 @@ def test_a_done_start_shows_its_live_map_before_the_assistant_composes(
     assert [c["type"] for c in first["cards"]].count("LiveMap") == 1
 
 
+def test_a_record_card_carries_its_type_word_in_the_json() -> None:
+    """Design answer Q5: "the id as a manila tag, the type word, the title" (spec 074: it was a
+    property, which the JSON leaves out, so the React card never showed it)."""
+    from fastapi.encoders import jsonable_encoder
+
+    from mudpuppy_dashboard.queries_wb import RecordRow
+
+    assert jsonable_encoder(RecordRow("BR-1001", "Wiek", "rule", True))["type_word"] == (
+        "Business rule"
+    )
+    assert jsonable_encoder(RecordRow("XYZ-1", "?", "other", False))["type_word"] is None
+
+
 def test_the_page_gives_the_turn_with_its_cards_and_a_fresh_token(client: TestClient) -> None:  # noqa: F811
     p = client.get(API, params={"c": CONV}).json()
     assert p["conversation"]["id"] == CONV and p["portal"] == PORTAL

@@ -24,10 +24,17 @@ class WriteResult(BaseModel):
     message: str
     #: Where to follow it up: the conversation a restart was sent to, a new process's page.
     href: str | None = None
+    #: What Undo takes back (an applied proposal's id); the console then offers Undo.
+    undo: str | None = None
 
 
-def write_answer(status: int, message: str, href: str | None = None) -> JSONResponse:
-    body = WriteResult(ok=status in (200, 201), message=message, href=href).model_dump()
+def write_answer(
+    status: int, message: str, href: str | None = None, undo: str | None = None
+) -> JSONResponse:
+    # `undo` only when there is something to undo: every other write answers as before
+    body = WriteResult(ok=status in (200, 201), message=message, href=href, undo=undo).model_dump(
+        exclude={"undo"} if undo is None else set()
+    )
     return JSONResponse(body, status_code=status, headers={"Cache-Control": "no-store"})
 
 

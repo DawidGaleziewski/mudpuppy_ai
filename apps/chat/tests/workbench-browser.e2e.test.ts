@@ -113,7 +113,8 @@ function seed(): void {
     version: '1',
     path: 'mapping',
     why: 'You asked to map the calculator.',
-    components: [{ id: 'map', type: 'LiveMap', bind: { scan: '01a110d5' } }],
+    // full scan ids in data (D-9, spec 061)
+    components: [{ id: 'map', type: 'LiveMap', bind: { scan: RUN } }],
   };
   r.prepare(
     `INSERT INTO workbench_views (id, conversation_id, turn, path, why, spec_json, received_json, created_at)
@@ -124,7 +125,7 @@ function seed(): void {
     turn: 1,
     portal: P,
     source: 'assistant',
-    proposal: { command: 'scan.stop', args: { scan: '01a110d5' }, reason: 'You asked to stop it.' },
+    proposal: { command: 'scan.stop', args: { scan: RUN }, reason: 'You asked to stop it.' },
   });
 }
 
@@ -195,7 +196,7 @@ beforeAll(async () => {
     stdio: 'ignore',
   });
   base = `http://127.0.0.1:${String(port)}`;
-  await waitUp(`${base}/workbench?c=${CONV}&portal=${P}`);
+  await waitUp(`${base}/api/workbench/portals/${P}?c=${CONV}`);
 }, 120_000);
 
 afterAll(async () => {
@@ -207,10 +208,13 @@ afterAll(async () => {
   if (root) rmSync(root, { recursive: true, force: true });
 });
 
+/** The React Workbench (R-100; ported in spec 074). */
+const workbench = () => `${base}/app/portals/${P}/workbench?c=${CONV}`;
+
 describe.skipIf(!browser)('the Workbench in the browser (spec 043)', { timeout: 30_000 }, () => {
   it('the live map updates from the store, with no model in between', async () => {
     const page = await browser!.newPage();
-    await page.goto(`${base}/workbench?c=${CONV}&portal=${P}`);
+    await page.goto(workbench());
     const meter = page.locator('#t1-map .sy-meter__label');
     const here = page.locator('#t1-map [data-state="here"] .sy-film__route');
     await expect.poll(() => meter.textContent()).toContain('2 pages');
@@ -228,13 +232,14 @@ describe.skipIf(!browser)('the Workbench in the browser (spec 043)', { timeout: 
     const status = () =>
       (raw().prepare(`SELECT status FROM runs WHERE id = ?`).get(RUN) as { status: string }).status;
     const page = await browser!.newPage();
-    await page.goto(`${base}/workbench?c=${CONV}&portal=${P}`);
+    await page.goto(workbench());
     const card = page.locator('.sy-cmd');
     await expect.poll(() => card.getAttribute('data-cmd-state')).toBe('proposed');
     expect(status()).toBe('running');
     await card.getByRole('button', { name: 'Confirm' }).click();
     await expect.poll(() => page.locator('.sy-cmd').getAttribute('data-cmd-state')).toBe('done');
-    await page.getByText('Stopped scan 01a110d5.').waitFor();
+    // the 13-character short id on screen (D-9)
+    await page.getByText('Stopped scan 01a110d5-0000.').waitFor({ timeout: 10_000 });
     expect(status()).toBe('interrupted');
     const audit = raw().prepare(`SELECT confirmed_by FROM workbench_commands`).get() as {
       confirmed_by: string;
@@ -245,13 +250,13 @@ describe.skipIf(!browser)('the Workbench in the browser (spec 043)', { timeout: 
 
   it('a message is answered over the stream', async () => {
     const page = await browser!.newPage();
-    await page.goto(`${base}/workbench?c=${CONV}&portal=${P}`);
-    await page.locator('#wb-composer textarea').fill('hello there');
-    await page.locator('#wb-composer textarea').press('Enter');
-    await page.locator('#turn-t2-asked').getByText('hello there').waitFor();
-    await expect
-      .poll(() => page.locator('#turn-t2-text').textContent(), { timeout: 10_000 })
-      .toContain('echo:');
+    await page.goto(workbench());
+    const box = page.getByRole('form', { name: 'Write to the Workbench' }).getByLabel('Message');
+    await box.fill('hello there');
+    await box.press('Enter');
+    const log = page.getByRole('log', { name: 'Conversation' });
+    await log.getByText('hello there', { exact: true }).waitFor();
+    await expect.poll(() => log.textContent(), { timeout: 10_000 }).toContain('echo:');
     await page.close();
   });
 });

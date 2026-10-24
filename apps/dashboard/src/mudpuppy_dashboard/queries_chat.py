@@ -506,39 +506,8 @@ def superseded_amendments(
     return _amendments(conn, sql, args)
 
 
-def superseded_counts(conn: sqlite3.Connection) -> dict[str, int]:
-    """Amendments per portal that wait for a person to re-anchor them (spec 022 FE-S02; a
-    re-anchored or dismissed one has another status)."""
-    try:
-        rows = conn.execute(
-            "SELECT portal_id, COUNT(*) AS n FROM amendments"
-            # reapplied_as: rows re-applied as a copy before spec 022 are already handled
-            " WHERE status = 'needs_reanchor' AND reapplied_as IS NULL GROUP BY portal_id"
-        ).fetchall()
-    except sqlite3.OperationalError:
-        return {}
-    return {r["portal_id"]: r["n"] for r in rows}
-
-
-def amendment_portals(conn: sqlite3.Connection) -> list[str]:
-    try:
-        rows = conn.execute("SELECT DISTINCT portal_id FROM amendments ORDER BY portal_id")
-    except sqlite3.OperationalError:
-        return []
-    return [r["portal_id"] for r in rows]
-
-
 def element_key(amendment: AmendmentWithTarget) -> str | None:
     """The element key an amendment was anchored to, when it targeted a wireframe element."""
     anchor = amendment.anchor_element
     key = anchor.get("key") if isinstance(anchor, dict) else None
     return key if isinstance(key, str) else None
-
-
-def target_state_id(amendment: AmendmentWithTarget) -> str | None:
-    """The state a state or element amendment points at (evidence targets have none)."""
-    if amendment.target_kind == "state":
-        return amendment.target_id
-    if amendment.target_kind == "wireframe_element":
-        return amendment.target_id.split("#", 1)[0]
-    return None

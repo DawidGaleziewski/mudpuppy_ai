@@ -258,18 +258,6 @@ CHECKPOINT_SQL = (
 )
 
 
-PROGRESS_SQL = (
-    "SELECT status, (SELECT count(*) FROM trace_spans WHERE run_id = ?"
-    " AND kind = 'call' AND parent_id IS NULL) FROM runs WHERE id = ?"
-)
-
-
-def scan_progress(conn: sqlite3.Connection, run_id: str) -> tuple[str, int]:
-    """(status, step count) of a run: what the data lane compares to see that a scan moved."""
-    row = conn.execute(PROGRESS_SQL, (run_id, run_id)).fetchone()
-    return (row[0], row[1]) if row else ("", 0)
-
-
 def scan_live(conn: sqlite3.Connection, run_id: str) -> ScanLive | None:
     """The scan as the live views show it: counts, route pages, where the crawler is, the stop."""
     run = conn.execute(RUN_SQL, (run_id,)).fetchone()

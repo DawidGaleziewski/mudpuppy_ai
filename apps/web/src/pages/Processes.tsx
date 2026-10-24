@@ -1,7 +1,8 @@
 import { useParams, useSearchParams } from 'react-router';
-import { Button, Cluster, LinkButton, PageHead, Plate, Segmented, Split, Stack, Table, Tag, Text } from '../design-system';
+import { Button, Cluster, PageHead, Plate, Segmented, Split, Stack, Table, Tag, Text } from '../design-system';
 import { processesKey, processHref, useProcesses, type ProcessList, type ProcessRow } from '../app/api-processes';
 import { writes } from '../app/api-write';
+import { useAssistantHandle } from '../app/assistant-context';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
@@ -185,9 +186,13 @@ function Body({ d, setView }: { d: ProcessList; setView: (archived: boolean, pag
   );
 }
 
+/** What "Ask the assistant to regroup" says (R-78 (6), as on htmx). */
+const REGROUP = 'Cut this portal into processes and suggest groupings';
+
 /** The BA's processes (designer screen 04): the list, the assistant's suggestions and the screens in no process. */
 export function Processes() {
   const portal = useParams().portal ?? '';
+  const { ask } = useAssistantHandle();
   const [params, setParams] = useSearchParams();
   const archived = params.get('show') === 'archived';
   const page = Number(params.get('page') ?? '1') || 1;
@@ -210,7 +215,8 @@ export function Processes() {
         meta={`Cut ${portal} into processes you can document, redesign and migrate one at a time.`}
         actions={
           <Cluster>
-            <LinkButton href="?assistant=open">Ask the assistant to regroup</LinkButton>
+            {/* R-78 (6): the request is said in the drawer, not only the drawer opened */}
+            <Button onClick={() => ask(REGROUP)}>Ask the assistant to regroup</Button>
           </Cluster>
         }
       />

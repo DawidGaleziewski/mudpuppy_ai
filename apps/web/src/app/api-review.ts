@@ -245,7 +245,7 @@ export const reviewWrites = {
     path: `${api(portal)}/amendments/${encodeURIComponent(amendment)}/dismiss`,
     body: {},
   }),
-  proposal: (portal: string, id: string, verb: 'apply' | 'discard'): Write => ({
+  proposal: (portal: string, id: string, verb: 'apply' | 'discard' | 'undo'): Write => ({
     path: `${api(portal)}/proposals/${encodeURIComponent(id)}/${verb}`,
     body: {},
   }),

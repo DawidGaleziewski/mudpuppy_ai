@@ -46,12 +46,6 @@ def count_screens(conn: sqlite3.Connection, portal: str | None, q: str | None = 
     return int(conn.execute(f"SELECT count(*) FROM states s {where}", args).fetchone()[0])
 
 
-def screen_ids(conn: sqlite3.Connection, portal: str | None, q: str | None = None) -> list[str]:
-    """Every screen id of the list in its order (Prev / Next on the screen page, R-71)."""
-    where, args = _screens_where(portal, q)
-    return [r[0] for r in conn.execute(f"SELECT s.id FROM states s {where} {SCREEN_ORDER}", args)]
-
-
 def portal_screens(
     conn: sqlite3.Connection,
     portal: str | None,

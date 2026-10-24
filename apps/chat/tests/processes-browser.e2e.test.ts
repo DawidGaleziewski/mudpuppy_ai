@@ -33,9 +33,16 @@ const draftOf = (author: string) =>
 
 async function open(base: string): Promise<Page> {
   const page = await browser!.newPage();
-  await page.goto(`${base}/processes/PRC-001?portal=${P}&model=B`);
-  await page.locator('#process-editor').waitFor();
+  // the React console (R-100; ported in spec 074)
+  await page.goto(`${base}/app/portals/${P}/processes/PRC-001?model=B`);
+  await page.getByRole('form', { name: 'Add a step at the end' }).waitFor();
   return page;
+}
+
+/** Press `button`, then confirm it in the dialog it opens (every React write asks first). */
+async function confirmed(page: Page, button: string, confirm = button): Promise<void> {
+  await page.getByRole('button', { name: button, exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: confirm, exact: true }).click();
 }
 
 async function addStep(page: Page, title: string): Promise<void> {
@@ -63,8 +70,8 @@ beforeAll(async () => {
     author: 'Anna',
   });
   modelB = (await svc.branch(P, made.process.id, { author: 'Anna' })).model!.id;
-  anna = await stack.dashboard('Anna', `/processes?portal=${P}`);
-  bob = await stack.dashboard('Bob', `/processes?portal=${P}`);
+  anna = await stack.dashboard('Anna', `/api/portals/${P}/processes`);
+  bob = await stack.dashboard('Bob', `/api/portals/${P}/processes`);
 }, 180_000);
 
 afterAll(async () => {
@@ -80,7 +87,7 @@ describe.skipIf(!browser)('drawing the to-be in the browser (FE-P02, FE-P05)', (
     await page.getByRole('button', { name: 'Merge step 3 with the next' }).click();
     await page.getByText('merges 2 steps').waitFor();
     expect(head()).toBe(1); // nothing saved yet: only the draft changed
-    await page.getByRole('button', { name: 'Save as B r2' }).click();
+    await confirmed(page, 'Save as B r2');
     await page.getByText('No draft open').waitFor();
     expect(head()).toBe(2);
     expect(titles(2)).toEqual(['Home', 'Car', 'Driver', 'Offer']);
@@ -94,16 +101,16 @@ describe.skipIf(!browser)('drawing the to-be in the browser (FE-P02, FE-P05)', (
     const b = await open(bob);
     await addStep(a, 'Login');
     await addStep(b, 'Summary');
-    await a.getByRole('button', { name: 'Save as B r3' }).click();
+    await confirmed(a, 'Save as B r3');
     await a.getByText('No draft open').waitFor();
     expect(head()).toBe(3);
 
-    await b.getByRole('button', { name: 'Save as B r3' }).click();
+    await confirmed(b, 'Save as B r3');
     await b.getByText('Someone saved first').waitFor();
     expect(head()).toBe(3); // refused: nothing overwritten
     expect(draftOf('Bob')).toMatchObject({ base_rev: 2 });
-    await b.getByRole('button', { name: 'Rebase your draft onto r3' }).click();
-    await b.getByRole('button', { name: 'Save as B r4' }).click();
+    await confirmed(b, 'Rebase your draft onto r3', 'Rebase');
+    await confirmed(b, 'Save as B r4');
     await b.getByText('No draft open').waitFor();
 
     expect(head()).toBe(4);

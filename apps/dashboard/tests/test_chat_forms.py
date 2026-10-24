@@ -162,14 +162,13 @@ def test_amendments_for_state_covers_state_and_its_elements_only(mapped: Store) 
     assert keys == ["AMD-001", "AMD-002"]
 
 
-def test_superseded_counts_skip_reapplied_dismissed_and_other_statuses(mapped: Store) -> None:
+def test_superseded_amendments_skip_other_statuses(mapped: Store) -> None:
     seed_amendment(mapped, 9)
     seed_superseded(mapped, 1)
     seed_superseded(mapped, 2, reapplied_as="amd-id-9")
     seed_amendment(mapped, 3, status="dismissed", dismissed_at=ts(30))
     seed_amendment(mapped, 4)
     conn = db.connect(mapped.data_dir, mapped.env)
-    assert queries_chat.superseded_counts(conn) == {"liveinsurer": 1}
     both = queries_chat.superseded_amendments(conn, None, "both")
     assert {a.key for a in both} == {"AMD-001", "AMD-002", "AMD-003"}  # not AMD-004, AMD-009
     assert [a.key for a in queries_chat.superseded_amendments(conn, "liveinsurer", "dismissed")] == [
@@ -183,9 +182,7 @@ def test_chat_tables_missing_in_an_old_store_give_nothing(tmp_path: Path) -> Non
 
     conn = sqlite3.connect(":memory:")
     conn.row_factory = sqlite3.Row
-    assert queries_chat.superseded_counts(conn) == {}
     assert queries_chat.amendments_for_state(conn, "p", "s") == []
-    assert queries_chat.amendment_portals(conn) == []
 
 
 # --- credentials through the relay (T020) -------------------------------------------------------

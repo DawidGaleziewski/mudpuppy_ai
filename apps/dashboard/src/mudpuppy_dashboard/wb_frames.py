@@ -40,11 +40,6 @@ class WhyFacts:
     data: str
     other_paths: tuple[str, ...]  # the paths the person has, the current one left out
 
-    @property
-    def path_word(self) -> str:
-        who = "you switched to it" if self.by_you else "picked by the assistant"
-        return f"{PATH_WORDS[self.path]} · {who}"
-
 
 @dataclass(frozen=True)
 class Feedback:

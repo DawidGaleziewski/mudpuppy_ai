@@ -23,21 +23,10 @@ def keys(page) -> list[str]:
     return [r.record.key for r in page.items]
 
 
-def test_portal_list_counts_by_status(conn: sqlite3.Connection) -> None:
-    (p,) = q.doc_portals(conn)
-    assert p.portal_id == PORTAL
-    assert p.records == 14
-    assert p.by_status["withdrawn"] == 1 and p.by_status["rejected"] == 1
-    assert p.by_status["confirmed"] == 1  # CAP-001; REQ-001 is confirmed only at rev 1
-    assert p.by_status["draft"] == 11
-    assert p.sessions == 2 and p.last_session_at == "2026-09-25T20:00:00.000Z"
-    assert p.open_followups == 0  # the only follow-up is blocked
-
-
-def test_no_docs_tables_or_records_gives_empty_list(empty_store: Store) -> None:
+def test_no_docs_tables_or_records_gives_nothing(empty_store: Store) -> None:
     c = db.connect(empty_store.data_dir, empty_store.env)
-    assert q.doc_portals(c) == []
-    assert not q.portal_known(c, PORTAL)
+    assert q.docs_available(c)
+    assert sum(q.section_counts(c, PORTAL).values()) == 0
 
 
 def test_section_counts_and_listing_order(conn: sqlite3.Connection) -> None:
@@ -167,12 +156,11 @@ def test_process_for_run_and_diagram_input(conn: sqlite3.Connection) -> None:
     assert q.process_for_run(conn, "run-map") is None
     assert q.process_step_count(conn, "run-trace") == 3
     d = q.record_detail(conn, PORTAL, "PROC-001")
-    data = q.process_diagram_input(conn, d)
+    (data,) = q.process_diagram_inputs(conn, d)
     assert data["process"]["key"] == "PROC-001" and len(data["steps"]) == 3
     assert data["boundary"]["action"] == 'button "Kup polisę"'
-    assert (
-        q.process_diagram_input(conn, q.record_detail(conn, PORTAL, "PROC-002")) is None
-    )  # map_only
+    map_only = q.record_detail(conn, PORTAL, "PROC-002")
+    assert q.process_diagram_inputs(conn, map_only) == []
 
 
 def add_variant_run(store: Store) -> None:

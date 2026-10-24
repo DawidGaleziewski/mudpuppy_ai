@@ -18,7 +18,6 @@ from .models import (
     AnalysisSession,
     DocEvidence,
     DocKind,
-    DocPortalSummary,
     DocRecord,
     DocRecordDetail,
     DocRecordRow,
@@ -98,43 +97,6 @@ def _json(text: str | None) -> Any:
 # --- portals ----------------------------------------------------------------------------------
 
 
-def doc_portals(conn: sqlite3.Connection) -> list[DocPortalSummary]:
-    if not docs_available(conn):
-        return []
-    by: dict[str, dict[str, int]] = {}
-    for r in _rows(
-        conn,
-        f"SELECT r.portal_id, {_STATUS_SQL}, count(*) FROM {_LATEST} GROUP BY 1, 2",
-    ):
-        by.setdefault(r[0], {})[r[1]] = r[2]
-    sessions = {
-        r[0]: (r[1], r[2])
-        for r in _rows(
-            conn, "SELECT portal_id, count(*), max(started_at) FROM analysis_sessions GROUP BY 1"
-        )
-    }
-    followups = {
-        r[0]: r[1]
-        for r in _rows(
-            conn,
-            "SELECT r.portal_id, count(*) FROM followup_tasks f JOIN doc_records r"
-            " ON r.id = f.record_id WHERE f.status IN ('open', 'in_progress') GROUP BY 1",
-        )
-    }
-    portals = sorted(set(by) | set(sessions))
-    return [
-        DocPortalSummary(
-            portal_id=p,
-            records=sum(by.get(p, {}).values()),
-            by_status=by.get(p, {}),
-            sessions=sessions.get(p, (0, None))[0],
-            last_session_at=sessions.get(p, (0, None))[1],
-            open_followups=followups.get(p, 0),
-        )
-        for p in portals
-    ]
-
-
 def kind_counts(conn: sqlite3.Connection, portal: str) -> dict[str, int]:
     return {
         r[0]: r[1]
@@ -164,19 +126,6 @@ def section_counts(conn: sqlite3.Connection, portal: str) -> dict[str, int]:
         sid: sum(kinds.get(k, 0) for k in ks) if sid != "overview" else sum(kinds.values())
         for sid, _, ks in DOC_SECTIONS
     }
-
-
-def portal_known(conn: sqlite3.Connection, portal: str) -> bool:
-    if not docs_available(conn):
-        return False
-    return (
-        conn.execute(
-            "SELECT 1 FROM doc_records WHERE portal_id = ? UNION ALL"
-            " SELECT 1 FROM analysis_sessions WHERE portal_id = ? LIMIT 1",
-            (portal, portal),
-        ).fetchone()
-        is not None
-    )
 
 
 def portal_sessions(
@@ -732,14 +681,6 @@ def process_diagram_inputs(
             }
         )
     return out
-
-
-def process_diagram_input(
-    conn: sqlite3.Connection, detail: DocRecordDetail
-) -> dict[str, Any] | None:
-    """The first of `process_diagram_inputs`, or None."""
-    inputs = process_diagram_inputs(conn, detail)
-    return inputs[0] if inputs else None
 
 
 def capability_diagram_input(conn: sqlite3.Connection, portal: str) -> dict[str, Any]:

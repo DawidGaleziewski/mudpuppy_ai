@@ -6,6 +6,16 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Fixed
+- **R-102: what the React port left behind** (spec 074, v2.8.2, 2026-10-24). Six things the htmx
+  console did and the React console had lost are back: a Workbench record card names the
+  record's type ("Business rule"); As of on one screen, rule or process offers only the versions
+  it is in; arriving at a portal the open data store does not hold opens it in a store that does;
+  "Ask the assistant to regroup" says its request in the drawer; a message sent while the
+  assistant is busy waits and is sent when it is free; an applied proposal can be undone (a new
+  revision that restores the one before). The recorded map's arc labels no longer overlap. The
+  htmx-only read models are deleted, the glossary loader is split, and the chat service's browser
+  tests run against the React console again (8 of 8; the Workbench ones had not run since full
+  scan ids).
 - **R-103: console bugs from the owner's UI review** (spec 073, v2.8.1, 2026-10-24). A scan start
   the crawler refused (the portal down) now ends Failed with the crawler's own sentence and a
   reference, and a start never takes another start's scan; a start the assistant proposed as a

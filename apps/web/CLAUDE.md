@@ -17,48 +17,13 @@ never style (lint refuses `className` and `style` in `src/pages` and `src/app`).
 
 ## Layout
 
-- `src/design-system/`: `components/` (one file per component, owning its `sy-` classes),
-  `stories/` (a stories file per component, `Introduction.mdx`, `Rules.mdx`, `Tokens.mdx`),
-  `assets/` (the designer's CSS and fonts, a copy: never edit), `index.ts` (the one import).
-- `src/app/`: `App.tsx` (routes under `/app/`, the query client), `api.ts` (typed endpoints and
-  TanStack Query hooks; one `api-<page>.ts` per page group, e.g. `api-recorded.ts`, `api-scan.ts`, `api-processes.ts`, `api-process.ts` for one process, whose page is
-  `Process.tsx` with `ProcessFacts.tsx`, `ProcessAsIs.tsx` (A's sign-off and stage),
-  `ProcessSteps.tsx`, `SelectedStep.tsx` and `ProcessEditor.tsx` (the to-be draft bar); the draft
-  is `stepOps.ts` (pure step operations) and `useDraft.ts` (each one autosaved, no ask first; Save,
-  Discard and Rebase ask); `api-process-compare.ts` is the process's Compare and History data
-  (`ProcessCompare.tsx`: step diff and change spec; `ProcessHistory.tsx`: which model runs where,
-  every revision, Mark live and Restore); `api-review.ts` is the Review page's data and writes
-  (`Review.tsx`: tabs, kinds and filters; `ReviewRows.tsx`: a group's rows, alike sets and the
-  selection decided at once; `ReviewDetail.tsx`: the selected item, its decision or a record's
-  review; an `Ask` may carry `undo`, the ask a decision's Undo opens; spec 063 adds
-  `ReviewItems.tsx`: a difference, an amendment to re-anchor, a proposal (before → after);
-  `ReviewSuite.tsx`: a probe suite edited and approved; `useReviewKeys.ts`: the single keys
-  J/K/C/R/U/? and the switch that turns them off; Before / after adds Esc));
-  `api-changes.ts` is What changed (`Changes.tsx`: range, release lanes, filters, the groups) and
-  Before / after (`Change.tsx`: the sides as `Shot`s in three modes, what differs, the
-  explanation with the decision bar through Review's decide); `api-rules.ts` is Business rules
-  (`Rules.tsx`: by status, Run the rule tests; `Rule.tsx`: wording and Reword, decision table,
-  tests, history, the export); `api-docs.ts` is Docs (`Docs.tsx`: sections, records, pages) and
-  `api-doc.ts` one record (`DocRecord.tsx`, its parts in `DocContent.tsx`) and a session (`DocSession.tsx`);
-  `api-settings.ts` is Settings (`Settings.tsx`, `SettingsModel.tsx`); `api-assistant.ts` the drawer (`AssistantDrawer.tsx`, `AssistantParts.tsx`; `Shell` opens it, pages pass `context`; `assistant-context.ts` lets a page ask it, as `HomeAssistant.tsx` does),
-  `api-write.ts` (`postJson`, the one mutation hook and every write), `ConfirmedWrite.tsx` (ask
-  first, post, show the answer: every write goes through it; an `Ask` may carry `follow`, the
-  link's word, and `onDone`, run after a recorded write), `ShownStatus.tsx` (a status as the
-  API maps it), `SectionPaging.tsx` (a scan section's filters and cursor pager, kept in the page
-  address; `api-scan-tabs.ts` and `api-scan-trace.ts` are its data), `scanLinks.ts` (every scan
-  section's address), `Shell.tsx` (one frame around every page, spec 073), `PortalMenu.tsx` (the
-  header's portal picker), `listAddress.ts` (the query a list last had, for Back and crumbs),
-  `ScreenNeighbours.tsx` (Prev / Next between screens over the list they came from),
-  `QueryState.tsx`. The design system's `State` is a region's loading, empty or failed state;
-  `components/zoom.tsx` is the zoom bar and pointer zoom that `Graph` and `Diagram` share.
-- The design system's `Diagram` draws Mermaid from the vendored copy in `public/vendor/`
-  (served at `/app/vendor/mermaid.min.js`); without it, the source shows as text.
-- Every link inside the app moves through React Router (`RouterAnchor.tsx`: `routerLink` for the
-  design system's `LinkProvider`, `useGo` for moves made by code); a raw `<a>` is refused by lint.
-  Links and API calls keep the page address's `?store=` (`store.ts`, the data store) and, on the
-  model pages, `?as_of=` (`asOf.ts`).
-- `src/pages/`: one file per page.
-- `tests/`: Vitest + Testing Library (components, pages with a stubbed API, the design-system drift).
+- `src/design-system/` (components, stories, the designer's assets, `index.ts`), `src/app/`
+  (routes, the API hooks, the frame, links, writes), `src/pages/` (one file per page), `tests/`.
+- **Where each page's files live: `LAYOUT.md`.** Read it before adding a page or a hook.
+- Every link inside the app moves through React Router (`RouterAnchor.tsx`); a raw `<a>` is
+  refused by lint. Links and API calls keep `?store=` and, on the model pages, `?as_of=`.
+- Every page renders inside `Shell` (one frame, drawn once); every write goes through
+  `ConfirmedWrite.tsx`.
 
 ## Tests
 

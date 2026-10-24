@@ -1,7 +1,7 @@
 // The assistant drawer (spec 069) over a stubbed API and a fake EventSource: opening and closing,
 // the timeline, a message sent with the page's context, the reply streaming in, Stop, a
 // credential stored after asking, starting a conversation, and the chat service stopped.
-import { act, fireEvent, screen, within } from '@testing-library/react';
+import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
 import { at } from './render-at';
 
@@ -72,14 +72,15 @@ describe('The assistant drawer', () => {
     expect(await screen.findByRole('complementary', { name: 'Assistant' })).toBeTruthy();
   });
 
-  it('opens on a later link that asks for it, as Processes’ “Ask the assistant to regroup” (R-103 (5))', async () => {
+  it('says the regroup request in the drawer from Processes (R-78 (6), as on htmx)', async () => {
     const processes = { portal: 'shop', archived: false, archived_count: 0, page: 1, pages: 1, total: 0, stages: [], rows: [], suggestions: [], suggested: { shape: 'inferred', word: 'Inferred' }, loose: [], default_persona: 'guest' };
-    at('/app/portals/shop/processes', routes(page(), { '/api/portals/shop/processes': processes }));
-    const ask = await screen.findByRole('link', { name: 'Ask the assistant to regroup' });
-    expect(screen.queryByRole('complementary', { name: 'Assistant' })).toBeNull();
-    // the frame stays mounted, so the address is read on the move, not only on the first page
-    fireEvent.click(ask);
+    const fetch = at('/app/portals/shop/processes', routes(page(), { '/api/portals/shop/processes': processes, [`POST ${CONV}/messages`]: { accepted: true } }));
+    fireEvent.click(await screen.findByRole('button', { name: 'Ask the assistant to regroup' }));
     expect(await screen.findByRole('complementary', { name: 'Assistant' })).toBeTruthy();
+    await waitFor(() => {
+      const sent = fetch.mock.calls.find(([url, init]) => url === `${CONV}/messages` && init?.method === 'POST');
+      expect(sent?.[1]?.body).toContain('Cut this portal into processes and suggest groupings');
+    });
   });
 
   it('opens on the button and Ctrl+J, shows the timeline, closes on Esc', async () => {

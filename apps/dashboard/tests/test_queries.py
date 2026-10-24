@@ -21,59 +21,17 @@ def scalar(conn: sqlite3.Connection, sql: str, *args: object) -> int:
 # --- US1: overview and runs list --------------------------------------------------------------
 
 
-def test_portal_summary_matches_direct_sql(conn: sqlite3.Connection) -> None:
-    [summary] = queries.portal_summaries(conn)
-    assert summary.portal_id == "liveinsurer"
-    assert summary.runs_by_status == {"interrupted": 7, "stopped_warning": 2}
-    assert summary.runs == 9
-    assert summary.states == scalar(conn, "SELECT count(*) FROM states")
-    assert summary.actions_allowed == scalar(conn, "SELECT count(*) FROM actions WHERE allowed")
-    assert summary.actions_skipped == 30
-    assert summary.forms == 6
-    assert summary.network_calls == 9
-    assert summary.open_questions_open == 0
-    assert summary.last_run_at == ts(45)
-
-
-def test_portal_summaries_are_per_portal(liveinsurer_store: Store) -> None:
+def test_portals_are_every_portal_with_runs_or_states(liveinsurer_store: Store) -> None:
     w = liveinsurer_store.connect()
     insert(w, "runs", id="other-1", portal_id="demo", status="completed", started_at=ts(100))
-    insert(w, "open_questions", id="q1", run_id="other-1", text="Why?")
     w.commit()
     conn = db.connect(liveinsurer_store.data_dir, liveinsurer_store.env)
-    by_portal = {s.portal_id: s for s in queries.portal_summaries(conn)}
-    assert set(by_portal) == {"liveinsurer", "demo"}
-    assert by_portal["demo"].runs_by_status == {"completed": 1}
-    assert by_portal["demo"].open_questions_open == 1
-    assert by_portal["demo"].states == 0
-    assert by_portal["liveinsurer"].open_questions_open == 0
     assert queries.portals(conn) == ["demo", "liveinsurer"]
 
 
-def test_list_runs_newest_first_with_duration(conn: sqlite3.Connection) -> None:
-    page = queries.list_runs(conn)
-    assert page.total == 9
-    assert [i.run.id for i in page.items] == [f"run-{n:03d}" for n in range(9, 0, -1)]
-    assert all(i.duration_ms == 120_000 for i in page.items)
-    assert page.next_cursor is None
-
-
-def test_list_runs_filters(conn: sqlite3.Connection) -> None:
-    stopped = queries.list_runs(conn, status="stopped_warning")
-    assert stopped.total == 2
-    assert {i.run.warning for i in stopped.items} >= {CAPTCHA_1}
-    assert queries.list_runs(conn, portal="nope").items == []
-    assert queries.list_runs(conn, portal="liveinsurer").total == 9
-
-
-def test_list_runs_keyset_pagination(conn: sqlite3.Connection) -> None:
-    first = queries.list_runs(conn, limit=4)
-    assert len(first.items) == 4 and first.next_cursor
-    second = queries.list_runs(conn, limit=4, cursor=first.next_cursor)
-    third = queries.list_runs(conn, limit=4, cursor=second.next_cursor)
-    ids = [i.run.id for p in (first, second, third) for i in p.items]
-    assert ids == [f"run-{n:03d}" for n in range(9, 0, -1)]
-    assert third.next_cursor is None
+def test_a_run_lasts_from_start_to_end(conn: sqlite3.Connection) -> None:
+    run = queries.get_run(conn, "run-001")
+    assert run is not None and queries.duration_ms(run) == 120_000
 
 
 def test_running_run_duration_uses_elapsed(liveinsurer_store: Store) -> None:
@@ -81,14 +39,13 @@ def test_running_run_duration_uses_elapsed(liveinsurer_store: Store) -> None:
     insert(w, "runs", id="run-live", status="running", elapsed_ms=4321, started_at=ts(200))
     w.commit()
     conn = db.connect(liveinsurer_store.data_dir, liveinsurer_store.env)
-    top = queries.list_runs(conn, limit=1).items[0]
-    assert top.run.id == "run-live" and top.duration_ms == 4321
+    run = queries.get_run(conn, "run-live")
+    assert run is not None and queries.duration_ms(run) == 4321
 
 
 def test_empty_store(empty_store: Store) -> None:
     conn = db.connect(empty_store.data_dir, empty_store.env)
-    assert queries.portal_summaries(conn) == []
-    assert queries.list_runs(conn).items == []
+    assert queries.portals(conn) == []
     assert queries.get_run(conn, "x") is None
     assert queries.run_summary(conn, "x") is None
 

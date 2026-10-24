@@ -101,6 +101,21 @@ def test_serves_evidence_from_an_eval_workspace(empty_store: Store, eval_root: P
     assert r.status_code == 200 and r.headers["content-type"] == "image/png"
 
 
+def test_the_store_follows_the_portal(empty_store: Store, eval_root: Path) -> None:
+    """R-71 (d), R-103 (3): a switch to a portal the open store lacks lands on one holding it;
+    the open store stays when it holds the portal, or when no store does."""
+    shop_ws = "eval:pf-eval-proving-ground-shop-XyZ789:sandbox"
+    with make_client(empty_store) as c:
+        bank = c.get("/api/stores", params={"portal": "proving-ground-bank"}).json()
+        shop_in_ws = c.get(
+            "/api/stores", params={"portal": "proving-ground-shop", "store": shop_ws}
+        ).json()
+        nowhere = c.get("/api/stores", params={"portal": "never-scanned"}).json()
+    assert bank["follow"]["key"] == "eval:pf-eval-proving-ground-bank-AbC123:sandbox"
+    assert shop_in_ws["current"]["key"] == shop_ws and shop_in_ws["follow"] is None
+    assert nowhere["follow"] is None
+
+
 def test_stores_with_portal_names_only_stores_holding_its_runs(
     empty_store: Store, eval_root: Path
 ) -> None:

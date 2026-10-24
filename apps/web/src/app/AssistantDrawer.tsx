@@ -1,7 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Button, Callout, ChatLog, Chips, Cluster, Code, Composer, Confirm, Drawer, Field, Message, Segmented, Split, Stack, Tag, Text, Textarea } from '../design-system';
 import { chatCall, useAssistant, useChatStream, type AssistantConversation, type AssistantPage, type PageContext } from './api-assistant';
-import { takeSay } from './assistant-context';
+import { keepSay, takeSay } from './assistant-context';
 import { Failure, Item, Live, ScanLine } from './AssistantParts';
 import { QueryState } from './QueryState';
 
@@ -66,9 +66,16 @@ function useTurn({ page, conversation, context, seeing, nudge }: TurnProps) {
     const { status, answer } = await chatCall(conversation.send, { text: message, context: ctx });
     if (status === 202) return;
     setMine(null);
+    if (status === 409) {
+      // the assistant is answering another turn (a running scan): the message waits and is sent
+      // when it is free (R-78 (6), as on htmx), not dropped into the box with an error
+      keepSay(message);
+      stream.add({ kind: 'notice', text: `The assistant is busy. This is sent when it finishes: ${message}` });
+      return;
+    }
     setText(message);
     stream.add({ kind: 'error', text: answer.message ?? 'The message could not be sent.', ref: answer.ref ?? null });
-    if (status !== 409) stream.setBusy(false);
+    stream.setBusy(false);
   };
   const stop = async () => {
     const { status, answer } = await chatCall(conversation.cancel, {});

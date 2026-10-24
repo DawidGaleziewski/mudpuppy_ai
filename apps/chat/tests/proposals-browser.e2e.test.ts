@@ -45,7 +45,7 @@ beforeAll(async () => {
     amendment_id: amendmentId,
     text: 'Show the price with tax',
   });
-  dashboardBase = await stack.dashboard('Anna', `/chat?conversation=${CONV}`);
+  dashboardBase = await stack.dashboard('Anna', `/api/portals/${P}/review`);
 }, 120_000);
 
 afterAll(async () => {
@@ -55,21 +55,24 @@ afterAll(async () => {
 
 describe.skipIf(!browser)('proposals in the browser (FE-A04)', () => {
   it('Apply makes r2 and Undo restores r1 as r3; nothing changes before Apply', async () => {
+    // the React console (R-100; ported in spec 074): proposals are decided in Review
     const page = await browser!.newPage();
-    await page.goto(`${dashboardBase}/chat?conversation=${CONV}`);
-    const card = page.locator('.sy-proposal').first();
-    await card.waitFor();
+    await page.goto(`${dashboardBase}/app/portals/${P}/review?show=proposals`);
+    const apply = page.getByRole('button', { name: 'Apply as r2' });
+    await apply.waitFor();
     expect(revisions().map((r) => r.rev)).toEqual([1]);
 
-    await card.getByRole('button', { name: 'Apply as r2' }).click();
-    await page.locator('.sy-proposal--applied').waitFor();
+    await apply.click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Apply', exact: true }).click();
+    await page.getByText(/^Applied/).waitFor();
     expect(revisions()).toMatchObject([
       { rev: 1, text: 'Show the price' },
       { rev: 2, author: 'Anna', text: 'Show the price with tax' },
     ]);
 
-    await page.getByRole('button', { name: /^Undo \(restores r1 as r3\)/ }).click();
-    await page.getByText('Undone by Anna').waitFor();
+    await page.getByRole('button', { name: 'Undo', exact: true }).click();
+    await page.getByRole('dialog').getByRole('button', { name: 'Undo', exact: true }).click();
+    await page.getByText(/^Undone/).waitFor();
     const after = revisions();
     expect(after).toHaveLength(3);
     expect(after[2]).toMatchObject({ rev: 3, author: 'Anna', text: 'Show the price' });

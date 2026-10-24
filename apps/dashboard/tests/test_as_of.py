@@ -71,6 +71,22 @@ def test_the_model_api_as_of_a_past_version(empty_store: Store) -> None:
     assert c.get(f"{api}/screens/SC-0002", params={"as_of": "1"}).status_code == 404
 
 
+def test_one_screen_offers_only_the_versions_it_is_in(empty_store: Store) -> None:
+    """Spec 042 F-09, restored in spec 074: SC-0002 is first built in version 2, so its As of
+    menu offers 3 and 2; an unknown key or no key gives every version."""
+    seed_versions(empty_store)
+    c = client(empty_store)
+    versions = f"/api/portals/{P}/model-versions"
+
+    def seqs(**q: str) -> list[int]:
+        return [v["seq"] for v in c.get(versions, params=q).json()["versions"]]
+
+    assert seqs(kind="screen", key="SC-0002") == [3, 2]
+    assert seqs(kind="screen", key="SC-9999") == [3, 2, 1]
+    assert seqs() == [3, 2, 1]
+    assert c.get(versions, params={"kind": "page", "key": "x"}).status_code == 422
+
+
 def test_addresses_outside_the_model_ignore_as_of(empty_store: Store) -> None:
     seed_versions(empty_store)
     c = client(empty_store)

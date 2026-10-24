@@ -173,6 +173,13 @@ export function Proposal({ portal, d, decides, ask }: { portal: string; d: Propo
                 text: d.is_new ? 'A new amendment is made from it.' : `${d.key ?? 'The amendment'} gets a new revision; r${String(d.base_rev)} stays in its history.`,
                 confirm: 'Apply',
                 write: reviewWrites.proposal(portal, d.id, 'apply'),
+                // FE-A04: the applied state offers Undo (a new revision that restores the one before)
+                undo: (id) => ({
+                  title: `Undo: restore r${String(d.base_rev ?? 1)} as r${String(d.next_rev + 1)}?`,
+                  text: 'The amendment gets a new revision with the text it had; nothing is deleted.',
+                  confirm: 'Undo',
+                  write: reviewWrites.proposal(portal, id, 'undo'),
+                }),
               })
             }
           >

@@ -23,6 +23,9 @@ class StoreList(BaseModel):
     #: The asked store is gone (an eval workspace deleted since): the default one is shown.
     note: str | None
     stores: list[StoreOut]
+    #: The store follows the portal (R-71 (d), R-103 (3)): the store to read `portal` in when the
+    #: open one does not hold it and another does; None when the open one is right.
+    follow: StoreOut | None = None
 
 
 def _out(s: stores.Store) -> StoreOut:
@@ -36,4 +39,8 @@ def store_list(
     shown = stores.stores_with_portal(every, portal) if portal else every
     if not any(s.key == current.key for s in shown):
         shown = [current, *shown]
-    return StoreList(current=_out(current), note=note, stores=[_out(s) for s in shown])
+    lands = stores.store_for_portal(every, current, portal) if portal else current
+    follow = _out(lands) if lands.key != current.key else None
+    return StoreList(
+        current=_out(current), note=note, stores=[_out(s) for s in shown], follow=follow
+    )

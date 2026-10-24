@@ -162,13 +162,6 @@ def command(conn: sqlite3.Connection, command_id: str) -> WbCommand | None:
     return _command_of(rows[0]) if rows else None
 
 
-def conversation_of_command(conn: sqlite3.Connection, command_id: str) -> str | None:
-    row = conn.execute(
-        "SELECT conversation_id FROM workbench_commands WHERE id = ?", (command_id,)
-    ).fetchone()
-    return row[0] if row else None
-
-
 MESSAGES_SQL = (
     "SELECT seq, role, content, tool_name FROM chat_messages WHERE conversation_id = ? ORDER BY seq"
 )
@@ -193,15 +186,6 @@ def turns(conn: sqlite3.Connection, conversation_id: str) -> list[WbTurn]:
     return out
 
 
-def current_turn(conn: sqlite3.Connection, conversation_id: str) -> int:
-    row = conn.execute(
-        "SELECT count(*) FROM chat_messages WHERE conversation_id = ?"
-        " AND (role = 'user' OR tool_name = ?)",
-        (conversation_id, EVENT),
-    ).fetchone()
-    return max(1, row[0])
-
-
 FEEDBACK_SQL = "SELECT value, reasons_json FROM workbench_feedback WHERE view_id = ? AND by = ?"
 
 
@@ -219,11 +203,12 @@ class RecordRow:
     title: str
     kind: str
     confirmed: bool
+    # What the record is, by its key's prefix (design answer Q5); None for another key. A field,
+    # not a property, so the JSON carries it (spec 074: the React card never got it).
+    type_word: str | None = field(init=False)
 
-    @property
-    def type_word(self) -> str | None:
-        """What the record is, by its key's prefix (design answer Q5); None for another key."""
-        return RECORD_TYPE_WORDS.get(self.key.split("-")[0])
+    def __post_init__(self) -> None:
+        object.__setattr__(self, "type_word", RECORD_TYPE_WORDS.get(self.key.split("-")[0]))
 
 
 # The record kinds a RecordCard names (designer 18-design-answers/05-record-ids.md).

@@ -1558,6 +1558,7 @@ Pick a version in As of and the model pages show only what existed then: the scr
 variants, links, rules and their statuses, processes and proposals. A banner says which
 version you are looking at, with Back to now. Nothing can be changed while you look at the
 past, and downloads and exports always show now. A model version is built after each scan.
+On one screen, rule or process, the menu offers only the versions it is in.
 
 *Example:* As of version 4 · 16 Oct (9c21 · App kalkulator).
 
@@ -1567,7 +1568,7 @@ past, and downloads and exports always show now. A model version is built after 
 
 *Related:* [Portal model](#portal-model), [Release (build)](#release)
 
-<sub>Last changed in R-93, 2026-10-22.</sub>
+<sub>Last changed in R-102, 2026-10-24.</sub>
 
 <a id="review-undo"></a>
 
@@ -4016,7 +4017,8 @@ the skill `mudpuppy-react-ui`.
 "Portal: X" in the header lists the environment's portals, then All portals and + New
 portal. Switching on Processes opens the other portal's Processes; a detail page (one
 record, screen, process or scan) opens its section's list, and a past model version opens
-at Now. The data store stays. All portals keeps the whole nav, for the portal used last.
+at Now. The data store follows the portal: the open one when it holds the portal, else a
+store that does. All portals keeps the whole nav, for the portal used last.
 
 *Example:* Portal: reference-insurer-local → proving-ground-shop-local: /processes stays /processes.
 
@@ -4026,7 +4028,7 @@ at Now. The data store stays. All portals keeps the whole nav, for the portal us
 
 *Related:* [React console](#react-console)
 
-<sub>Last changed in R-103, 2026-10-24.</sub>
+<sub>Last changed in R-102, 2026-10-24.</sub>
 
 <a id="phase-bar"></a>
 

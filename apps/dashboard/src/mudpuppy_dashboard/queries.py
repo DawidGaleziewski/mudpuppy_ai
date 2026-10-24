@@ -22,10 +22,8 @@ from .models import (
     ObservedState,
     Page,
     PhaseStat,
-    PortalSummary,
     RobotsPolicy,
     Run,
-    RunListItem,
     RunSummary,
     State,
     StateObservation,
@@ -98,80 +96,6 @@ def portals(conn: sqlite3.Connection) -> list[str]:
             "SELECT portal_id FROM runs UNION SELECT portal_id FROM states ORDER BY 1",
         )
     ]
-
-
-def _per_portal(conn: sqlite3.Connection, sql: str) -> dict[str, int]:
-    return {r[0]: r[1] for r in _rows(conn, sql)}
-
-
-def portal_summaries(conn: sqlite3.Connection) -> list[PortalSummary]:
-    runs_by: dict[str, dict[str, int]] = {}
-    last_run: dict[str, str] = {}
-    for r in _rows(
-        conn,
-        "SELECT portal_id, status, count(*), max(started_at) FROM runs GROUP BY portal_id, status",
-    ):
-        runs_by.setdefault(r[0], {})[r[1]] = r[2]
-        last_run[r[0]] = max(last_run.get(r[0], ""), r[3])
-
-    def via_runs(table: str, extra: str = "") -> dict[str, int]:
-        return _per_portal(
-            conn,
-            f"SELECT r.portal_id, count(*) FROM {table} t JOIN runs r ON r.id = t.run_id"
-            f" {extra} GROUP BY r.portal_id",
-        )
-
-    states = _per_portal(conn, "SELECT portal_id, count(*) FROM states GROUP BY portal_id")
-    allowed = via_runs("actions", "WHERE t.allowed = 1")
-    skipped = via_runs("actions", "WHERE t.allowed = 0")
-    forms = via_runs("forms")
-    network = via_runs("network_calls")
-    questions = via_runs("open_questions", "WHERE t.status = 'open'")
-    return [
-        PortalSummary(
-            portal_id=p,
-            runs_by_status=runs_by.get(p, {}),  # type: ignore[arg-type]
-            last_run_at=last_run.get(p),
-            states=states.get(p, 0),
-            actions_allowed=allowed.get(p, 0),
-            actions_skipped=skipped.get(p, 0),
-            forms=forms.get(p, 0),
-            network_calls=network.get(p, 0),
-            open_questions_open=questions.get(p, 0),
-        )
-        for p in portals(conn)
-    ]
-
-
-def list_runs(
-    conn: sqlite3.Connection,
-    portal: str | None = None,
-    status: str | None = None,
-    cursor: str | None = None,
-    limit: int = DEFAULT_LIMIT,
-) -> Page[RunListItem]:
-    where, args = _where({"portal_id": portal, "status": status})
-    where = where or "1"
-    total = _count(conn, f"SELECT count(*) FROM runs WHERE {where}", args)
-    keyset, kargs = "", ()
-    if cursor:
-        started, _, run_id = cursor.partition(_SEP)
-        keyset = " AND (started_at < ? OR (started_at = ? AND id < ?))"
-        kargs = (started, started, run_id)
-    rows = _rows(
-        conn,
-        f"SELECT * FROM runs WHERE {where}{keyset} ORDER BY started_at DESC, id DESC LIMIT ?",
-        (*args, *kargs, limit + 1),
-    )
-    runs = [Run.model_validate(dict(r)) for r in rows[:limit]]
-    next_cursor = None
-    if len(rows) > limit:
-        next_cursor = f"{runs[-1].started_at}{_SEP}{runs[-1].id}"
-    return Page[RunListItem](
-        items=[RunListItem(run=r, duration_ms=duration_ms(r)) for r in runs],
-        total=total,
-        next_cursor=next_cursor,
-    )
 
 
 # --- run detail (US2) -------------------------------------------------------------------------

@@ -19,7 +19,12 @@ from .deps import web_of
 
 router = APIRouter(prefix="/api/portals/{portal}/review")
 
-PROPOSAL_DONE = {"apply": "Applied.", "discard": "Discarded."}
+PROPOSAL_DONE = {
+    "apply": "Applied.",
+    "discard": "Discarded.",
+    # FE-A04: an applied proposal can be undone, as a new revision that restores the one before
+    "undo": "Undone: the amendment is as it was, as a new revision.",
+}
 
 
 def _path(portal: str, *parts: str) -> str:
@@ -77,17 +82,18 @@ async def dismiss(request: Request, portal: str, amendment: str) -> JSONResponse
 
 @router.post("/proposals/{proposal}/{verb}", response_model=WriteResult)
 async def decide_proposal(request: Request, portal: str, proposal: str, verb: str) -> JSONResponse:
-    """Apply an assistant proposal as the amendment's next revision, or discard it."""
+    """Apply an assistant proposal as the amendment's next revision (with Undo), discard it, or
+    undo an applied one (FE-A04)."""
     if (no := write_refused(request, "apply proposals")) is not None:
         return no
     if verb not in PROPOSAL_DONE:
-        return write_answer(422, "Apply or discard.")
+        return write_answer(422, "Apply, discard or undo.")
     status, answer = await _signed(request, _path(portal, "proposals", proposal, verb), {})
     if status not in (200, 201):
         return _refusal(status, answer)
     rev = answer.get("applied_rev") or answer.get("rev")
     done = f"Applied as r{rev}." if verb == "apply" and rev else PROPOSAL_DONE[verb]
-    return write_answer(200, done)
+    return write_answer(200, done, undo=proposal if verb == "apply" else None)
 
 
 @router.post("/suites/{suite}", response_model=WriteResult)

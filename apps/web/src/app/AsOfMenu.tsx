@@ -8,10 +8,25 @@ interface ModelVersions {
   versions: { seq: number; built_at: string; releases: string[]; scan: string | null }[];
 }
 
-const useVersions = (portal: string) =>
+/** One screen, rule or process page: its kind and key (a list or the map: none). */
+const ITEM = /^\/app\/portals\/[^/]+\/(screens|rules|processes)\/([^/]+)/;
+const KIND = { screens: 'screen', rules: 'rule', processes: 'process' } as const;
+const NOT_ITEMS = new Set(['map', 'recorded', 'access']);
+
+function itemOf(pathname: string): { kind: string; key: string } | null {
+  const m = ITEM.exec(pathname);
+  if (!m || NOT_ITEMS.has(m[2] ?? '')) return null;
+  return { kind: KIND[m[1] as keyof typeof KIND], key: decodeURIComponent(m[2] ?? '') };
+}
+
+/** The versions; on one screen, rule or process only those it is in (spec 042 F-09). */
+const useVersions = (portal: string, item: { kind: string; key: string } | null) =>
   useQuery({
-    queryKey: ['portals', portal, 'model-versions'],
-    queryFn: () => getJson<ModelVersions>(`/api/portals/${encodeURIComponent(portal)}/model-versions`),
+    queryKey: ['portals', portal, 'model-versions', item],
+    queryFn: () =>
+      getJson<ModelVersions>(
+        `/api/portals/${encodeURIComponent(portal)}/model-versions${item ? `?${new URLSearchParams(item).toString()}` : ''}`,
+      ),
     staleTime: 30_000,
   });
 
@@ -32,7 +47,7 @@ function at(pathname: string, search: string, seq: number | null) {
  */
 export function AsOfMenu({ portal }: { portal: string }) {
   const { pathname, search } = useLocation();
-  const q = useVersions(portal);
+  const q = useVersions(portal, itemOf(pathname));
   const versions = q.data?.versions ?? [];
   const chosen = currentAsOf(search);
   if (versions.length < 2) return null;

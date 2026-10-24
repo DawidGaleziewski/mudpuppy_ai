@@ -14,7 +14,8 @@ The layout never depends on these: nodes stay where the tree put them when a bac
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
+from itertools import pairwise
 from typing import Protocol
 
 #: More off-tree lines than this into one page hide the tree: the page gets a chip instead.
@@ -148,6 +149,28 @@ def _offtree_lines(
         if back is not None and (b, a) < (a, b):
             continue  # drawn once, from the other end
         out.append(route.across(a, b, _label(there, back), "both" if back else "end"))
+    return _spread(out)
+
+
+#: Where an arc over the top row writes its label, and about how wide a label's letter is.
+ARC_LABEL_Y = 16
+LABEL_CHAR_W = 7
+
+
+def _spread(lines: list[Edge]) -> list[Edge]:
+    """Labels over the top row share one height, so two arcs with close midpoints wrote theirs on
+    top of each other (R-102 (7)): left to right, each moves right until it clears the one
+    before, by the longer label's width."""
+    arcs = sorted(
+        (i for i, e in enumerate(lines) if e.label_y == ARC_LABEL_Y and e.label_x is not None),
+        key=lambda i: lines[i].label_x or 0,
+    )
+    out = list(lines)
+    for before, i in pairwise(arcs):
+        prev, e = out[before], out[i]
+        room = max(len(prev.label or ""), len(e.label or "")) * LABEL_CHAR_W
+        if (e.label_x or 0) - (prev.label_x or 0) < room:
+            out[i] = replace(e, label_x=(prev.label_x or 0) + room)
     return out
 
 
@@ -182,4 +205,4 @@ class _Router:
         peak = 4  # the arc's highest point, inside the room above the top row
         c = (8 * peak - y1 - y2) // 6
         d = f"M{x1} {y1} C{x1} {c} {x2} {c} {x2} {y2}"
-        return Edge("offtree", d, label, (x1 + x2) // 2, peak + 12, arrow)
+        return Edge("offtree", d, label, (x1 + x2) // 2, ARC_LABEL_Y, arrow)

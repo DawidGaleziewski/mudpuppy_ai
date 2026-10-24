@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Literal
+
 from fastapi import APIRouter, HTTPException, Request
 from pydantic import BaseModel
 
@@ -79,12 +81,23 @@ class ModelVersions(BaseModel):
 
 
 @router.get("/portals/{portal}/model-versions")
-def model_versions(request: Request, portal: str, env: str | None = None) -> ModelVersions:
+def model_versions(
+    request: Request,
+    portal: str,
+    env: str | None = None,
+    kind: Literal["screen", "rule", "process"] | None = None,
+    key: str | None = None,
+) -> ModelVersions:
+    """The As of menu's versions; on one screen, rule or process (`kind`, `key`) only those it is
+    in (spec 042 F-09, lost in the React port and restored in spec 074)."""
     web = web_of(request)
     c = web.ctx(request, env)
     known_portal(web, c, portal)
     with store(c) as conn:
         found = as_of.versions(conn, portal)
+        since = as_of.first_seq(conn, portal, kind, key) if kind and key else None
+    if since is not None:
+        found = [v for v in found if v.seq >= since]
     return ModelVersions(
         versions=[
             ModelVersion(seq=v.seq, built_at=v.built_at, releases=list(v.releases), scan=v.scan)
