@@ -1,17 +1,9 @@
 // Review part 2 (spec 063) over a stubbed API: a difference, an amendment to re-anchor, a proposal
 // and a probe suite in the side column with their writes behind a confirm, and the single keys.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { at } from './render-at';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { at, confirmIn } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -46,9 +38,6 @@ const lastBody = (fetch: ReturnType<typeof at>, path: string) => {
   const call = fetch.mock.calls.find((c) => c[0] === path) as unknown as [string, { body: string }];
   return JSON.parse(call[1].body) as Record<string, unknown>;
 };
-const confirmIn = (name: string, button: string) => {
-  fireEvent.click(within(screen.getByRole('dialog', { name })).getByRole('button', { name: button }));
-};
 
 describe('Review part 2', () => {
   it('names who sees a difference and links them side by side', async () => {
@@ -80,7 +69,7 @@ describe('Review part 2', () => {
     expect(within(side).getByRole('link', { name: '01a110d5-2028' })).toBeTruthy();
     fireEvent.change(within(side).getByRole('textbox', { name: 'Element key (optional)' }), { target: { value: '' } });
     fireEvent.click(within(side).getByRole('button', { name: 'Re-anchor here' }));
-    confirmIn('Re-anchor AMD-003?', 'Re-anchor here');
+    await confirmIn('Re-anchor AMD-003?', 'Re-anchor here');
     expect(await screen.findByText('AMD-003 re-anchored as r2.')).toBeTruthy();
     expect(lastBody(fetch, `${API}/amendments/amd-3/reanchor`)).toEqual({ state_id: 'st-1', element: '', text: '' });
   });
@@ -96,7 +85,7 @@ describe('Review part 2', () => {
     expect(within(side).getByText('old words').className).toBe('sy-diff--removed');
     expect(within(side).getByText('new words').className).toBe('sy-drawn-text');
     fireEvent.click(within(side).getByRole('button', { name: 'Apply as r2' }));
-    confirmIn('Apply as r2?', 'Apply');
+    await confirmIn('Apply as r2?', 'Apply');
     expect(await screen.findByText('Applied as r2.')).toBeTruthy();
     expect(fetch.mock.calls.some((c) => c[0] === `${API}/proposals/p-1/apply`)).toBe(true);
   });
@@ -139,7 +128,7 @@ describe('Review suites', () => {
     fireEvent.change(within(side).getByRole('textbox', { name: 'Field or control of step 2' }), { target: { value: 'Promo code' } });
     fireEvent.change(within(side).getByRole('textbox', { name: 'Value of step 2' }), { target: { value: 'WELCOME' } });
     fireEvent.click(within(side).getByRole('button', { name: 'Approve the suite' }));
-    confirmIn('Approve the suite?', 'Approve');
+    await confirmIn('Approve the suite?', 'Approve');
     expect(await screen.findByText('Suite approved: written into traces.yaml.')).toBeTruthy();
     const body = lastBody(fetch, `${API}/suites/suite-1`);
     expect(body.action).toBe('approve');

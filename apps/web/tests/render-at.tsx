@@ -1,8 +1,9 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import { render } from '@testing-library/react';
+import { fireEvent, render, screen, within } from '@testing-library/react';
+import { Provider } from 'react-redux';
 import { createMemoryRouter, RouterProvider } from 'react-router';
 import { vi } from 'vitest';
 import { routes } from '../src/app/App';
+import { makeStore } from '../src/app/state/store';
 
 /**
  * Render the app at `path` with the API answering `bodies[url]` (status `status`) and 404 for any
@@ -22,11 +23,17 @@ export function at(path: string, bodies: Record<string, unknown>, status = 200) 
     );
   });
   vi.stubGlobal('fetch', fetch);
-  const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
+  // a fresh store per test: no cached read leaks from one test into the next
   render(
-    <QueryClientProvider client={client}>
+    <Provider store={makeStore()}>
       <RouterProvider router={createMemoryRouter(routes, { initialEntries: [path] })} />
-    </QueryClientProvider>,
+    </Provider>,
   );
   return fetch;
+}
+
+/** Press `button` in the confirm dialog named `name`; waits for it (a form checks its values first). */
+export async function confirmIn(name: string, button: string) {
+  const dialog = await screen.findByRole('dialog', { name });
+  fireEvent.click(within(dialog).getByRole('button', { name: button }));
 }

@@ -1,6 +1,5 @@
-import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { useEffect, useRef } from 'react';
-import { useQueryClient } from '@tanstack/react-query';
+import { Provider, useDispatch } from 'react-redux';
 import { createBrowserRouter, NavigationType, Outlet, RouterProvider, useLocation, useNavigationType } from 'react-router';
 import { LinkProvider } from '../design-system';
 import { Access } from '../pages/Access';
@@ -43,6 +42,8 @@ import { currentStore } from './store';
 import { rememberAddress } from './listAddress';
 import { routerLink } from './RouterAnchor';
 import { ShellLayout } from './Shell';
+import { api } from './state/api';
+import { makeStore, type AppDispatch } from './state/store';
 
 /** Where each visited entry of the history was scrolled to, by its location key (this tab only). */
 const scrolled = new Map<string, number>();
@@ -105,15 +106,15 @@ function useAsOfReset() {
   const { search } = useLocation();
   const asOf = currentAsOf(search);
   const store = currentStore(search);
-  const client = useQueryClient();
+  const dispatch = useDispatch<AppDispatch>();
   const first = useRef(true);
   useEffect(() => {
     if (first.current) {
       first.current = false;
       return;
     }
-    void client.resetQueries();
-  }, [asOf, store, client]);
+    dispatch(api.util.resetApiState());
+  }, [asOf, store, dispatch]);
 }
 
 /**
@@ -168,7 +169,7 @@ const pages = [
   // spec 075: the live Workbench (A2UI, ~450 kB) loads only when opened
   {
     path: '/app/portals/:portal/workbench/live',
-    lazy: async () => ({ Component: (await import('../workbench-live/LiveWorkbench')).LiveWorkbench }),
+    lazy: async () => ({ Component: (await import('../features/workbench-live/LiveWorkbench')).LiveWorkbench }),
   },
   { path: '/app/glossary', element: <Glossary /> },
   { path: '/app/glossary/pages/:slug', element: <GlossaryArticle /> },
@@ -182,13 +183,13 @@ const pages = [
 
 export const routes = [{ element: <Routed />, children: pages }];
 
-const queryClient = new QueryClient({ defaultOptions: { queries: { retry: 1 } } });
+const store = makeStore();
 const router = createBrowserRouter(routes);
 
 export function App() {
   return (
-    <QueryClientProvider client={queryClient}>
+    <Provider store={store}>
       <RouterProvider router={router} />
-    </QueryClientProvider>
+    </Provider>
   );
 }

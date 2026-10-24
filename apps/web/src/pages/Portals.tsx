@@ -1,6 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
 import { Callout, Count, LinkButton, PageHead, Plate, Row, Rows, ScanId, Stack, Status, Table, Tag, Tags, Text } from '../design-system';
-import { getJson, usePortals, type NeedsItem, type PortalList, type StatusOut } from '../app/api';
+import { usePortals, type NeedsItem, type PortalList, type StatusOut } from '../app/api';
+import { api, read } from '../app/state/api';
 import { QueryState } from '../app/QueryState';
 import { Shell } from '../app/Shell';
 import { ShownChip } from '../app/ShownChip';
@@ -26,7 +26,13 @@ interface Overview {
   preview: { portal: string; group: string; item: NeedsItem }[];
 }
 
-const useOverview = () => useQuery({ queryKey: ['portals', 'overview'], queryFn: () => getJson<Overview>('/api/portals/overview') });
+const overviewApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    overview: read<Overview, void>(b, () => '/api/portals/overview', () => ['portals', 'overview']),
+  }),
+});
+
+const useOverview = () => overviewApi.useOverviewQuery();
 const home = (p: string) => `/app/portals/${encodeURIComponent(p)}`;
 
 const columns = [

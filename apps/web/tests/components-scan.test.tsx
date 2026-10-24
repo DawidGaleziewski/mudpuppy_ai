@@ -1,16 +1,8 @@
 // The components added for the scan-based views (spec 054): Confirm, Path, GraphNode's deck and marks.
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { beforeAll, describe, expect, it, vi } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { Confirm, Graph, GraphNode, Path, Tag } from '../src/design-system';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 describe('Confirm', () => {
   it('asks with the question as its name and one confirming button', () => {

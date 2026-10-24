@@ -1,8 +1,8 @@
 // What changed and Before / after (`web/api_changes.py` over `queries_app_changes.py` and
 // `queries_app_change.py`), typed as the pydantic models declare them. Read-only: a change's
 // hypothesis is decided through Review's decide write (`reviewWrites.decide`).
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut, type StatusOut } from './api';
+import type { ChipOut, StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-review';
 
 export interface ChangeRow {
@@ -151,15 +151,21 @@ export const changeHref = (portal: string, id: string, mode: CompareMode = 'side
 
 export const changesKey = (portal: string) => ['portals', portal, 'changes'] as const;
 
-export const useChanges = (portal: string, v: ChangesView) =>
-  useQuery({
-    queryKey: [...changesKey(portal), v],
-    queryFn: () => getJson<ChangesPage>(`/api/portals/${encodeURIComponent(portal)}/changes${changesQuery(v)}`),
-    placeholderData: keepPreviousData,
-  });
+const changesApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    changes: read<ChangesPage, { portal: string; v: ChangesView }>(
+      b,
+      ({ portal, v }) => `/api/portals/${encodeURIComponent(portal)}/changes${changesQuery(v)}`,
+      ({ portal, v }) => [...changesKey(portal), v],
+    ),
+    change: read<ChangePage, { portal: string; id: string }>(
+      b,
+      ({ portal, id }) => `/api/portals/${encodeURIComponent(portal)}/changes/${encodeURIComponent(id)}`,
+      ({ portal, id }) => [...changesKey(portal), 'one', id],
+    ),
+  }),
+});
 
-export const useChange = (portal: string, id: string) =>
-  useQuery({
-    queryKey: [...changesKey(portal), 'one', id],
-    queryFn: () => getJson<ChangePage>(`/api/portals/${encodeURIComponent(portal)}/changes/${encodeURIComponent(id)}`),
-  });
+export const useChanges = (portal: string, v: ChangesView) => changesApi.useChangesQuery({ portal, v });
+
+export const useChange = (portal: string, id: string) => changesApi.useChangeQuery({ portal, id });

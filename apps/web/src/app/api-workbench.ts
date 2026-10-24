@@ -3,9 +3,10 @@
 // (`/chat/conversations/{id}/events`); a view or a command landing reads the page again, and a
 // running scan is read every 2 s (the data lane, WB-UI-13).
 import { useEffect, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
-import type { Write } from './api-write';
+import { useDispatch } from 'react-redux';
+import type { StatusOut } from './api';
+import { api, invalidateKey, read, useLive } from './state/api';
+import type { Write } from './state/http';
 
 export interface WbPage {
   order: number;
@@ -139,19 +140,35 @@ export const workbenchHref = (portal: string, q: { c?: string; sel?: string; new
 
 export const workbenchKey = (portal: string) => ['workbench', portal] as const;
 
+const workbenchApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    workbench: read<WbPageModel, { portal: string; query: string }>(
+      b,
+      ({ portal, query }) => `/api/workbench/portals/${encodeURIComponent(portal)}${query ? `?${query}` : ''}`,
+      ({ portal, query }) => [...workbenchKey(portal), query],
+    ),
+    liveFrame: read<LivePageFrame, string>(b, (portal) => `/api/workbench/live/portals/${encodeURIComponent(portal)}`, (portal) => ['workbench-live', portal]),
+  }),
+});
+
+/** The data lane: a running scan is read again every 2 s, nothing in between. */
 export const useWorkbench = (portal: string, q: { c: string | null; sel: string | null; fresh: boolean }) => {
   const p = new URLSearchParams();
   if (q.c) p.set('c', q.c);
   if (q.sel) p.set('sel', q.sel);
   if (q.fresh) p.set('new', '1');
-  const query = p.toString();
-  return useQuery({
-    queryKey: [...workbenchKey(portal), query],
-    queryFn: () => getJson<WbPageModel>(`/api/workbench/portals/${encodeURIComponent(portal)}${query ? `?${query}` : ''}`),
-    // the data lane: a running scan is read again every 2 s, nothing in between
-    refetchInterval: (r) => (r.state.data?.live ? 2000 : false),
-  });
+  return useLive(workbenchApi.useWorkbenchQuery, { portal, query: p.toString() }, (d: WbPageModel) => d.live !== null, 2000);
 };
+
+/** The live Workbench's page frame (spec 075): its live conversations, why commands or the assistant are off. */
+export interface LivePageFrame {
+  recent: { id: string; title: string | null; first: string; created_at: string }[];
+  paused: string | null;
+  blocked: string | null;
+  starters: string[];
+}
+
+export const useLiveFrame = (portal: string) => workbenchApi.useLiveFrameQuery(portal);
 
 const base = '/api/workbench';
 
@@ -176,13 +193,13 @@ export const wbWrites = {
  * fresh read of the page when a view or a command lands or the assistant goes idle.
  */
 export function useWbStream(portal: string, conversation: string | null) {
-  const client = useQueryClient();
+  const dispatch = useDispatch();
   const [answer, setAnswer] = useState('');
   const text = useRef('');
   useEffect(() => {
     if (!conversation || typeof EventSource === 'undefined') return;
     const source = new EventSource(`/chat/conversations/${encodeURIComponent(conversation)}/events`);
-    const refresh = () => void client.invalidateQueries({ queryKey: workbenchKey(portal) });
+    const refresh = () => void dispatch(invalidateKey(workbenchKey(portal)));
     source.addEventListener('message_chunk', (e) => {
       try {
         const chunk = (JSON.parse((e as MessageEvent<string>).data) as { text?: unknown }).text;
@@ -199,6 +216,6 @@ export function useWbStream(portal: string, conversation: string | null) {
       refresh();
     });
     return () => source.close();
-  }, [client, portal, conversation]);
+  }, [dispatch, portal, conversation]);
   return answer;
 }

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Button, ChatDivider, Cluster, Confirm, Field, Input, Message, ProposalCard, ScanId, Stack, Tag, Text, Vault } from '../design-system';
-import { chatCall, type AssistantConversation, type AssistantItem, type AssistantPage, type LiveLine } from './api-assistant';
+import type { AssistantConversation, AssistantItem, AssistantPage, LiveLine } from './api-assistant';
+import { storeCredential } from './state/http';
 import { ShownStatus } from './ShownStatus';
 
 /** A failure with its ERR reference, which the error page looks up. */
@@ -32,10 +33,10 @@ function CredentialCard({ item, conversation, onStored }: { item: AssistantItem;
   const label = `Credential · ${c.environment} · ${c.persona}`;
   const store = async () => {
     setAsking(false);
-    const { status, answer } = await chatCall(conversation.credentials, { portal: c.portal, environment: c.environment, values: { [c.ref]: value } });
+    const refused = await storeCredential(conversation.credentials, { portal: c.portal, environment: c.environment }, { [c.ref]: value });
     setValue('');
-    if (status === 200) onStored();
-    setResult(status === 200 ? `${c.ref} is in the vault. The value is not shown again.` : (answer.message ?? 'Not stored.'));
+    if (refused === null) onStored();
+    setResult(refused ?? `${c.ref} is in the vault. The value is not shown again.`);
   };
   return (
     <Message who="Assistant">

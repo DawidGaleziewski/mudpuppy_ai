@@ -3,6 +3,7 @@ name: code-reviewer
 description: Reviews a feature branch's diff against master for conformance with MudPuppy's code guidelines (docs/code-guidelines.md), fixes behaviour-neutral small findings and returns the close-out review table. Use in the feature close-out, before the changelog. Not for bug hunting (/code-review) or new features.
 tools: Read, Grep, Glob, Bash, Edit, Skill
 model: sonnet
+skills: [refactor-code, frontend-architecture, frontend-review]
 ---
 
 Review the branch you are given against `master` for guideline conformance, fix the `small`
@@ -12,6 +13,8 @@ findings without changing behaviour, and return the review table. Never commit.
 - Read `docs/code-guidelines.md` — every finding cites one of its ids.
 - Read `specs/012-maintainability/contracts/review-report.md` — your output format and rules.
 - Invoke skill `refactor-code` before your first fix.
+- When the diff touches `apps/web`: invoke skills `frontend-architecture` and `frontend-review`,
+  review the web files by rules FA-1…FA-7 as well, and run the web checks the review skill names.
 
 ## Procedure
 1. `git diff --stat master...HEAD` and `git diff master...HEAD -- <file>`: review only changed files.

@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useParams } from 'react-router';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, Callout, Cluster, Code, Disclosure, Field, Grid, Input, PageHead, Plate, Select, Stack, Table, Text } from '../design-system';
 import { PORTAL_ENVS, settingsKey, settingsWrites, useSettings, type SettingsPage } from '../app/api-settings';
 import { useConfirmedWrite, type Ask } from '../app/ConfirmedWrite';
@@ -8,57 +10,55 @@ import { Shell } from '../app/Shell';
 import { ShownStatus } from '../app/ShownStatus';
 import { Budgets, CrawlRules, Hints, Personas, ScreenIdentity } from './SettingsModel';
 
-/** Add an environment or change one: its address and how far the crawler may go there. */
+const EnvironmentSchema = z.object({ name: z.string(), url: z.string().trim().min(1, 'An address first.'), limit: z.string() });
+type EnvironmentValues = z.infer<typeof EnvironmentSchema>;
+
+/** Add an environment or change one: its address and how far the crawler may go there (React Hook Form, spec 076). */
 function EnvironmentForm({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
-  const first = s.missing[0] ?? s.environments[0]?.name ?? 'production';
-  const [name, setName] = useState(first);
-  const current = s.environments.find((e) => e.name === name);
-  const [url, setUrl] = useState(current?.base_url ?? '');
-  const [limit, setLimit] = useState(current?.limit ?? 'external-side-effect');
-  const pick = (next: string) => {
-    const e = s.environments.find((x) => x.name === next);
-    setName(next);
-    setUrl(e?.base_url ?? '');
-    setLimit(e?.limit ?? 'external-side-effect');
+  const valuesOf = (name: string): EnvironmentValues => {
+    const e = s.environments.find((x) => x.name === name);
+    return { name, url: e?.base_url ?? '', limit: e?.limit ?? 'external-side-effect' };
   };
+  const form = useForm<EnvironmentValues>({ defaultValues: valuesOf(s.missing[0] ?? s.environments[0]?.name ?? 'production'), resolver: zodResolver(EnvironmentSchema) });
+  const url = useWatch({ control: form.control, name: 'url' });
+  const environment = form.register('name', { onChange: (e: { target: { value: string } }) => form.reset(valuesOf(e.target.value)) });
+  const save = form.handleSubmit(({ name, url: address, limit }) =>
+    ask({
+      title: `Save ${name}?`,
+      text: `${address} · ${s.limits.find((l) => l.value === limit)?.label ?? limit}. The chat service writes it into the portal file.`,
+      confirm: 'Save environment',
+      write: settingsWrites.saveEnvironment(s.portal, name, address, limit),
+    }),
+  );
   return (
-    <Cluster>
-      <Field label="Environment">
-        <Select value={name} onChange={(e) => pick(e.target.value)}>
-          {PORTAL_ENVS.map((e) => (
-            <option key={e} value={e}>
-              {s.missing.includes(e) ? e : `${e} (change)`}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      <Field label="Address">
-        <Input type="text" inputMode="url" spellCheck={false} placeholder="https://" value={url} onChange={(e) => setUrl(e.target.value)} />
-      </Field>
-      <Field label="How far the crawler may go">
-        <Select value={limit} onChange={(e) => setLimit(e.target.value)}>
-          {s.limits.map((l) => (
-            <option key={l.value} value={l.value}>
-              {l.label}
-            </option>
-          ))}
-        </Select>
-      </Field>
-      <Button
-        variant="primary"
-        disabled={!s.service_up || !url.trim()}
-        onClick={() =>
-          ask({
-            title: `Save ${name}?`,
-            text: `${url.trim()} · ${s.limits.find((l) => l.value === limit)?.label ?? limit}. The chat service writes it into the portal file.`,
-            confirm: 'Save environment',
-            write: settingsWrites.saveEnvironment(s.portal, name, url.trim(), limit),
-          })
-        }
-      >
-        Save environment
-      </Button>
-    </Cluster>
+    <form onSubmit={(e) => void save(e)} aria-label="Save an environment">
+      <Cluster>
+        <Field label="Environment">
+          <Select {...environment}>
+            {PORTAL_ENVS.map((e) => (
+              <option key={e} value={e}>
+                {s.missing.includes(e) ? e : `${e} (change)`}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Address">
+          <Input type="text" inputMode="url" spellCheck={false} placeholder="https://" {...form.register('url')} />
+        </Field>
+        <Field label="How far the crawler may go">
+          <Select {...form.register('limit')}>
+            {s.limits.map((l) => (
+              <option key={l.value} value={l.value}>
+                {l.label}
+              </option>
+            ))}
+          </Select>
+        </Field>
+        <Button type="submit" variant="primary" disabled={!s.service_up || !url.trim()}>
+          Save environment
+        </Button>
+      </Cluster>
+    </form>
   );
 }
 

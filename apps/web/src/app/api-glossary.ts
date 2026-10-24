@@ -1,7 +1,6 @@
 // The glossary and the BA wiki (`web/api_glossary.py`), typed as the pydantic models declare them.
 // Texts come as HTML the dashboard rendered from markdown without raw HTML (shown with `Prose`).
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson } from './api';
+import { api, read } from './state/api';
 
 export interface GlossaryRef {
   id: string;
@@ -55,13 +54,19 @@ export interface WikiPage {
 
 export const GLOSSARY = '/app/glossary';
 
-export const useGlossary = (q: string) =>
-  useQuery({ queryKey: ['glossary', q], queryFn: () => getJson<GlossaryPage>(`/api/glossary?q=${encodeURIComponent(q)}`), placeholderData: keepPreviousData });
+const glossaryApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    glossary: read<GlossaryPage, string>(b, (q) => `/api/glossary?q=${encodeURIComponent(q)}`, (q) => ['glossary', q]),
+    glossaryArticle: read<Article, string>(b, (slug) => `/api/glossary/pages/${encodeURIComponent(slug)}`, (slug) => ['glossary', 'pages', slug]),
+    wiki: read<WikiRow[], void>(b, () => '/api/glossary/wiki', () => ['glossary', 'wiki']),
+    wikiPage: read<WikiPage, string>(b, (slug) => `/api/glossary/wiki/${encodeURIComponent(slug)}`, (slug) => ['glossary', 'wiki', slug]),
+  }),
+});
 
-export const useGlossaryArticle = (slug: string) =>
-  useQuery({ queryKey: ['glossary', 'pages', slug], queryFn: () => getJson<Article>(`/api/glossary/pages/${encodeURIComponent(slug)}`) });
+export const useGlossary = (q: string) => glossaryApi.useGlossaryQuery(q);
 
-export const useWiki = () => useQuery({ queryKey: ['glossary', 'wiki'], queryFn: () => getJson<WikiRow[]>('/api/glossary/wiki') });
+export const useGlossaryArticle = (slug: string) => glossaryApi.useGlossaryArticleQuery(slug);
 
-export const useWikiPage = (slug: string) =>
-  useQuery({ queryKey: ['glossary', 'wiki', slug], queryFn: () => getJson<WikiPage>(`/api/glossary/wiki/${encodeURIComponent(slug)}`) });
+export const useWiki = () => glossaryApi.useWikiQuery();
+
+export const useWikiPage = (slug: string) => glossaryApi.useWikiPageQuery(slug);

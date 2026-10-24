@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from 'react';
 import { Button, Callout, ChatLog, Chips, Cluster, Code, Composer, Confirm, Drawer, Field, Message, Segmented, Split, Stack, Tag, Text, Textarea } from '../design-system';
-import { chatCall, useAssistant, useChatStream, type AssistantConversation, type AssistantPage, type PageContext } from './api-assistant';
+import { useAssistant, useChatStream, type AssistantConversation, type AssistantPage, type PageContext } from './api-assistant';
+import { chatCall } from './state/http';
 import { keepSay, takeSay } from './assistant-context';
 import { Failure, Item, Live, ScanLine } from './AssistantParts';
 import { QueryState } from './QueryState';
@@ -68,7 +69,7 @@ function useTurn({ page, conversation, context, seeing, nudge }: TurnProps) {
     setMine(null);
     if (status === 409) {
       // the assistant is answering another turn (a running scan): the message waits and is sent
-      // when it is free (R-78 (6), as on htmx), not dropped into the box with an error
+      // when it is free (R-78 (6)), not dropped into the box with an error
       keepSay(message);
       stream.add({ kind: 'notice', text: `The assistant is busy. This is sent when it finishes: ${message}` });
       return;

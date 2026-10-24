@@ -12,7 +12,16 @@ import sqlite3
 from dataclasses import dataclass, field
 from typing import Any
 
-from .. import queries_app, queries_run_graph, queries_scans, queries_wb, stores, wb_a2ui, wb_render
+from .. import (
+    queries_app,
+    queries_run_graph,
+    queries_scans,
+    queries_wb,
+    status_map,
+    stores,
+    wb_a2ui,
+    wb_render,
+)
 from ..map_layout import NODE_H, NODE_W
 from ..queries_chat import list_personas
 from ..queries_wb import WbConversation, WbTurn
@@ -45,6 +54,11 @@ def _page(p: Any, scan: ScanLive) -> dict[str, Any]:
         "status": status,
         "sideTrips": p.side_pages,
     }
+
+
+def _shown(vocabulary: str, value: str) -> dict[str, str | None]:
+    s = status_map.status_of(vocabulary, value)
+    return {"shape": s.shape, "word": s.word}
 
 
 def _graph(conn: sqlite3.Connection, scan: ScanLive) -> dict[str, Any] | None:
@@ -93,6 +107,8 @@ def scan_state(conn: sqlite3.Connection, scan: ScanLive) -> dict[str, Any]:
         "short": scan.short,
         "meter": {
             "status": scan.status,
+            # mapped here, never in the console (status_map, skill mudpuppy-react-ui rule 4)
+            "shown": _shown("wb_scan", scan.status),
             "steps": scan.steps,
             "limit": queries_scans.run_max_steps(conn, scan.run_id),
             "pages": scan.pages,
@@ -115,6 +131,7 @@ def _command(card: CommandCard, command_id: str, name: str) -> dict[str, Any]:
         "command": name,
         "label": card.title,
         "state": card.state,
+        "shown": _shown("wb_cmd", card.state),
         "facts": [list(f) for f in card.facts],
         "reason": card.reason,
         "result": card.result,

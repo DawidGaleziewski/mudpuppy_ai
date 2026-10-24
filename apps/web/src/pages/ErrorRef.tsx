@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { useParams } from 'react-router';
 import { Callout, Code, Facts, LinkButton, PageHead, Plate, Stack, Text } from '../design-system';
-import { getJson } from '../app/api';
 import { QueryState } from '../app/QueryState';
+import { api, read } from '../app/state/api';
 import { Shell } from '../app/Shell';
 
 interface ErrorEntry {
@@ -12,8 +11,13 @@ interface ErrorEntry {
   start: string;
 }
 
-const useErrorEntry = (ref: string) =>
-  useQuery({ queryKey: ['errors', ref], queryFn: () => getJson<ErrorEntry>(`/api/errors/${encodeURIComponent(ref)}`) });
+const errorsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    errorEntry: read<ErrorEntry, string>(b, (ref) => `/api/errors/${encodeURIComponent(ref)}`, (ref) => ['errors', ref]),
+  }),
+});
+
+const useErrorEntry = (ref: string) => errorsApi.useErrorEntryQuery(ref);
 
 function Entry({ e }: { e: ErrorEntry }) {
   const here = `/app/errors/${encodeURIComponent(e.ref)}`;

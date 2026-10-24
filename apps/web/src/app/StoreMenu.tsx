@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router';
 import { Callout, Disclosure, Row, Rows, Text } from '../design-system';
-import { getJson } from './api';
+import { api, read } from './state/api';
 
 interface StoreOut {
   key: string;
@@ -19,12 +18,14 @@ interface StoreList {
   follow?: StoreOut | null;
 }
 
-const useStores = (portal: string | undefined) =>
-  useQuery({
-    queryKey: ['stores', portal ?? null],
-    queryFn: () => getJson<StoreList>(`/api/stores${portal ? `?portal=${encodeURIComponent(portal)}` : ''}`),
-    staleTime: 30_000,
-  });
+const storesApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    stores: read<StoreList, string | null>(b, (portal) => `/api/stores${portal ? `?portal=${encodeURIComponent(portal)}` : ''}`, (portal) => ['stores', portal]),
+  }),
+});
+
+/** The stores to switch to; kept 30 s (the frame reads it on every page). */
+const useStores = (portal: string | undefined) => storesApi.useStoresQuery(portal ?? null, { refetchOnMountOrArgChange: 30 });
 
 /** This page's address reading store `key`, its other parameters kept. */
 function inStore(pathname: string, search: string, key: string) {

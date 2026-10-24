@@ -1,8 +1,8 @@
 // Plan next scan and Recover (`web/api_plan.py` over `queries_app_plan.py`), typed as the pydantic
 // models declare them, and Start scan. Resume, Retry this path and Skip are `writes` in api-write.
-import { useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
-import type { Write } from './api-write';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
+import type { Write } from './state/http';
 
 export interface PlanOption {
   value: string;
@@ -42,11 +42,16 @@ export const recoverHref = (scan: string) => `/app/scans/${encodeURIComponent(sc
 export const planKey = (portal: string) => ['portals', portal, 'scans', 'plan'] as const;
 export const recoverKey = (scan: string) => ['scans', scan, 'recovery'] as const;
 
-export const usePlan = (portal: string) =>
-  useQuery({ queryKey: planKey(portal), queryFn: () => getJson<PlanPage>(`/api/portals/${encodeURIComponent(portal)}/scans/plan`) });
+const planApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    plan: read<PlanPage, string>(b, (portal) => `/api/portals/${encodeURIComponent(portal)}/scans/plan`, planKey),
+    recovery: read<RecoverPage, string>(b, (scan) => `/api/scans/${encodeURIComponent(scan)}/recovery`, recoverKey),
+  }),
+});
 
-export const useRecovery = (scan: string) =>
-  useQuery({ queryKey: recoverKey(scan), queryFn: () => getJson<RecoverPage>(`/api/scans/${encodeURIComponent(scan)}/recovery`) });
+export const usePlan = (portal: string) => planApi.usePlanQuery(portal);
+
+export const useRecovery = (scan: string) => planApi.useRecoveryQuery(scan);
 
 export const startScan = (portal: string, body: { run_type: string; persona: string; environment: string; depth: number; variation: string }): Write => ({
   path: `/api/portals/${encodeURIComponent(portal)}/scans/plan`,

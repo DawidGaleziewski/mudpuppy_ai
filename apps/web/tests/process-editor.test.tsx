@@ -1,17 +1,8 @@
 // The to-be editor (spec 059) over a stubbed API: a step operation autosaves the person's draft at
 // once (D-1), Save and Discard ask first, someone saving first shows the conflict with Rebase.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { at } from './render-at';
-
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -79,7 +70,50 @@ const page = {
   },
 };
 
+/** The body of the draft's autosave, once it is sent. */
+const draftBody = async <T,>(fetch: ReturnType<typeof at>): Promise<T> => {
+  const post = await vi.waitFor(() => {
+    const found = fetch.mock.calls.find((c) => c[0] === `${BASE}/draft`);
+    if (!found) throw new Error('no autosave yet');
+    return found as unknown as [string, { body: string }];
+  });
+  return JSON.parse(post[1].body) as T;
+};
+
+type Steps = { steps: { id: string; title: string; route: string | null; observed: boolean }[] };
+
 describe('To-be editor', () => {
+  it('adds a designed step at the end, trimmed, and empties the form', async () => {
+    const fetch = at(`/app/portals/shop/processes/PRC-001`, {
+      [API]: page,
+      [`${BASE}/draft`]: { ok: true, message: 'Draft saved.', href: null },
+    });
+    const form = await screen.findByRole('form', { name: 'Add a step at the end' });
+    const title = within(form).getByRole('textbox', { name: 'New step' });
+    fireEvent.change(title, { target: { value: '  Summary ' } });
+    fireEvent.change(within(form).getByRole('textbox', { name: 'Route' }), { target: { value: ' /summary ' } });
+    fireEvent.click(within(form).getByRole('button', { name: '+ Add step' }));
+    const body = await draftBody<Steps>(fetch);
+    expect(body.steps.at(-1)).toMatchObject({ title: 'Summary', route: '/summary', observed: false });
+    await vi.waitFor(() => expect((title as HTMLInputElement).value).toBe(''));
+  });
+
+  it('changes the selected step: an empty title is not taken', async () => {
+    const fetch = at(`/app/portals/shop/processes/PRC-001?model=B&step=s2`, {
+      [`${API}?model=B&step=s2`]: { ...page, selected: page.steps[1] },
+      [`${BASE}/draft`]: { ok: true, message: 'Draft saved.', href: null },
+    });
+    const form = await screen.findByRole('form', { name: 'Change this step' });
+    const title = within(form).getByRole('textbox', { name: 'Title' });
+    fireEvent.change(title, { target: { value: '  ' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'Change step' }));
+    expect(await within(form).findByText('A title first.')).toBeTruthy();
+    fireEvent.change(title, { target: { value: 'Car details' } });
+    fireEvent.click(within(form).getByRole('button', { name: 'Change step' }));
+    const body = await draftBody<Steps>(fetch);
+    expect(body.steps[1]).toMatchObject({ id: 's2', title: 'Car details', route: '/car', observed: false });
+  });
+
   it('autosaves the draft after a step operation, without asking', async () => {
     const fetch = at(`/app/portals/shop/processes/PRC-001`, {
       [API]: page,
@@ -90,12 +124,7 @@ describe('To-be editor', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Move step 1 down' }));
     expect(screen.queryByRole('dialog')).toBeNull();
     await screen.findByRole('list', { name: 'Steps in B' });
-    const post = await vi.waitFor(() => {
-      const found = fetch.mock.calls.find((c) => c[0] === `${BASE}/draft`);
-      if (!found) throw new Error('no autosave yet');
-      return found as unknown as [string, { body: string }];
-    });
-    const body = JSON.parse(post[1].body) as { base_rev: number; steps: { id: string }[] };
+    const body = await draftBody<{ base_rev: number; steps: { id: string }[] }>(fetch);
     expect(body.base_rev).toBe(2);
     expect(body.steps.map((s) => s.id)).toEqual(['s2', 's1']);
   });
@@ -119,12 +148,7 @@ describe('To-be editor', () => {
     });
     fireEvent.change(await screen.findByRole('textbox', { name: 'New annotation' }), { target: { value: 'One form instead' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add annotation' }));
-    const post = await vi.waitFor(() => {
-      const found = fetch.mock.calls.find((c) => c[0] === `${BASE}/draft`);
-      if (!found) throw new Error('no autosave yet');
-      return found as unknown as [string, { body: string }];
-    });
-    const body = JSON.parse(post[1].body) as { steps: { id: string; annotations: { text: string; author: string }[] }[] };
+    const body = await draftBody<{ steps: { id: string; annotations: { text: string; author: string }[] }[] }>(fetch);
     expect(body.steps[1]!.annotations[0]).toMatchObject({ text: 'One form instead', author: 'Anna' });
   });
 

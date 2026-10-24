@@ -1,7 +1,7 @@
 // A process's Compare and History (`web/api_process.py` over `queries_app_process_compare.py`),
 // typed as the pydantic models declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 import { processKey } from './api-process';
 
@@ -64,16 +64,23 @@ export interface History {
 const base = (portal: string, key: string) =>
   `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}`;
 
-export const useCompare = (portal: string, key: string, left: string, right: string) =>
-  useQuery({
-    queryKey: [...processKey(portal, key), 'compare', left, right],
-    queryFn: () =>
-      getJson<Compare>(`${base(portal, key)}/compare?left=${encodeURIComponent(left)}&right=${encodeURIComponent(right)}`),
-    placeholderData: keepPreviousData,
-  });
+type CompareArg = { portal: string; key: string; left: string; right: string };
+type ProcessArg = { portal: string; key: string };
 
-export const useHistory = (portal: string, key: string) =>
-  useQuery({ queryKey: [...processKey(portal, key), 'history'], queryFn: () => getJson<History>(`${base(portal, key)}/history`) });
+const compareApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    compare: read<Compare, CompareArg>(
+      b,
+      ({ portal, key, left, right }) => `${base(portal, key)}/compare?left=${encodeURIComponent(left)}&right=${encodeURIComponent(right)}`,
+      ({ portal, key, left, right }) => [...processKey(portal, key), 'compare', left, right],
+    ),
+    history: read<History, ProcessArg>(b, ({ portal, key }) => `${base(portal, key)}/history`, ({ portal, key }) => [...processKey(portal, key), 'history']),
+  }),
+});
+
+export const useCompare = (portal: string, key: string, left: string, right: string) => compareApi.useCompareQuery({ portal, key, left, right });
+
+export const useHistory = (portal: string, key: string) => compareApi.useHistoryQuery({ portal, key });
 
 /** A process's own pages in the console: Compare and History. */
 export const processPageHref = (portal: string, key: string, page: 'compare' | 'history', query = '') =>

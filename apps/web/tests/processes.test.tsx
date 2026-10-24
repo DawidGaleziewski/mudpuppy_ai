@@ -1,17 +1,9 @@
 // The Processes list (spec 057) over a stubbed API: the processes, the suggestions with their
 // writes behind a confirm, the archived view, and a new process from ticked screens in order.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { at } from './render-at';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { at, confirmIn } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -60,10 +52,6 @@ const list = {
   default_persona: 'guest',
 };
 
-const confirmIn = (name: string, button: string) => {
-  const dialog = screen.getByRole('dialog', { name });
-  fireEvent.click(within(dialog).getByRole('button', { name: button }));
-};
 
 describe('Processes', () => {
   it('lists the processes with their models, live marks and their pages', async () => {
@@ -85,7 +73,7 @@ describe('Processes', () => {
     const card = (await screen.findByRole('heading', { name: 'Help pages' })).closest('section');
     if (!card) throw new Error('no suggestion plate');
     fireEvent.click(within(card).getByRole('button', { name: 'Accept' }));
-    confirmIn('Accept Help pages?', 'Accept');
+    await confirmIn('Accept Help pages?', 'Accept');
     expect(await screen.findByText('Accepted: it is a process now.')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Open the process' }).getAttribute('href')).toBe('/processes/PRC-002?model=A');
     expect(fetch.mock.calls.filter((c) => c[0] === '/api/portals/shop/suggestions/sg-1/accept')).toHaveLength(1);
@@ -100,7 +88,7 @@ describe('Processes', () => {
     if (!card) throw new Error('no suggestion plate');
     expect(within(card).getByRole('option', { name: 'step 2 · /kontakt' })).toBeTruthy();
     fireEvent.click(within(card).getByRole('button', { name: 'Merge' }));
-    confirmIn('Merge Help pages with Quote again?', 'Merge');
+    await confirmIn('Merge Help pages with Quote again?', 'Merge');
     expect(await screen.findByText('Merged.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === '/api/portals/shop/suggestions/sg-1/merge') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({ with: 'sg-2' });
@@ -117,7 +105,7 @@ describe('Processes', () => {
     fireEvent.click(within(form).getByRole('checkbox', { name: /\/kontakt/ }));
     fireEvent.click(within(form).getByRole('button', { name: 'Move Kontakt up' }));
     fireEvent.click(within(form).getByRole('button', { name: 'New process from these' }));
-    confirmIn('Make Help?', 'Make the process');
+    await confirmIn('Make Help?', 'Make the process');
     expect(await screen.findByText('Made Help.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === API && c[1]?.method === 'POST') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({ name: 'Help', persona: 'guest', state_ids: ['st-kontakt', 'st-faq'] });

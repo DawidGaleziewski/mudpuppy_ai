@@ -6,6 +6,7 @@ import type { Ask } from '../app/ConfirmedWrite';
 import { ShownStatus } from '../app/ShownStatus';
 import { stepOps } from '../app/stepOps';
 import type { Draft } from '../app/useDraft';
+import { titleError, useStepForm } from '../app/useStepForm';
 import { stateHref } from './RecordedInspector';
 
 function Records({ portal, s }: { portal: string; s: ProcessStep }) {
@@ -151,24 +152,20 @@ function AddScreen({ d, ask }: { d: ProcessPage; ask: (x: Ask) => void }) {
 
 /** + Add step: a designed step at the end of the person's draft. */
 function AddStep({ draft }: { draft: Draft }) {
-  const [title, setTitle] = useState('');
-  const [route, setRoute] = useState('');
+  const form = useStepForm({ title: '', route: '' });
   if (!draft.editable) return null;
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!title.trim()) return;
-    draft.apply((st) => stepOps.add(st, { title: title.trim(), route: route.trim() }));
-    setTitle('');
-    setRoute('');
-  };
+  const submit = form.handleSubmit((step) => {
+    draft.apply((st) => stepOps.add(st, step));
+    form.reset();
+  });
   return (
-    <form onSubmit={submit} aria-label="Add a step at the end">
+    <form onSubmit={(e) => void submit(e)} aria-label="Add a step at the end">
       <Cluster>
-        <Field label="New step">
-          <Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} autoComplete="off" />
+        <Field label="New step" {...titleError(form)}>
+          <Input required maxLength={200} autoComplete="off" {...form.register('title')} />
         </Field>
         <Field label="Route">
-          <Input value={route} onChange={(e) => setRoute(e.target.value)} maxLength={500} placeholder="/…" autoComplete="off" spellCheck={false} />
+          <Input maxLength={500} placeholder="/…" autoComplete="off" spellCheck={false} {...form.register('route')} />
         </Field>
         <Button size="sm" type="submit">
           + Add step

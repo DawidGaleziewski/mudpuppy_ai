@@ -1,7 +1,7 @@
 // Docs (`web/api_docs.py` over `queries_app_docs.py`), typed as the pydantic models declare them:
 // a portal's documentation as an SRS, one section at a time. Read-only.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-review';
 
 export interface DocsSection {
@@ -71,9 +71,14 @@ export const docsQuery = (v: DocsView): string => {
 
 export const docsHref = (portal: string, v: DocsView = {}) => `/app/portals/${encodeURIComponent(portal)}/docs${docsQuery(v)}`;
 
-export const useDocs = (portal: string, v: DocsView) =>
-  useQuery({
-    queryKey: ['portals', portal, 'docs', v],
-    queryFn: () => getJson<DocsPage>(`/api/portals/${encodeURIComponent(portal)}/docs${docsQuery(v)}`),
-    placeholderData: keepPreviousData,
-  });
+const docsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    docs: read<DocsPage, { portal: string; v: DocsView }>(
+      b,
+      ({ portal, v }) => `/api/portals/${encodeURIComponent(portal)}/docs${docsQuery(v)}`,
+      ({ portal, v }) => ['portals', portal, 'docs', v],
+    ),
+  }),
+});
+
+export const useDocs = (portal: string, v: DocsView) => docsApi.useDocsQuery({ portal, v });

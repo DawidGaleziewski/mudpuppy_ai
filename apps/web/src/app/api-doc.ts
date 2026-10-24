@@ -2,9 +2,9 @@
 // `queries_app_doc_content.py` and `queries_app_doc_session.py`), typed as the pydantic models
 // declare them, and the writes a record offers: its review (`reviewWrites.record`) and Open in
 // Processes.
-import { useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
-import type { Write } from './api-write';
+import type { StatusOut } from './api';
+import { api as rtk, read } from './state/api';
+import type { Write } from './state/http';
 
 export interface Ref {
   label: string;
@@ -137,23 +137,34 @@ const api = (portal: string) => `/api/portals/${encodeURIComponent(portal)}/docs
 
 export const docKey = (portal: string) => ['portals', portal, 'docs'] as const;
 
-/** One record, at revision `rev`, opened from the Docs list `list` (its Prev / Next). */
-export const useDocRecord = (portal: string, key: string, rev: string | null, list: string | null) => {
+type RecordArg = { portal: string; key: string; rev: string | null; list: string | null };
+type SessionArg = { portal: string; session: string; cursor: string | null };
+
+function recordPath({ portal, key, rev, list }: RecordArg): string {
   const p = new URLSearchParams();
   if (rev) p.set('rev', rev);
   if (list) p.set('list', list);
   const qs = p.toString();
-  return useQuery({
-    queryKey: [...docKey(portal), 'record', key, rev, list],
-    queryFn: () => getJson<DocRecordPage>(`${api(portal)}/${encodeURIComponent(key)}${qs ? `?${qs}` : ''}`),
-  });
-};
+  return `${api(portal)}/${encodeURIComponent(key)}${qs ? `?${qs}` : ''}`;
+}
+
+const docApi = rtk.injectEndpoints({
+  endpoints: (b) => ({
+    docRecord: read<DocRecordPage, RecordArg>(b, recordPath, ({ portal, key, rev, list }) => [...docKey(portal), 'record', key, rev, list]),
+    docSession: read<DocSessionPage, SessionArg>(
+      b,
+      ({ portal, session, cursor }) => `${api(portal)}/sessions/${encodeURIComponent(session)}${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
+      ({ portal, session, cursor }) => [...docKey(portal), 'session', session, cursor],
+    ),
+  }),
+});
+
+/** One record, at revision `rev`, opened from the Docs list `list` (its Prev / Next). */
+export const useDocRecord = (portal: string, key: string, rev: string | null, list: string | null) =>
+  docApi.useDocRecordQuery({ portal, key, rev, list });
 
 export const useDocSession = (portal: string, session: string, cursor: string | null) =>
-  useQuery({
-    queryKey: [...docKey(portal), 'session', session, cursor],
-    queryFn: () => getJson<DocSessionPage>(`${api(portal)}/sessions/${encodeURIComponent(session)}${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`),
-  });
+  docApi.useDocSessionQuery({ portal, session, cursor });
 
 export const docWrites = {
   /** A BA process record as a workspace process with its screens in walking order. */

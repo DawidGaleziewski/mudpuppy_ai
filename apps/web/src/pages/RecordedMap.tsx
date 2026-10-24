@@ -1,11 +1,9 @@
 import { useState } from 'react';
 import { useSearchParams } from 'react-router';
 import {
-  Check,
   Cluster,
   Columns,
   Field,
-  Fieldset,
   Graph,
   GraphNode,
   Legend,
@@ -21,6 +19,7 @@ import {
   Text,
 } from '../design-system';
 import { planHref } from '../app/api-plan';
+import { MapControls } from '../app/MapControls';
 import { recordedQuery, useRecordedMap, type RecordedFilter, type RecordedMap, type RecordedNode } from '../app/api-recorded';
 import { QueryState } from '../app/QueryState';
 import { ShownChip } from '../app/ShownChip';
@@ -40,9 +39,6 @@ type SetView = (next: Partial<View> & { view?: string }) => void;
 const narrow = () => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 639px)').matches;
 
 function Tools({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
-  const layers = m.filter.layers;
-  const toggle = (layer: string, on: boolean) =>
-    set({ f: { ...v.f, layers: on ? [...layers, layer] : layers.filter((l) => l !== layer) } });
   return (
     <Cluster>
       {m.views.length > 0 && (
@@ -73,25 +69,7 @@ function Tools({ m, v, set }: { m: RecordedMap; v: View; set: SetView }) {
           ))}
         </Select>
       </Field>
-      <Fieldset legend="Layers">
-        {m.layer_options.map((o) => (
-          <Check
-            key={o.value}
-            label={o.label}
-            checked={layers.includes(o.value)}
-            onChange={(e) => toggle(o.value, e.target.checked)}
-          />
-        ))}
-      </Fieldset>
-      <Segmented
-        label="Show as"
-        selected={v.show}
-        onSelect={(show) => set({ show: show === 'list' ? 'list' : 'graph' })}
-        items={[
-          { value: 'graph', label: 'Graph' },
-          { value: 'list', label: 'List' },
-        ]}
-      />
+      <MapControls m={m} v={v} set={set} />
     </Cluster>
   );
 }

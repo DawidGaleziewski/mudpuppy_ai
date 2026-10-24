@@ -1,7 +1,7 @@
 // A scan's sections (`web/api_scan_tabs.py` over `queries_app_scan_tabs.py`), typed as the pydantic
 // models declare them: one endpoint per tab, the paged ones by cursor with their filters.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 
 export interface Evidence {
@@ -151,17 +151,24 @@ export type SectionId = keyof Sections;
 /** A scan's sections with a list of their own (Graph, Trace and Process have their own views). */
 export const SECTIONS: readonly SectionId[] = ['states', 'actions', 'frontier', 'forms', 'network', 'robots', 'decisions', 'docs'];
 
-export const isSection = (tab: string): tab is SectionId => (SECTIONS as readonly string[]).includes(tab);
-
 /**
  * One section of a scan, asked with `params` (its filters and cursor, as the page address carries
  * them). A new filter keeps the old rows on screen until the new ones arrive.
  */
 export function useSection<K extends SectionId>(scan: string, tab: K, params: URLSearchParams) {
-  const qs = params.toString();
-  return useQuery({
-    queryKey: ['scans', scan, tab, qs],
-    queryFn: () => getJson<Sections[K]>(`/api/scans/${encodeURIComponent(scan)}/${tab}${qs ? `?${qs}` : ''}`),
-    placeholderData: keepPreviousData,
-  });
+  const result = scanTabsApi.useSectionQuery({ scan, tab, qs: params.toString() });
+  // the endpoint answers every tab; this tab's shape is the one asked for
+  return result as Omit<typeof result, 'data'> & { data?: Sections[K] | undefined };
 }
+
+type SectionArg = { scan: string; tab: SectionId; qs: string };
+
+const scanTabsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    section: read<Sections[SectionId], SectionArg>(
+      b,
+      ({ scan, tab, qs }) => `/api/scans/${encodeURIComponent(scan)}/${tab}${qs ? `?${qs}` : ''}`,
+      ({ scan, tab, qs }) => ['scans', scan, tab, qs],
+    ),
+  }),
+});

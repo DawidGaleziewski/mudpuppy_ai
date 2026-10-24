@@ -1,0 +1,85 @@
+{
+  "task": "reference-insurer",
+  "started_at": "2026-10-24T08:46:55.761Z",
+  "git_sha": "bdc779c3",
+  "conditions": {
+    "model": null,
+    "budget_usd": "2",
+    "source_store": "/tmp/pf-eval-reference-insurer-xyXueW",
+    "env": "sandbox"
+  },
+  "workspace": "/tmp/pf-grouping-reference-insurer-A072Rt",
+  "outcome": "success",
+  "cost_usd": 0.4303592,
+  "duration_ms": 40201,
+  "turns": 8,
+  "scores": {
+    "processes_found": {
+      "matched": 4,
+      "total": 5,
+      "pct": 80
+    },
+    "clean_starts": {
+      "matched": 4,
+      "total": 4,
+      "pct": 100
+    },
+    "why_cites": {
+      "matched": 4,
+      "total": 4,
+      "pct": 100
+    }
+  },
+  "checks": {
+    "suggestions": 4,
+    "duplicates": 0,
+    "stubs": 0,
+    "error_screens_inside": 0,
+    "extra_screens": 0,
+    "unmatched": 0
+  },
+  "detail": {
+    "P01": "\"Kalkulator OC/AC\"",
+    "P02": "\"Ubezpieczenie turystyczne\"",
+    "P03": "\"Porównanie produktów\"",
+    "P04": "\"Kontakt\"",
+    "P05": "no suggestion covers it"
+  },
+  "suggestions": [
+    {
+      "name": "Kalkulator OC/AC",
+      "routes": [
+        "/kalkulator/pojazd",
+        "/kalkulator/kierowca",
+        "/kalkulator/opcje",
+        "/kalkulator/wynik",
+        "/kalkulator/zakup"
+      ],
+      "why": "The scan walked the calculator's steps one after another with its buttons: \"Kalkulator OC/AC — dane pojazdu\" (/kalkulator/pojazd) → \"dane kierowcy\" (/kalkulator/kierowca) → \"opcje\" (/kalkulator/opcje) → \"Twoja składka\" (/kalkulator/wynik) → \"Wniosek przyjęty\" (/kalkulator/zakup). All screens share the /kalkulator/ address."
+    },
+    {
+      "name": "Ubezpieczenie turystyczne",
+      "routes": [
+        "/ubezpieczenia/podroze",
+        "/ubezpieczenia/podroze/wynik"
+      ],
+      "why": "The form on \"Ubezpieczenie turystyczne\" (/ubezpieczenia/podroze) leads with its button to \"Twoja składka podróżna\" (/ubezpieczenia/podroze/wynik)."
+    },
+    {
+      "name": "Porównanie produktów",
+      "routes": [
+        "/porownanie",
+        "/porownanie/wynik"
+      ],
+      "why": "The button on \"Porównanie produktów\" (/porownanie) leads to \"Wynik porównania\" (/porownanie/wynik); the menu link on every page opens the comparison."
+    },
+    {
+      "name": "Kontakt",
+      "routes": [
+        "/kontakt",
+        "/kontakt/dziekujemy"
+      ],
+      "why": "Filling in the form on \"Kontakt\" (/kontakt) and pressing its button leads to \"Dziękujemy za wiadomość\" (/kontakt/dziekujemy)."
+    }
+  ]
+}

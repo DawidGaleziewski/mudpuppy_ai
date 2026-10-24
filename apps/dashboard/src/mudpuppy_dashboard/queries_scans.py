@@ -1,6 +1,5 @@
-"""A scan's step limit, from its config snapshot (spec 022 T030). The rest of the htmx Scans page's
-read models went with R-100's htmx pages (spec 074, R-102 (1)); the React Scans page reads
-`queries_app.py`."""
+"""A scan's step limit, from its config snapshot (spec 022 T030); the Scans page's read models are
+in `queries_app.py`."""
 
 from __future__ import annotations
 

@@ -1,8 +1,8 @@
 // A recorded screen (`web/api_state.py` over `queries_app_state.py` and `queries_app_state_side.py`),
 // typed as the pydantic models declare them, and its amendment writes (`web/api_amendments.py`).
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
-import type { Write } from './api-write';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
+import type { Write } from './state/http';
 
 export interface Box {
   key: string;
@@ -168,21 +168,25 @@ export const recordingHref = (p: RecordingPlace, state: string) =>
 
 export const stateKey = (state: string) => ['states', state] as const;
 
-export const useScreenRecordings = (portal: string, key: string) =>
-  useQuery({
-    queryKey: ['portals', portal, 'screens', key, 'recordings'],
-    queryFn: () => getJson<ScreenRecordings>(`/api/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}/recordings`),
-    retry: false,
-  });
+const stateApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    screenRecordings: read<ScreenRecordings, { portal: string; key: string }>(
+      b,
+      ({ portal, key }) => `/api/portals/${encodeURIComponent(portal)}/screens/${encodeURIComponent(key)}/recordings`,
+      ({ portal, key }) => ['portals', portal, 'screens', key, 'recordings'],
+    ),
+    stateView: read<StateView, { state: string; pair: string }>(
+      b,
+      ({ state, pair }) => `/api/states/${encodeURIComponent(state)}${pair ? `?${pair}` : ''}`,
+      ({ state, pair }) => [...stateKey(state), pair],
+    ),
+  }),
+});
+
+export const useScreenRecordings = (portal: string, key: string) => stateApi.useScreenRecordingsQuery({ portal, key });
 
 /** A recording; `pair` (`left=…&right=…`) picks the two personas its Access shows side by side. */
-export const useStateView = (state: string, pair = '') =>
-  useQuery({
-    queryKey: [...stateKey(state), pair],
-    queryFn: () => getJson<StateView>(`/api/states/${encodeURIComponent(state)}${pair ? `?${pair}` : ''}`),
-    placeholderData: keepPreviousData,
-    enabled: state !== '',
-  });
+export const useStateView = (state: string, pair = '') => stateApi.useStateViewQuery({ state, pair }, { skip: state === '' });
 
 const amendmentsPath = (portal: string) => `/api/portals/${encodeURIComponent(portal)}/amendments`;
 

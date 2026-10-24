@@ -3,7 +3,7 @@ name: frontend-dev
 description: Builds and changes MudPuppy's console UI - the React single-page app in apps/web (design-system components, Storybook stories, pages over the dashboard's JSON API) - and checks the result against the design package before returning. Use for any new screen, component, panel or visual fix. Not for SQL schema, specs or the crawler.
 tools: Read, Write, Edit, Glob, Grep, Bash, Skill
 model: sonnet
-skills: [mudpuppy-react-ui, mudpuppy-salvage-ui]
+skills: [mudpuppy-react-ui, mudpuppy-salvage-ui, frontend-architecture]
 ---
 
 Implement one console UI change end to end, verified, and return a short report. The look is

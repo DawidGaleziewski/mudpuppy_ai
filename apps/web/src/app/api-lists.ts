@@ -1,7 +1,7 @@
 // The smaller lists (`web/api_lists.py` over `queries_app_lists.py`): Access by persona, Server
 // activity, Search and Scans by process, typed as the pydantic models declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 
 export interface AccessPage {
   portal: string;
@@ -44,23 +44,27 @@ export interface ScanGroupsPage {
 
 const p = (portal: string) => `/api/portals/${encodeURIComponent(portal)}`;
 
-export const useAccess = (portal: string) =>
-  useQuery({ queryKey: ['portals', portal, 'access'], queryFn: () => getJson<AccessPage>(`${p(portal)}/access`) });
+const listsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    access: read<AccessPage, string>(b, (portal) => `${p(portal)}/access`, (portal) => ['portals', portal, 'access']),
+    activity: read<ActivityPage, string | null>(
+      b,
+      (cursor) => `/api/activity${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`,
+      (cursor) => ['activity', cursor],
+    ),
+    search: read<SearchPage, string>(b, (query) => `/api/search?${query}`, (query) => ['search', query]),
+    scanGroups: read<ScanGroupsPage, string>(b, (portal) => `${p(portal)}/scans/by-process`, (portal) => ['portals', portal, 'scans', 'by-process']),
+  }),
+});
 
-export const useActivity = (cursor: string | null) =>
-  useQuery({
-    queryKey: ['activity', cursor],
-    queryFn: () => getJson<ActivityPage>(`/api/activity${cursor ? `?cursor=${encodeURIComponent(cursor)}` : ''}`),
-    placeholderData: keepPreviousData,
-  });
+export const useAccess = (portal: string) => listsApi.useAccessQuery(portal);
 
-export const useSearch = (q: string, portal: string | null) => {
-  const query = new URLSearchParams({ q, ...(portal ? { portal } : {}) }).toString();
-  return useQuery({ queryKey: ['search', query], queryFn: () => getJson<SearchPage>(`/api/search?${query}`), placeholderData: keepPreviousData });
-};
+export const useActivity = (cursor: string | null) => listsApi.useActivityQuery(cursor);
 
-export const useScanGroups = (portal: string) =>
-  useQuery({ queryKey: ['portals', portal, 'scans', 'by-process'], queryFn: () => getJson<ScanGroupsPage>(`${p(portal)}/scans/by-process`) });
+export const useSearch = (q: string, portal: string | null) =>
+  listsApi.useSearchQuery(new URLSearchParams({ q, ...(portal ? { portal } : {}) }).toString());
+
+export const useScanGroups = (portal: string) => listsApi.useScanGroupsQuery(portal);
 
 /** Search, in one portal or all. */
 export const searchHref = (q: string, portal?: string | null) =>

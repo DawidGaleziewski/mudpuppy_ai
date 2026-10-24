@@ -1,4 +1,6 @@
-import { useState, type FormEvent } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, Check, Cluster, Columns, Field, Fieldset, Input, Picture, Row, Rows, Stack, SubHead, Text } from '../design-system';
 import type { LooseScreen } from '../app/api-processes';
 import { writes } from '../app/api-write';
@@ -58,45 +60,49 @@ function Picked({ picked, byId, set }: { picked: readonly string[]; byId: Map<st
   );
 }
 
+const NewProcessSchema = z.object({
+  name: z.string().trim().min(1).max(200),
+  who: z.string().max(200),
+  picked: z.array(z.string()).min(1),
+});
+type NewProcessValues = z.infer<typeof NewProcessSchema>;
+
 /**
  * A new process from the screens in no process: name it, give its persona, tick the screens in
  * the order a person walks them (they become numbered steps you can reorder), then make it.
+ * One React Hook Form (spec 076): the steps are a form value, kept in the order ticked.
  */
 export function NewProcess({ portal, loose, persona, ask }: { portal: string; loose: readonly LooseScreen[]; persona: string; ask: (a: Ask) => void }) {
-  const [picked, setPicked] = useState<string[]>([]);
-  const [name, setName] = useState('');
-  const [who, setWho] = useState(persona);
+  const form = useForm<NewProcessValues>({ defaultValues: { name: '', who: persona, picked: [] }, resolver: zodResolver(NewProcessSchema) });
+  const [name, picked] = useWatch({ control: form.control, name: ['name', 'picked'] });
+  const setPicked = (p: string[]) => form.setValue('picked', p);
   const byId = new Map(loose.map((s) => [s.state, s]));
+  const submit = form.handleSubmit((v) => {
+    const who = v.who.trim() || persona;
+    ask({
+      title: `Make ${v.name}?`,
+      text: `A new process as ${who}, with ${String(v.picked.length)} screen${v.picked.length === 1 ? '' : 's'} as its as-is model A, in the order shown.`,
+      confirm: 'Make the process',
+      write: writes.newProcess(portal, v.name, who, v.picked),
+      follow: 'Open the process',
+      onDone: () => form.reset({ name: '', who: v.who, picked: [] }),
+    });
+  });
   if (loose.length === 0)
     return (
       <Text muted block>
         Every recorded screen is in a process.
       </Text>
     );
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (!name.trim() || picked.length === 0) return;
-    ask({
-      title: `Make ${name.trim()}?`,
-      text: `A new process as ${who.trim() || persona}, with ${String(picked.length)} screen${picked.length === 1 ? '' : 's'} as its as-is model A, in the order shown.`,
-      confirm: 'Make the process',
-      write: writes.newProcess(portal, name.trim(), who.trim() || persona, picked),
-      follow: 'Open the process',
-      onDone: () => {
-        setPicked([]);
-        setName('');
-      },
-    });
-  };
   return (
-    <form onSubmit={submit} aria-label="New process from screens">
+    <form onSubmit={(e) => void submit(e)} aria-label="New process from screens">
       <Stack>
         <Cluster>
           <Field label="New process name">
-            <Input value={name} onChange={(e) => setName(e.target.value)} required maxLength={200} autoComplete="off" />
+            <Input required maxLength={200} autoComplete="off" {...form.register('name')} />
           </Field>
           <Field label="Persona">
-            <Input value={who} onChange={(e) => setWho(e.target.value)} required maxLength={200} autoComplete="off" />
+            <Input required maxLength={200} autoComplete="off" {...form.register('who')} />
           </Field>
         </Cluster>
         <Columns

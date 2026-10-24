@@ -1,0 +1,9 @@
+{
+  "path": ["src"],
+  "ignore": ["**/design-system/assets/**", "**/*.stories.tsx"],
+  "minLines": 8,
+  "minTokens": 70,
+  "threshold": 0,
+  "reporters": ["consoleFull"],
+  "absolute": false
+}

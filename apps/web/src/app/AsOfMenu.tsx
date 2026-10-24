@@ -1,8 +1,7 @@
-import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router';
 import { Callout, Disclosure, Row, Rows, Text } from '../design-system';
-import { getJson } from './api';
 import { currentAsOf } from './asOf';
+import { api, read } from './state/api';
 
 interface ModelVersions {
   versions: { seq: number; built_at: string; releases: string[]; scan: string | null }[];
@@ -19,16 +18,21 @@ function itemOf(pathname: string): { kind: string; key: string } | null {
   return { kind: KIND[m[1] as keyof typeof KIND], key: decodeURIComponent(m[2] ?? '') };
 }
 
-/** The versions; on one screen, rule or process only those it is in (spec 042 F-09). */
-const useVersions = (portal: string, item: { kind: string; key: string } | null) =>
-  useQuery({
-    queryKey: ['portals', portal, 'model-versions', item],
-    queryFn: () =>
-      getJson<ModelVersions>(
-        `/api/portals/${encodeURIComponent(portal)}/model-versions${item ? `?${new URLSearchParams(item).toString()}` : ''}`,
-      ),
-    staleTime: 30_000,
-  });
+type VersionsArg = { portal: string; item: { kind: string; key: string } | null };
+
+const versionsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    modelVersions: read<ModelVersions, VersionsArg>(
+      b,
+      ({ portal, item }) => `/api/portals/${encodeURIComponent(portal)}/model-versions${item ? `?${new URLSearchParams(item).toString()}` : ''}`,
+      ({ portal, item }) => ['portals', portal, 'model-versions', item],
+    ),
+  }),
+});
+
+/** The versions; on one screen, rule or process only those it is in (spec 042 F-09); kept 30 s. */
+const useVersions = (portal: string, item: VersionsArg['item']) =>
+  versionsApi.useModelVersionsQuery({ portal, item }, { refetchOnMountOrArgChange: 30 });
 
 /**
  * This page's address at version `seq` (null: Now), its other parameters kept. Now is written out

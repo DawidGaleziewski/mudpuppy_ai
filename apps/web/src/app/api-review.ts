@@ -1,8 +1,8 @@
 // The Review page (`web/api_review.py` over `queries_app_review.py`), typed as the pydantic models
 // declare them, and its writes: decide (confirm or reject), undo, a record's review.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut as Chip, type StatusOut } from './api';
-import type { Write } from './api-write';
+import type { ChipOut as Chip, StatusOut } from './api';
+import { api as rtk, read } from './state/api';
+import type { Write } from './state/http';
 import type { Ask } from './ConfirmedWrite';
 
 export interface ReviewRow {
@@ -217,12 +217,17 @@ export const reviewHref = (portal: string, v: ReviewView = {}) =>
 
 export const reviewKey = (portal: string) => ['portals', portal, 'review'] as const;
 
-export const useReview = (portal: string, v: ReviewView) =>
-  useQuery({
-    queryKey: [...reviewKey(portal), v],
-    queryFn: () => getJson<ReviewPage>(`/api/portals/${encodeURIComponent(portal)}/review${reviewQuery(v)}`),
-    placeholderData: keepPreviousData,
-  });
+const reviewApi = rtk.injectEndpoints({
+  endpoints: (b) => ({
+    review: read<ReviewPage, { portal: string; v: ReviewView }>(
+      b,
+      ({ portal, v }) => `/api/portals/${encodeURIComponent(portal)}/review${reviewQuery(v)}`,
+      ({ portal, v }) => [...reviewKey(portal), v],
+    ),
+  }),
+});
+
+export const useReview = (portal: string, v: ReviewView) => reviewApi.useReviewQuery({ portal, v });
 
 const api = (portal: string) => `/api/portals/${encodeURIComponent(portal)}/review`;
 

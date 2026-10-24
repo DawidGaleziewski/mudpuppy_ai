@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, Cluster, Count, Disclosure, Facts, Field, Input, Plate, Row, Rows, Stack, Text, Textarea } from '../design-system';
 import { settingsWrites, type SettingsHints, type SettingsPage } from '../app/api-settings';
 import type { Ask } from '../app/ConfirmedWrite';
-import { argsOf, emptyDraft, PersonaFields, problemsOf, type PersonaDraft } from '../app/PersonaForm';
+import { argsOf, emptyDraft, PersonaFields, usePersonaForm } from '../app/PersonaForm';
 
 const list = (items: readonly string[], none: string, mono = true) =>
   items.length ? <Text mono={mono}>{items.join(', ')}</Text> : <Text muted>{none}</Text>;
@@ -50,31 +52,28 @@ export function Personas({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void })
 
 /** Settings ▸ Personas ▸ Add persona (spec 072): the same fields as the Workbench's persona card. */
 function AddPersona({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
-  const [draft, setDraft] = useState<PersonaDraft>(emptyDraft);
-  const taken = s.personas.map((p) => p.id);
-  const ready = Object.keys(problemsOf(draft, taken)).length === 0;
+  const form = usePersonaForm(emptyDraft, s.personas.map((p) => p.id));
+  const add = form.handleSubmit((draft) =>
+    ask({
+      title: `Add persona ${draft.name.trim()}?`,
+      text: 'The chat service writes the persona file; scans you start can then use it. Nothing is saved before this.',
+      confirm: 'Add persona',
+      write: settingsWrites.addPersona(s.portal, argsOf(draft)),
+      onDone: () => form.reset(emptyDraft),
+    }),
+  );
   return (
     <Disclosure summary="Add persona">
-      <Stack>
-        <PersonaFields draft={draft} onChange={setDraft} signIns={s.sign_ins} taken={taken} />
-        <Cluster>
-          <Button
-            size="md"
-            disabled={!ready}
-            onClick={() =>
-              ask({
-                title: `Add persona ${draft.name.trim()}?`,
-                text: 'The chat service writes the persona file; scans you start can then use it. Nothing is saved before this.',
-                confirm: 'Add persona',
-                write: settingsWrites.addPersona(s.portal, argsOf(draft)),
-                onDone: () => setDraft(emptyDraft),
-              })
-            }
-          >
-            Add persona
-          </Button>
-        </Cluster>
-      </Stack>
+      <form onSubmit={(e) => void add(e)} aria-label="Add persona">
+        <Stack>
+          <PersonaFields form={form} signIns={s.sign_ins} />
+          <Cluster>
+            <Button size="md" type="submit" disabled={!form.formState.isValid}>
+              Add persona
+            </Button>
+          </Cluster>
+        </Stack>
+      </form>
     </Disclosure>
   );
 }
@@ -105,47 +104,49 @@ export function CrawlRules({ s }: { s: SettingsPage }) {
   );
 }
 
+const HintsSchema = z.object({ marker_header: z.string().max(200), marker_meta: z.string().max(200), ab_flags: z.string(), refusals: z.string() });
+
 function HintsForm({ portal, h, ask }: { portal: string; h: SettingsHints; ask: (a: Ask) => void }) {
-  const [header, setHeader] = useState(h.marker_header);
-  const [meta, setMeta] = useState(h.marker_meta);
-  const [flags, setFlags] = useState(h.ab_flags.join('\n'));
-  const [refusals, setRefusals] = useState(h.refusals.join('\n'));
+  const form = useForm<z.infer<typeof HintsSchema>>({
+    defaultValues: { marker_header: h.marker_header, marker_meta: h.marker_meta, ab_flags: h.ab_flags.join('\n'), refusals: h.refusals.join('\n') },
+    resolver: zodResolver(HintsSchema),
+  });
+  const save = form.handleSubmit((fields) =>
+    ask({
+      title: 'Save the hints?',
+      text: 'The chat service writes them into the portal file; the file is put back when it would not load.',
+      confirm: 'Save the hints',
+      write: settingsWrites.hints(portal, fields),
+    }),
+  );
   return (
     <Disclosure summary="Change the hints">
-      <Stack>
-        <Cluster>
-          <Field label="Release marker: response header">
-            <Input maxLength={200} value={header} placeholder="x-app-version" onChange={(e) => setHeader(e.target.value)} />
+      <form onSubmit={(e) => void save(e)} aria-label="Change the hints">
+        <Stack>
+          <Cluster>
+            <Field label="Release marker: response header">
+              <Input maxLength={200} placeholder="x-app-version" {...form.register('marker_header')} />
+            </Field>
+            <Field label="or meta name">
+              <Input maxLength={200} placeholder="app-version" {...form.register('marker_meta')} />
+            </Field>
+          </Cluster>
+          <Text small muted>
+            Where the page names its release. With one, a change is told apart by release at once; without, by comparing pages, which is slower.
+          </Text>
+          <Field label="A/B cookies, one per line" help='"cookie NAME" or "storage NAME". Scans read the A/B arm from these, so a variant per arm is not a finding.'>
+            <Textarea rows={3} placeholder={'cookie ab_calc\nstorage exp.hero'} {...form.register('ab_flags')} />
           </Field>
-          <Field label="or meta name">
-            <Input maxLength={200} value={meta} placeholder="app-version" onChange={(e) => setMeta(e.target.value)} />
+          <Field label="Business refusals, one per line" help="A page showing one of these texts is a business refusal, not a technical error.">
+            <Textarea rows={3} placeholder="Nie możemy Cię ubezpieczyć" {...form.register('refusals')} />
           </Field>
-        </Cluster>
-        <Text small muted>
-          Where the page names its release. With one, a change is told apart by release at once; without, by comparing pages, which is slower.
-        </Text>
-        <Field label="A/B cookies, one per line" help='"cookie NAME" or "storage NAME". Scans read the A/B arm from these, so a variant per arm is not a finding.'>
-          <Textarea rows={3} value={flags} placeholder={'cookie ab_calc\nstorage exp.hero'} onChange={(e) => setFlags(e.target.value)} />
-        </Field>
-        <Field label="Business refusals, one per line" help="A page showing one of these texts is a business refusal, not a technical error.">
-          <Textarea rows={3} value={refusals} placeholder="Nie możemy Cię ubezpieczyć" onChange={(e) => setRefusals(e.target.value)} />
-        </Field>
-        <Cluster>
-          <Button
-            size="md"
-            onClick={() =>
-              ask({
-                title: 'Save the hints?',
-                text: 'The chat service writes them into the portal file; the file is put back when it would not load.',
-                confirm: 'Save the hints',
-                write: settingsWrites.hints(portal, { marker_header: header, marker_meta: meta, ab_flags: flags, refusals }),
-              })
-            }
-          >
-            Save the hints
-          </Button>
-        </Cluster>
-      </Stack>
+          <Cluster>
+            <Button size="md" type="submit">
+              Save the hints
+            </Button>
+          </Cluster>
+        </Stack>
+      </form>
     </Disclosure>
   );
 }
@@ -173,43 +174,52 @@ export function Hints({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
   );
 }
 
+/** A whole number from 0 to `max`, as the field holds it (a string). */
+const count = (max: number) => z.string().regex(/^\d+$/, 'A whole number.').refine((v) => Number(v) <= max, `At most ${String(max)}.`);
+
+const BudgetsSchema = z.object({ checks_per_scan: count(1000), probes_per_step: count(1000), probes_per_scan: count(10000) });
+type BudgetValues = z.infer<typeof BudgetsSchema>;
+
 /** Budgets (spec 040 T021): replays after a scan and form probes. */
 export function Budgets({ s, ask }: { s: SettingsPage; ask: (a: Ask) => void }) {
   const h = s.hints;
-  const [checks, setChecks] = useState(String(h?.checks_per_scan ?? 20));
-  const [step, setStep] = useState(String(h?.probes_per_step ?? 24));
-  const [scan, setScan] = useState(String(h?.probes_per_scan ?? 120));
+  const form = useForm<BudgetValues>({
+    defaultValues: { checks_per_scan: String(h?.checks_per_scan ?? 20), probes_per_step: String(h?.probes_per_step ?? 24), probes_per_scan: String(h?.probes_per_scan ?? 120) },
+    resolver: zodResolver(BudgetsSchema),
+  });
+  const errors = form.formState.errors;
+  const save = form.handleSubmit((b) =>
+    ask({
+      title: 'Save the budgets?',
+      text: `Checks per scan ${b.checks_per_scan}, probes per form step ${b.probes_per_step}, probes per scan ${b.probes_per_scan}.`,
+      confirm: 'Save the budgets',
+      write: settingsWrites.budgets(s.portal, b),
+    }),
+  );
   if (!h) return null;
+  const error = (k: keyof BudgetValues) => (errors[k]?.message ? { error: errors[k].message } : {});
   return (
     <Plate title="Budgets">
-      <Stack>
-        <Cluster>
-          <Field label="Checks per scan" help="Replays on the headless driver after a scan (rules R1, R4, R5).">
-            <Input type="number" min={0} max={1000} value={checks} onChange={(e) => setChecks(e.target.value)} />
-          </Field>
-          <Field label="Probes per form step">
-            <Input type="number" min={0} max={1000} value={step} onChange={(e) => setStep(e.target.value)} />
-          </Field>
-          <Field label="Probes per scan" help="0 turns form probing off.">
-            <Input type="number" min={0} max={10000} value={scan} onChange={(e) => setScan(e.target.value)} />
-          </Field>
-        </Cluster>
-        <Cluster>
-          <Button
-            size="md"
-            onClick={() =>
-              ask({
-                title: 'Save the budgets?',
-                text: `Checks per scan ${checks}, probes per form step ${step}, probes per scan ${scan}.`,
-                confirm: 'Save the budgets',
-                write: settingsWrites.budgets(s.portal, { checks_per_scan: checks, probes_per_step: step, probes_per_scan: scan }),
-              })
-            }
-          >
-            Save the budgets
-          </Button>
-        </Cluster>
-      </Stack>
+      <form onSubmit={(e) => void save(e)} aria-label="Budgets">
+        <Stack>
+          <Cluster>
+            <Field label="Checks per scan" help="Replays on the headless driver after a scan (rules R1, R4, R5)." {...error('checks_per_scan')}>
+              <Input type="number" min={0} max={1000} {...form.register('checks_per_scan')} />
+            </Field>
+            <Field label="Probes per form step" {...error('probes_per_step')}>
+              <Input type="number" min={0} max={1000} {...form.register('probes_per_step')} />
+            </Field>
+            <Field label="Probes per scan" help="0 turns form probing off." {...error('probes_per_scan')}>
+              <Input type="number" min={0} max={10000} {...form.register('probes_per_scan')} />
+            </Field>
+          </Cluster>
+          <Cluster>
+            <Button size="md" type="submit">
+              Save the budgets
+            </Button>
+          </Cluster>
+        </Stack>
+      </form>
     </Plate>
   );
 }

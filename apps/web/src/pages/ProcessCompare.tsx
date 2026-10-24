@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useParams, useSearchParams } from 'react-router';
 import { Button, Callout, Cluster, Field, LinkButton, Note, PageHead, Plate, Segmented, Stack, Table, Tag, Text, Textarea } from '../design-system';
 import { processesKey, processHref } from '../app/api-processes';
@@ -57,15 +57,20 @@ function columns(c: Compare) {
   ];
 }
 
+/** The change spec's texts, a row per section in the order shown (React Hook Form, spec 076). */
+interface SpecValues {
+  texts: { text: string }[];
+}
+
 /** The change spec: generated (or the saved revision), editable per section, saved as a revision. */
 function ChangeSpec({ c, ask }: { c: Compare; ask: (a: Ask) => void }) {
-  const [texts, setTexts] = useState(() => Object.fromEntries(c.sections.map((s) => [s.key, s.text])));
+  const form = useForm<SpecValues>({ defaultValues: { texts: c.sections.map((s) => ({ text: s.text })) } });
+  const texts = useWatch({ control: form.control, name: 'texts' });
   const next = (c.spec_head ?? 0) + 1;
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
+  const submit = form.handleSubmit((v) => {
     const sections = Object.fromEntries(
-      c.sections.map((s) => {
-        const text = (texts[s.key] ?? '').trim();
+      c.sections.map((s, i) => {
+        const text = (v.texts[i]?.text ?? '').trim();
         return [s.key, s.is_list ? text.split('\n').map((l) => l.trim()).filter(Boolean) : text];
       }),
     );
@@ -80,19 +85,15 @@ function ChangeSpec({ c, ask }: { c: Compare; ask: (a: Ask) => void }) {
         ...(c.spec_head ? { base_rev: c.spec_head } : {}),
       }),
     });
-  };
+  });
   const exportHref = `/api/portals/${encodeURIComponent(c.head.portal)}/processes/${encodeURIComponent(c.head.key)}/spec.md?left=${encodeURIComponent(c.left)}&right=${encodeURIComponent(c.right ?? '')}`;
   return (
     <Plate variant="drawn" title="Change spec" actions={c.saved ? <Tag size="sm">{c.saved}</Tag> : <Text small muted>generated · editable</Text>}>
-      <form onSubmit={submit} aria-label="Change spec">
+      <form onSubmit={(e) => void submit(e)} aria-label="Change spec">
         <Stack>
-          {c.sections.map((s) => (
+          {c.sections.map((s, i) => (
             <Field key={s.key} label={`${s.title}${s.is_list ? ' (one per line)' : ''}`}>
-              <Textarea
-                value={texts[s.key] ?? ''}
-                rows={Math.max(2, (texts[s.key] ?? '').split('\n').length + (s.is_list ? 1 : 0))}
-                onChange={(e) => setTexts({ ...texts, [s.key]: e.target.value })}
-              />
+              <Textarea rows={Math.max(2, (texts[i]?.text ?? '').split('\n').length + (s.is_list ? 1 : 0))} {...form.register(`texts.${i}.text`)} />
             </Field>
           ))}
           <Cluster>

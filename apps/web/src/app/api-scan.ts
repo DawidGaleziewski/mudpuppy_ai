@@ -1,7 +1,7 @@
 // One scan's page (`web/api_scan.py` over `queries_app_scan.py`): its head and its graph, typed as
 // the pydantic models declare them. Scan ids are whole (D-9).
-import { useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut, type StatusOut } from './api';
+import type { ChipOut, StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 
 /** A scan graph's edge: the first move into a screen (state null) or a failed one. */
@@ -82,8 +82,13 @@ const base = (scan: string) => `/api/scans/${encodeURIComponent(scan)}`;
 
 export const scanKey = (scan: string) => ['scans', scan] as const;
 
-export const useScanHead = (scan: string) =>
-  useQuery({ queryKey: [...scanKey(scan), 'head'], queryFn: () => getJson<ScanHead>(base(scan)) });
+const scanApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    scanHead: read<ScanHead, string>(b, base, (scan) => [...scanKey(scan), 'head']),
+    scanGraph: read<ScanGraph, string>(b, (scan) => `${base(scan)}/graph`, (scan) => [...scanKey(scan), 'graph']),
+  }),
+});
 
-export const useScanGraph = (scan: string) =>
-  useQuery({ queryKey: [...scanKey(scan), 'graph'], queryFn: () => getJson<ScanGraph>(`${base(scan)}/graph`) });
+export const useScanHead = (scan: string) => scanApi.useScanHeadQuery(scan);
+
+export const useScanGraph = (scan: string) => scanApi.useScanGraphQuery(scan);

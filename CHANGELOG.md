@@ -45,6 +45,19 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
   (round 4 Q2).
 
 ### Changed
+- **R-105: the console's code, rebuilt to one architecture** (spec 076, v2.9.1, 2026-10-24).
+  Nothing changes on screen; every suite and both evals are as before (baseline: no regression,
+  $8.01 of $10). The design system is in atomic layers (atoms, layout, molecules, organisms) that
+  import only downwards, with a compound `Dialog`; spacing and text tone go through utility
+  classes generated from the design tokens (`Box`, the layout components' `gap`, `mt`, `mb`), so
+  a rebrand changes token values only. The live Workbench is built from design-system components
+  (its placeholder CSS is gone). Server data is in RTK Query (TanStack Query removed); the
+  multi-field forms are React Hook Form with zod schemas, so a refused value says why (a step's
+  empty title used to be dropped without a word). Dead code and htmx leftovers are out, the
+  duplicated map controls and dialogs folded. `pnpm check` in `apps/web` (types, ESLint with the
+  layer and no-styling rules, stylelint with role tokens only, knip, jscpd at zero clones, the
+  tests) runs from a git pre-commit hook (`git config core.hooksPath .githooks`). The rules are the
+  skill `frontend-architecture`; the code-reviewer checks them with `frontend-review`.
 - **R-100: the console is a 100% React single-page app** (spec 071, v2.7.0, 2026-10-23). Moving
   between pages no longer reloads the app: every link goes through React Router (30–120 ms a
   click, no page load), and the built files are cached for good. Every page the htmx dashboard

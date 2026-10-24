@@ -1,10 +1,10 @@
 // Settings (`web/api_settings.py` over `queries_app_settings.py`), typed as the pydantic models
 // declare them, and its writes, each through the chat service: an environment saved or revoked,
 // the hints, the budgets, the calibrated τ or the classifier accepted.
-import { useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
 import type { Option } from './api-review';
-import type { Write } from './api-write';
+import { api as rtk, read } from './state/api';
+import type { Write } from './state/http';
 import type { PersonaArgs } from './PersonaForm';
 
 export interface SettingsEnvironment {
@@ -57,7 +57,13 @@ export const settingsKey = (portal: string) => ['portals', portal, 'settings'] a
 
 export const settingsHref = (portal: string) => `/app/portals/${encodeURIComponent(portal)}/settings`;
 
-export const useSettings = (portal: string) => useQuery({ queryKey: settingsKey(portal), queryFn: () => getJson<SettingsPage>(`${api(portal)}/settings`) });
+const settingsApi = rtk.injectEndpoints({
+  endpoints: (b) => ({
+    settings: read<SettingsPage, string>(b, (portal) => `${api(portal)}/settings`, settingsKey),
+  }),
+});
+
+export const useSettings = (portal: string) => settingsApi.useSettingsQuery(portal);
 
 export const settingsWrites = {
   saveEnvironment: (portal: string, environment: string, baseUrl: string, limit: string): Write => ({

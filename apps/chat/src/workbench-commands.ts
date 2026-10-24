@@ -268,7 +268,6 @@ const portalOf = (raw: BetterSqlite3.Database, conversationId: string): string =
     throw new CommandRefusal('NOT_FOUND', 'the conversation has no portal');
   return row.portal_id;
 };
-export const commandPortal = portalOf;
 
 function setState(
   raw: BetterSqlite3.Database,

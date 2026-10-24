@@ -1,8 +1,8 @@
 // The recorded map and the Recorded pages (`web/api_recorded.py` over `queries_app_recorded*.py`),
 // typed as the pydantic models declare them. The dashboard places every node, picks every edge's
 // state and sends every word; the app renders them. Scan ids are whole (D-9).
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut, type StatusOut } from './api';
+import type { ChipOut, StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 
 export interface ScanChoice {
@@ -145,30 +145,35 @@ export function recordedQuery(f: RecordedFilter): URLSearchParams {
 
 export const recordedMapKey = (portal: string) => ['portals', portal, 'map', 'recorded'] as const;
 
-export const useRecordedMap = (portal: string, f: RecordedFilter) =>
-  useQuery({
-    queryKey: [...recordedMapKey(portal), f],
-    queryFn: () => getJson<RecordedMap>(`${base(portal)}/map/recorded?${recordedQuery(f).toString()}`),
-    placeholderData: keepPreviousData,
-  });
+type PagesArg = { portal: string; q: string; page: number };
+
+function pagesPath({ portal, q, page }: PagesArg): string {
+  const p = new URLSearchParams();
+  if (q) p.set('q', q);
+  if (page > 1) p.set('page', String(page));
+  const qs = p.toString();
+  return `${base(portal)}/screens/recorded${qs ? `?${qs}` : ''}`;
+}
+
+const recordedApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    recordedMap: read<RecordedMap, { portal: string; f: RecordedFilter }>(
+      b,
+      ({ portal, f }) => `${base(portal)}/map/recorded?${recordedQuery(f).toString()}`,
+      ({ portal, f }) => [...recordedMapKey(portal), f],
+    ),
+    recordedNode: read<RecordedNodeDetail, { portal: string; screen: string }>(
+      b,
+      ({ portal, screen }) => `${base(portal)}/map/recorded/${encodeURIComponent(screen)}`,
+      ({ portal, screen }) => [...recordedMapKey(portal), 'node', screen],
+    ),
+    recordedPages: read<RecordedPages, PagesArg>(b, pagesPath, ({ portal, q, page }) => ['portals', portal, 'screens', 'recorded', q, page]),
+  }),
+});
+
+export const useRecordedMap = (portal: string, f: RecordedFilter) => recordedApi.useRecordedMapQuery({ portal, f });
 
 export const useRecordedNode = (portal: string, screen: string) =>
-  useQuery({
-    queryKey: [...recordedMapKey(portal), 'node', screen],
-    queryFn: () =>
-      getJson<RecordedNodeDetail>(`${base(portal)}/map/recorded/${encodeURIComponent(screen)}`),
-    enabled: screen !== '',
-  });
+  recordedApi.useRecordedNodeQuery({ portal, screen }, { skip: screen === '' });
 
-export const useRecordedPages = (portal: string, q: string, page: number) =>
-  useQuery({
-    queryKey: ['portals', portal, 'screens', 'recorded', q, page],
-    queryFn: () => {
-      const p = new URLSearchParams();
-      if (q) p.set('q', q);
-      if (page > 1) p.set('page', String(page));
-      const qs = p.toString();
-      return getJson<RecordedPages>(`${base(portal)}/screens/recorded${qs ? `?${qs}` : ''}`);
-    },
-    placeholderData: keepPreviousData,
-  });
+export const useRecordedPages = (portal: string, q: string, page: number) => recordedApi.useRecordedPagesQuery({ portal, q, page });

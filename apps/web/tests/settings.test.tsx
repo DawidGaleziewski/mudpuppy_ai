@@ -1,17 +1,9 @@
 // Settings (spec 068) over a stubbed API: every part, the chat service stopped, and the writes
 // (save and revoke an environment, the hints, the budgets, accept τ) asked first.
-import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { at } from './render-at';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { at, confirmIn } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -46,7 +38,7 @@ const bodyOf = (fetch: ReturnType<typeof at>, path: string) => {
   const call = fetch.mock.calls.find((c) => c[0] === path) as unknown as [string, { body: string }];
   return JSON.parse(call[1].body) as Record<string, unknown>;
 };
-const confirmIn = (name: string, button: string) => fireEvent.click(within(screen.getByRole('dialog', { name })).getByRole('button', { name: button }));
+// a form's submit validates first (React Hook Form), so the confirm opens a moment later
 
 describe('Settings', () => {
   it('shows every part, credentials by name only', async () => {
@@ -72,7 +64,7 @@ describe('Settings', () => {
     const fetch = at('/app/portals/shop/settings', { [`${API}/settings`]: page(), [`POST ${API}/environments`]: { ok: true, message: 'sandbox saved.', href: null } });
     fireEvent.change(await screen.findByLabelText('Address'), { target: { value: 'https://sandbox.example.test' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save environment' }));
-    confirmIn('Save sandbox?', 'Save environment');
+    await confirmIn('Save sandbox?', 'Save environment');
     expect(await screen.findByText('sandbox saved.')).toBeTruthy();
     expect(bodyOf(fetch, `${API}/environments`)).toEqual({ environment: 'sandbox', base_url: 'https://sandbox.example.test', limit: 'external-side-effect' });
   });
@@ -80,7 +72,7 @@ describe('Settings', () => {
   it('revokes an environment after asking', async () => {
     const fetch = at('/app/portals/shop/settings', { [`${API}/settings`]: page(), [`POST ${API}/environments/staging/revoke`]: { ok: true, message: 'staging revoked.', href: null } });
     fireEvent.click(await screen.findByRole('button', { name: 'Revoke staging' }));
-    confirmIn('Revoke staging?', 'Revoke staging');
+    await confirmIn('Revoke staging?', 'Revoke staging');
     expect(await screen.findByText('staging revoked.')).toBeTruthy();
     expect(fetch.mock.calls.some((c) => c[0] === `${API}/environments/staging/revoke`)).toBe(true);
   });
@@ -93,12 +85,12 @@ describe('Settings', () => {
     });
     fireEvent.change(await screen.findByLabelText('Checks per scan'), { target: { value: '5' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save the budgets' }));
-    confirmIn('Save the budgets?', 'Save the budgets');
+    await confirmIn('Save the budgets?', 'Save the budgets');
     expect(await screen.findByText('Budgets saved.')).toBeTruthy();
     expect(bodyOf(fetch, `${API}/hints/budgets`)).toEqual({ checks_per_scan: '5', probes_per_step: '24', probes_per_scan: '120' });
     expect(screen.getByRole('button', { name: 'Accept the classifier' }).hasAttribute('disabled')).toBe(true);
     fireEvent.click(screen.getByRole('button', { name: 'Accept the calibrated τ' }));
-    confirmIn('Accept the calibrated τ?', 'Accept the calibrated τ');
+    await confirmIn('Accept the calibrated τ?', 'Accept the calibrated τ');
     expect(await screen.findByText('The calibrated τ is in force from the next rebuild.')).toBeTruthy();
   });
 });
@@ -111,15 +103,18 @@ describe('Settings ▸ Personas (spec 072, designer 19/04)', () => {
     });
     const name = await screen.findByLabelText('Name');
     fireEvent.change(name, { target: { value: 'client' } });
-    expect(screen.getByText('client is already a persona of this portal.')).toBeTruthy();
+    // the form checks as it is typed, asynchronously (React Hook Form + zod)
+    expect(await screen.findByText('client is already a persona of this portal.')).toBeTruthy();
     expect(screen.getByRole('button', { name: 'Add persona' }).hasAttribute('disabled')).toBe(true);
     fireEvent.change(name, { target: { value: 'reader' } });
     fireEvent.change(screen.getByLabelText('Signs in with'), { target: { value: 'SHOP' } });
     fireEvent.click(screen.getByRole('button', { name: 'Add a value' }));
     fireEvent.change(screen.getByLabelText('Field 1'), { target: { value: 'Kod pocztowy' } });
     fireEvent.change(screen.getByLabelText('Value for Kod pocztowy'), { target: { value: '00-950' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Add persona' }));
-    confirmIn('Add persona reader?', 'Add persona');
+    const add = screen.getByRole('button', { name: 'Add persona' });
+    await waitFor(() => expect(add.hasAttribute('disabled')).toBe(false));
+    fireEvent.click(add);
+    await confirmIn('Add persona reader?', 'Add persona');
     expect(await screen.findByText('Persona reader added to shop.')).toBeTruthy();
     expect(bodyOf(fetch, `${API}/personas`)).toEqual({ name: 'reader', credential: 'SHOP', test_data: [{ field: { label: 'Kod pocztowy' }, value: '00-950' }] });
   });
@@ -130,7 +125,7 @@ describe('Settings ▸ Personas (spec 072, designer 19/04)', () => {
       [`POST ${API}/personas/client/remove`]: { ok: false, message: 'Not done: a scan already used persona "client", so it stays.', href: null },
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Remove client' }));
-    confirmIn('Remove persona client?', 'Remove');
+    await confirmIn('Remove persona client?', 'Remove');
     expect(await screen.findByText(/so it stays/)).toBeTruthy();
     expect(fetch.mock.calls.some((c) => c[0] === `${API}/personas/client/remove`)).toBe(true);
   });

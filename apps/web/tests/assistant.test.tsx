@@ -2,17 +2,9 @@
 // the timeline, a message sent with the page's context, the reply streaming in, Stop, a
 // credential stored after asking, starting a conversation, and the chat service stopped.
 import { act, fireEvent, screen, waitFor, within } from '@testing-library/react';
-import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { at } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 /** A stand-in for the browser's EventSource that the test drives with `emit`. */
 class FakeSource {
@@ -72,7 +64,7 @@ describe('The assistant drawer', () => {
     expect(await screen.findByRole('complementary', { name: 'Assistant' })).toBeTruthy();
   });
 
-  it('says the regroup request in the drawer from Processes (R-78 (6), as on htmx)', async () => {
+  it('says the regroup request in the drawer from Processes (R-78 (6))', async () => {
     const processes = { portal: 'shop', archived: false, archived_count: 0, page: 1, pages: 1, total: 0, stages: [], rows: [], suggestions: [], suggested: { shape: 'inferred', word: 'Inferred' }, loose: [], default_persona: 'guest' };
     const fetch = at('/app/portals/shop/processes', routes(page(), { '/api/portals/shop/processes': processes, [`POST ${CONV}/messages`]: { accepted: true } }));
     fireEvent.click(await screen.findByRole('button', { name: 'Ask the assistant to regroup' }));

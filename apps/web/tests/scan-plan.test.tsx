@@ -1,4 +1,4 @@
-import { fireEvent, screen } from '@testing-library/react';
+import { fireEvent, screen, waitFor } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { at } from './render-at';
 
@@ -39,7 +39,8 @@ describe('Plan next scan', () => {
     expect(screen.getByText('no recorded way there for a replay')).toBeTruthy();
     expect(screen.getByRole('link', { name: 'Oferty' }).getAttribute('href')).toBe('/app/states/st-1');
     fireEvent.click(screen.getByRole('button', { name: 'Start scan' }));
-    expect(document.querySelector('dialog h2')?.textContent).toBe('Start a focused scan?');
+    // the form checks its values first (React Hook Form), so the confirm opens a tick later
+    await waitFor(() => expect(document.querySelector('dialog h2')?.textContent).toBe('Start a focused scan?'));
   });
 });
 

@@ -3,11 +3,9 @@ import { useParams, useSearchParams } from 'react-router';
 import {
   Bundle,
   Callout,
-  Check,
   Cluster,
   Columns,
   Field,
-  Fieldset,
   Graph,
   GraphNode,
   Legend,
@@ -22,6 +20,7 @@ import {
   Text,
 } from '../design-system';
 import { mapQuery, useMap, type MapData, type MapFilter, type MapNode } from '../app/api-map';
+import { MapControls } from '../app/MapControls';
 import { QueryState } from '../app/QueryState';
 import { ScreensViews } from '../app/ScreensViews';
 import { Shell } from '../app/Shell';
@@ -45,9 +44,6 @@ const screensHref = (portal: string) => `/app/portals/${encodeURIComponent(porta
 const narrow = () => typeof window.matchMedia === 'function' && window.matchMedia('(max-width: 639px)').matches;
 
 function Tools({ m, v, set }: { m: MapData; v: View; set: (next: Partial<View>) => void }) {
-  const layers = m.filter.layers;
-  const toggle = (layer: string, on: boolean) =>
-    set({ f: { ...v.f, layers: on ? [...layers, layer] : layers.filter((l) => l !== layer) } });
   return (
     <Cluster>
       <Segmented
@@ -66,25 +62,7 @@ function Tools({ m, v, set }: { m: MapData; v: View; set: (next: Partial<View>) 
           ))}
         </Select>
       </Field>
-      <Fieldset legend="Layers">
-        {m.layer_options.map((o) => (
-          <Check
-            key={o.value}
-            label={o.label}
-            checked={layers.includes(o.value)}
-            onChange={(e) => toggle(o.value, e.target.checked)}
-          />
-        ))}
-      </Fieldset>
-      <Segmented
-        label="Show as"
-        selected={v.show}
-        onSelect={(show) => set({ show: show === 'list' ? 'list' : 'graph' })}
-        items={[
-          { value: 'graph', label: 'Graph' },
-          { value: 'list', label: 'List' },
-        ]}
-      />
+      <MapControls m={m} v={v} set={set} />
     </Cluster>
   );
 }

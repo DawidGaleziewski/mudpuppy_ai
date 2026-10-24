@@ -1,9 +1,8 @@
 // The dashboard's JSON API (`apps/dashboard/src/mudpuppy_dashboard/web/api_*.py`), typed as the
-// pydantic models in `queries_app.py` declare it, and one TanStack Query hook per endpoint.
-import { useQuery } from '@tanstack/react-query';
+// pydantic models in `queries_app.py` declare it: the portals, a portal's scans and home, as RTK
+// Query endpoints (spec 076; `state/api.ts`), one hook per endpoint.
 import type { StatusKind } from '../design-system';
-import { currentAsOf, withAsOf } from './asOf';
-import { currentStore, withStore } from './store';
+import { api, read, useLive } from './state/api';
 
 export interface PortalSummary {
   id: string;
@@ -51,40 +50,22 @@ export interface ScanList {
   total: number;
 }
 
-/** A failed API call: the HTTP status and the API's own message, for the error state. */
-export class ApiError extends Error {
-  constructor(
-    readonly status: number,
-    message: string,
-  ) {
-    super(message);
-  }
-}
+const p = (portal: string) => `/api/portals/${encodeURIComponent(portal)}`;
 
-export async function getJson<T>(path: string): Promise<T> {
-  // the chosen data store (spec 019); a model page As of a past version asks its API as of that
-  // version (spec 040 FR-001)
-  const r = await fetch(withStore(withAsOf(path, currentAsOf()), currentStore()), { headers: { accept: 'application/json' } });
-  if (!r.ok) {
-    const body = (await r.json().catch(() => null)) as { detail?: unknown } | null;
-    const detail = typeof body?.detail === 'string' ? body.detail : `${String(r.status)} ${r.statusText}`;
-    throw new ApiError(r.status, detail);
-  }
-  return (await r.json()) as T;
-}
+const portalsApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    portals: read<PortalList, void>(b, () => '/api/portals', () => ['portals']),
+    scans: read<ScanList, string>(b, (portal) => `${p(portal)}/scans`, (portal) => ['portals', portal, 'scans']),
+    portalHome: read<PortalHomeData, string>(b, (portal) => `${p(portal)}/home`, (portal) => ['portals', portal, 'home']),
+  }),
+});
 
 // The frame reads it on every page (the Workbench switch): kept for 30 s, not fetched per page.
-export const usePortals = () =>
-  useQuery({ queryKey: ['portals'], queryFn: () => getJson<PortalList>('/api/portals'), staleTime: 30_000 });
+export const usePortals = () => portalsApi.usePortalsQuery(undefined, { refetchOnMountOrArgChange: 30 });
 
+/** A running scan moves: read again every 2 s while one runs (live data never goes through the model). */
 export const useScans = (portal: string) =>
-  useQuery({
-    queryKey: ['portals', portal, 'scans'],
-    queryFn: () => getJson<ScanList>(`/api/portals/${encodeURIComponent(portal)}/scans`),
-    // A running scan moves: refresh while one runs (live data never goes through the model).
-    refetchInterval: (q) =>
-      q.state.data?.scans.some((s) => s.status.shape === 'running') ? 2000 : false,
-  });
+  useLive(portalsApi.useScansQuery, portal, (d: ScanList) => d.scans.some((s) => s.status.shape === 'running'), 2000);
 
 /** A mark beside a claim (`queries_app.Chip`). */
 export interface ChipOut {
@@ -130,8 +111,4 @@ export interface PortalHomeData {
   rules: { total: number; by_status: { status: StatusOut; count: number }[] };
 }
 
-export const usePortalHome = (portal: string) =>
-  useQuery({
-    queryKey: ['portals', portal, 'home'],
-    queryFn: () => getJson<PortalHomeData>(`/api/portals/${encodeURIComponent(portal)}/home`),
-  });
+export const usePortalHome = (portal: string) => portalsApi.usePortalHomeQuery(portal);

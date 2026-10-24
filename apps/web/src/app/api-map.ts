@@ -1,7 +1,7 @@
 // The model map API (`web/api_map.py` over `queries_app_map.py`), typed as the pydantic models
 // declare it. The dashboard places every node and draws every edge; the app renders them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut, type StatusOut } from './api';
+import type { ChipOut, StatusOut } from './api';
+import { api, read } from './state/api';
 
 export interface MapNode {
   id: string;
@@ -95,10 +95,15 @@ export function mapQuery(f: MapFilter): URLSearchParams {
   return p;
 }
 
-export const useMap = (portal: string, f: MapFilter) =>
-  useQuery({
-    queryKey: ['portals', portal, 'map', f],
-    queryFn: () => getJson<MapData>(`/api/portals/${encodeURIComponent(portal)}/map?${mapQuery(f).toString()}`),
-    // A new view keeps the old drawing on screen until its drawing arrives.
-    placeholderData: keepPreviousData,
-  });
+const mapApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    // a new view keeps the old drawing on screen until its drawing arrives (RTK Query's `data`)
+    map: read<MapData, { portal: string; f: MapFilter }>(
+      b,
+      ({ portal, f }) => `/api/portals/${encodeURIComponent(portal)}/map?${mapQuery(f).toString()}`,
+      ({ portal, f }) => ['portals', portal, 'map', f],
+    ),
+  }),
+});
+
+export const useMap = (portal: string, f: MapFilter) => mapApi.useMapQuery({ portal, f });

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# git pre-commit hook (spec 076): the shared checks for the changed paths; a red suite blocks the
+# commit. Install once per clone: `git config core.hooksPath .githooks`.
+exec "$(git rev-parse --show-toplevel)/.githooks/checks.sh"

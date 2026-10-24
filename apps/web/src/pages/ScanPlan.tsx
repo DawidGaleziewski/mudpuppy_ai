@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
 import { useParams } from 'react-router';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, Choice, Cluster, Columns, Count, Field, Fieldset, Grid, Input, PageHead, Plate, Row, Rows, Select, Stack, SubHead, Text } from '../design-system';
 import { planKey, startScan, usePlan, type PlanPage } from '../app/api-plan';
 import { stateHref } from '../app/api-state';
@@ -41,60 +43,73 @@ function Marks({ p }: { p: PlanPage }) {
   );
 }
 
+const PlanSchema = z.object({
+  run_type: z.string(),
+  persona: z.string().min(1, 'A persona first.'),
+  environment: z.string(),
+  depth: z.number({ invalid_type_error: 'A whole number.' }).int('A whole number.').min(0).max(10),
+  variation: z.string(),
+});
+type PlanValues = z.infer<typeof PlanSchema>;
+
 function PlanForm({ p, ask }: { p: PlanPage; ask: (a: Ask) => void }) {
-  const [type, setType] = useState(p.types[0]?.value ?? 'focused');
-  const [persona, setPersona] = useState(p.personas[0] ?? '');
-  const [environment, setEnvironment] = useState(p.environments[0] ?? '');
-  const [depth, setDepth] = useState(2);
-  const [variation, setVariation] = useState(p.variations[0]?.value ?? 'none');
-  const label = p.types.find((t) => t.value === type)?.label ?? type;
-  const start = () =>
+  const form = useForm<PlanValues>({
+    defaultValues: { run_type: p.types[0]?.value ?? 'focused', persona: p.personas[0] ?? '', environment: p.environments[0] ?? '', depth: 2, variation: p.variations[0]?.value ?? 'none' },
+    resolver: zodResolver(PlanSchema),
+  });
+  const [type, persona] = useWatch({ control: form.control, name: ['run_type', 'persona'] });
+  const depthError = form.formState.errors.depth?.message;
+  const start = form.handleSubmit((plan) => {
+    const label = p.types.find((t) => t.value === plan.run_type)?.label ?? plan.run_type;
     ask({
       title: `Start a ${label.toLowerCase()} scan?`,
-      text: `The assistant starts it in ${p.portal}'s conversation as ${persona}${environment ? ` on ${environment}` : ''}; follow it there.`,
+      text: `The assistant starts it in ${p.portal}'s conversation as ${plan.persona}${plan.environment ? ` on ${plan.environment}` : ''}; follow it there.`,
       confirm: 'Start scan',
-      write: startScan(p.portal, { run_type: type, persona, environment, depth, variation }),
+      write: startScan(p.portal, plan),
       follow: 'Open the assistant',
     });
+  });
   return (
-    <Stack>
-      <Fieldset legend="1 · Scan type">
-        <Grid min="210px">
-          {p.types.map((t) => (
-            <Choice key={t.value} name="run_type" value={t.value} checked={type === t.value} onChange={setType} label={t.label} what={t.hint} />
-          ))}
-        </Grid>
-        <Text small muted>To continue a stopped scan, open it from Scans and choose Resume.</Text>
-      </Fieldset>
-      <Marks p={p} />
-      <Fieldset legend="3 · Persona, environment, limits">
+    <form onSubmit={(e) => void start(e)} aria-label="Plan next scan">
+      <Stack>
+        <Fieldset legend="1 · Scan type">
+          <Grid min="210px">
+            {p.types.map((t) => (
+              <Choice key={t.value} name="run_type" value={t.value} checked={type === t.value} onChange={(v) => form.setValue('run_type', v)} label={t.label} what={t.hint} />
+            ))}
+          </Grid>
+          <Text small muted>To continue a stopped scan, open it from Scans and choose Resume.</Text>
+        </Fieldset>
+        <Marks p={p} />
+        <Fieldset legend="3 · Persona, environment, limits">
+          <Cluster>
+            <Field label="Persona">
+              <Select {...form.register('persona')}>
+                {p.personas.length ? p.personas.map((x) => <option key={x}>{x}</option>) : <option value="">no scan yet</option>}
+              </Select>
+            </Field>
+            <Field label="Environment">
+              <Select {...form.register('environment')}>
+                {p.environments.map((x) => <option key={x}>{x}</option>)}
+              </Select>
+            </Field>
+            <Field label="Depth from the start (focused)" {...(depthError ? { error: depthError } : {})}>
+              <Input type="number" min={0} max={10} {...form.register('depth', { valueAsNumber: true })} />
+            </Field>
+            <Field label="Variation (retry)">
+              <Select {...form.register('variation')}>
+                {p.variations.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}
+              </Select>
+            </Field>
+          </Cluster>
+          <Text small muted>A replay logs in first when the persona logs in. Skip marks apply to every scan while they are open; the other marks close when a scan uses them.</Text>
+        </Fieldset>
         <Cluster>
-          <Field label="Persona">
-            <Select value={persona} onChange={(e) => setPersona(e.target.value)}>
-              {p.personas.length ? p.personas.map((x) => <option key={x}>{x}</option>) : <option value="">no scan yet</option>}
-            </Select>
-          </Field>
-          <Field label="Environment">
-            <Select value={environment} onChange={(e) => setEnvironment(e.target.value)}>
-              {p.environments.map((x) => <option key={x}>{x}</option>)}
-            </Select>
-          </Field>
-          <Field label="Depth from the start (focused)">
-            <Input type="number" min={0} max={10} value={depth} onChange={(e) => setDepth(Number(e.target.value))} />
-          </Field>
-          <Field label="Variation (retry)">
-            <Select value={variation} onChange={(e) => setVariation(e.target.value)}>
-              {p.variations.map((v) => <option key={v.value} value={v.value}>{v.label}</option>)}
-            </Select>
-          </Field>
+          <Button type="submit" variant="primary" disabled={!persona}>Start scan</Button>
+          <Text small muted>Asks the assistant in this portal&apos;s chat; follow the scan there.</Text>
         </Cluster>
-        <Text small muted>A replay logs in first when the persona logs in. Skip marks apply to every scan while they are open; the other marks close when a scan uses them.</Text>
-      </Fieldset>
-      <Cluster>
-        <Button variant="primary" disabled={!persona} onClick={start}>Start scan</Button>
-        <Text small muted>Asks the assistant in this portal&apos;s chat; follow the scan there.</Text>
-      </Cluster>
-    </Stack>
+      </Stack>
+    </form>
   );
 }
 

@@ -3306,13 +3306,52 @@ entries:
       `/app/`; every link moves through React Router, so changing pages never reloads the app.
       Older addresses (`/states/…`, `/docs/…`, `/runs/…`) redirect to their React page. The
       header's data-store menu and As of are kept in the page address. Every UI change follows
-      the skill `mudpuppy-react-ui`.
+      the skill `mudpuppy-react-ui`; the code's shape follows `frontend-architecture` (server
+      state in RTK Query, multi-field forms in React Hook Form with a zod schema).
     example: "http://127.0.0.1:8765/app/portals/reference-insurer-local/scans"
     appears_in: [/app/]
     labels: [/app/, Storybook, Data store]
-    related: [persona-sample]
-    changed_in: R-100
-    changed_on: 2026-10-23
+    related: [persona-sample, design-system-layers, token-utilities]
+    changed_in: R-105
+    changed_on: 2026-10-24
+
+  - id: design-system-layers
+    term: Design system layers
+    category: mudpuppy
+    group: Dashboard
+    short: The console's components sorted by size, atoms → layout → molecules → organisms; each imports only the layers below.
+    explanation: |
+      Atomic design in `apps/web/src/design-system/`: atoms (a button, an input, a status), layout
+      (Stack, Cluster, Box), molecules (a field with its label, a row), organisms (a plate, a
+      dialog, the map). ESLint refuses an import upwards, and pages, the app frame and features
+      import `design-system/index.ts` only. Where a caller arranges the parts, a component is
+      compound (`Dialog.Head`, `Dialog.Body`, `Dialog.Foot`). Rules in the skill
+      `frontend-architecture`; the code-reviewer checks them with `frontend-review`.
+    example: "Field (a molecule) uses Text (an atom); Plate (an organism) may use Field, never the reverse."
+    appears_in: [apps/web, Storybook, pnpm check]
+    labels: [atoms, molecules, organisms, compound component]
+    related: [react-console, token-utilities]
+    changed_in: R-105
+    changed_on: 2026-10-24
+
+  - id: token-utilities
+    term: Token utilities
+    category: mudpuppy
+    group: Dashboard
+    short: Helper classes like u-mb-3 or u-text-fail, generated from the design tokens, so a rebrand changes token values only.
+    explanation: |
+      Colours, spacing and type live as tokens (`--sy-*` in `tokens.css`). Components draw them
+      through their own BEM classes (`sy-plate__head`, `sy-btn--primary`); small adjustments go
+      through utility classes generated from the same tokens (`pnpm ds:utilities`), used through
+      `Box` and the layout components' `gap`, `mt` and `mb` props. Stylelint refuses a colour
+      that is not a role token and a class outside the `sy-` / `u-` names, so no loose style
+      reaches the console.
+    example: "<Box mb={3} tone=\"fail\"> renders class=\"u-mb-3 u-text-fail\"."
+    appears_in: [apps/web, Storybook → Tokens, pnpm check]
+    labels: [u-, Box, tokens, rebrand]
+    related: [react-console, design-system-layers]
+    changed_in: R-105
+    changed_on: 2026-10-24
 
   - id: portal-picker
     term: Portal picker

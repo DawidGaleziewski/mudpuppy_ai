@@ -1,0 +1,11 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "entry": ["src/design-system/stories/**/*.{tsx,mdx}", "tests/**/*.{ts,tsx}", "scripts/*.mjs", ".storybook/*.{ts,tsx}"],
+  "project": ["src/**/*.{ts,tsx}"],
+  "ignoreExportsUsedInFile": true,
+  "rules": {
+    "types": "off",
+    "nsTypes": "off",
+    "enumMembers": "off"
+  }
+}

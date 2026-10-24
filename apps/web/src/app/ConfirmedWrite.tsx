@@ -1,7 +1,7 @@
 import { useState, type ReactNode } from 'react';
-import type { QueryKey } from '@tanstack/react-query';
 import { Button, Callout, Confirm, Text } from '../design-system';
-import { useWrite, type Write, type WriteResult } from './api-write';
+import { useWrite } from './api-write';
+import type { Write, WriteResult } from './state/http';
 
 /** A write the page offers: the question, what will happen, the confirming word and the call. */
 export interface Ask {
@@ -23,7 +23,7 @@ export interface Ask {
  * views under `refresh` reload. `view` is the dialog and the callout, placed where the page wants
  * the result read.
  */
-export function useConfirmedWrite(refresh: QueryKey) {
+export function useConfirmedWrite(refresh: readonly unknown[]) {
   const [pending, setPending] = useState<Ask | null>(null);
   const [follow, setFollow] = useState('Open the conversation');
   const [undoAsk, setUndoAsk] = useState<Ask['undo']>(undefined);

@@ -81,6 +81,8 @@ describe('Picture', () => {
   it('fits the width by default, keeps Whole page for the session and says when the picture fails', () => {
     HTMLDialogElement.prototype.showModal = vi.fn();
     const { container } = render(<Picture shot="/evidence/s.png" title="Kontakt" />);
+    // the dialog's parts render while it is open (Dialog, spec 076)
+    fireEvent.click(screen.getByRole('button', { name: 'Picture of Kontakt, enlarge' }));
     const figure = () => container.querySelector('figure')!;
     expect(figure().dataset.fit).toBe('width');
     fireEvent.click(screen.getByRole('button', { name: 'Whole page', hidden: true }));

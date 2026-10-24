@@ -1,14 +1,82 @@
-// The Salvage Yard design system for React (R-96): every component, one import.
-// Rules, the class each component owns and how to add one: skill `mudpuppy-react-ui`.
-export { Anchor, LinkProvider, type AnchorProps, type DrawLink } from './components/Anchor.js';
-export { AppShell, type AppShellProps, type NavGroup, type NavItem } from './components/AppShell.js';
-export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButtonProps } from './components/Button.js';
-export { Callout, type CalloutProps } from './components/Callout.js';
-export { RecordingDialog, type RecordingDialogProps } from './components/RecordingDialog.js';
-export { Prose, type ProseProps } from './components/Prose.js';
-export { SearchBox, type SearchBoxProps } from './components/SearchBox.js';
-export { GenFeedback, GenView, type GenFeedbackProps, type GenViewProps, type GenWhy } from './components/GenView.js';
-export { CommandCard, type CommandCardProps } from './components/CommandCard.js';
+// The Salvage Yard design system for React (R-96): every component, one import, by layer (atomic
+// design, spec 076: atoms → molecules → organisms, layout beside them). Pages and features import
+// from here only. Rules: skill `frontend-architecture` (the code) and `mudpuppy-react-ui` (pages).
+
+// --- atoms: one element ----------------------------------------------------------------------
+export { Anchor, LinkProvider, type AnchorProps, type DrawLink } from './atoms/Anchor.js';
+export { Button, LinkButton, type ButtonProps, type ButtonVariant, type LinkButtonProps } from './atoms/Button.js';
+export { Check, Input, Select, Textarea, type CheckProps } from './atoms/Controls.js';
+export { Chip, type ChipProps } from './atoms/Chip.js';
+export { Code } from './atoms/Code.js';
+export { Count } from './atoms/Count.js';
+export { Note, type NoteProps } from './atoms/Note.js';
+export { Prose, type ProseProps } from './atoms/Prose.js';
+export { Status, type StatusProps } from './atoms/Status.js';
+export { Tag, Tags, type TagProps } from './atoms/Tag.js';
+export { SubHead, Text, type TextProps } from './atoms/Text.js';
+
+// --- layout: spacing and arrangement, through the token utilities -------------------------------
+export { Box, type BoxProps, type Space, type Surface, type Tone } from './layout/Box.js';
+export { Cluster, Columns, Grid, Split, Stack } from './layout/Layout.js';
+
+// --- molecules: a few atoms with one job --------------------------------------------------------
+export { Callout, type CalloutProps } from './molecules/Callout.js';
+export { Choice, Kbd, KeyBar, type ChoiceProps } from './molecules/Choice.js';
+export { Disclosure, type DisclosureProps } from './molecules/Disclosure.js';
+export { Facts } from './molecules/Facts.js';
+export { Field, Fieldset, type FieldProps } from './molecules/Field.js';
+export { Meter, type MeterProps } from './molecules/Meter.js';
+export { PageHead, type Crumb, type PageHeadProps } from './molecules/PageHead.js';
+export { Path, type PathStep } from './molecules/Path.js';
+export { ScanId, shortScanId, type ScanIdProps } from './molecules/ScanId.js';
+export { SearchBox, type SearchBoxProps } from './molecules/SearchBox.js';
+export { Segmented, type SegmentedProps, type SegmentItem } from './molecules/Segmented.js';
+export { State, type StateProps } from './molecules/State.js';
+export { Steps, type Step } from './molecules/Steps.js';
+export { TabPanel, Tabs, ViewNav, type TabItem, type TabsProps, type ViewNavProps } from './molecules/Tabs.js';
+
+// --- organisms: regions of a page with their own structure --------------------------------------
+export { AppShell, type AppShellProps, type NavGroup, type NavItem } from './organisms/AppShell.js';
+export {
+  ChatDivider,
+  ChatLog,
+  Chips,
+  Composer,
+  Drawer,
+  Message,
+  ProposalCard,
+  Vault,
+  type DrawerProps,
+  type MessageProps,
+  type ProposalCardProps,
+} from './organisms/Chat.js';
+export { CommandCard, type CommandCardProps } from './organisms/CommandCard.js';
+export { Compare, CompareOverlay, CompareSide, type CompareOverlayProps, type CompareSideProps } from './organisms/Compare.js';
+export { Confirm, type ConfirmProps } from './organisms/Confirm.js';
+export { DecisionTable, type DecisionRow, type DecisionTableProps } from './organisms/DecisionTable.js';
+export { Diagram, drawable, type DiagramProps } from './organisms/Diagram.js';
+export { Dialog, type DialogProps } from './organisms/Dialog.js';
+export { GenFeedback, GenView, type GenFeedbackProps, type GenViewProps, type GenWhy } from './organisms/GenView.js';
+export {
+  Bundle,
+  Graph,
+  GraphNode,
+  Legend,
+  type GraphEdge,
+  type GraphNodeProps,
+  type GraphProps,
+  type LegendProps,
+} from './organisms/Graph.js';
+export { PhaseBar, PhaseKey, type BarPhase, type PhaseBarProps } from './organisms/PhaseBar.js';
+export { Picture, type PictureItem, type PictureProps } from './organisms/Picture.js';
+export { Plate, type PlateProps } from './organisms/Plate.js';
+export { RecordingDialog, type RecordingDialogProps } from './organisms/RecordingDialog.js';
+export { Releases, type ReleaseLane, type ReleaseScan, type ReleaseSpan, type ReleasesProps } from './organisms/Releases.js';
+export { Row, Rows, type RowProps } from './organisms/Rows.js';
+export { Shot, type ShotGone, type ShotProps, type ShotRegion } from './organisms/Shot.js';
+export { Table, type Column, type TableProps } from './organisms/Table.js';
+export { Timeline, TimelineItem, type TimelineItemProps } from './organisms/Timeline.js';
+export { Variant, Variants, type VariantProps } from './organisms/Variants.js';
 export {
   Film,
   FilmItem,
@@ -22,63 +90,9 @@ export {
   type FilmItemProps,
   type NarrationLine,
   type PathSwitchProps,
-} from './components/WbParts.js';
-export { Choice, Kbd, KeyBar, type ChoiceProps } from './components/Choice.js';
-export {
-  ChatDivider,
-  ChatLog,
-  Chips,
-  Composer,
-  Drawer,
-  Message,
-  ProposalCard,
-  Vault,
-  type DrawerProps,
-  type MessageProps,
-  type ProposalCardProps,
-} from './components/Chat.js';
-export { Chip, type ChipProps } from './components/Chip.js';
-export { Compare, CompareOverlay, CompareSide, type CompareOverlayProps, type CompareSideProps } from './components/Compare.js';
-export { Confirm, type ConfirmProps } from './components/Confirm.js';
-export { Count } from './components/Count.js';
-export { Code } from './components/Code.js';
-export { DecisionTable, type DecisionRow, type DecisionTableProps } from './components/DecisionTable.js';
-export { Diagram, drawable, type DiagramProps } from './components/Diagram.js';
-export { Disclosure, type DisclosureProps } from './components/Disclosure.js';
-export { Facts } from './components/Facts.js';
-export {
-  Bundle,
-  Graph,
-  GraphNode,
-  Legend,
-  type GraphEdge,
-  type GraphNodeProps,
-  type GraphProps,
-  type LegendProps,
-} from './components/Graph.js';
-export { Check, Field, Fieldset, Input, Select, Textarea, type CheckProps, type FieldProps } from './components/Field.js';
-export { Cluster, Columns, Grid, Split, Stack } from './components/Layout.js';
-export { Meter, type MeterProps } from './components/Meter.js';
-export { Note, type NoteProps } from './components/Note.js';
-export { State, type StateProps } from './components/State.js';
-export { PageHead, type Crumb, type PageHeadProps } from './components/PageHead.js';
-export { Path, type PathStep } from './components/Path.js';
-export { Picture, type PictureItem, type PictureProps } from './components/Picture.js';
-export { Variant, Variants, type VariantProps } from './components/Variants.js';
-export { ScanId, shortScanId, type ScanIdProps } from './components/ScanId.js';
-export { Plate, type PlateProps } from './components/Plate.js';
-export { Releases, type ReleaseLane, type ReleaseScan, type ReleaseSpan, type ReleasesProps } from './components/Releases.js';
-export { Row, Rows, type RowProps } from './components/Rows.js';
-export { thinTicks, useBoxWidth, type AxisTick } from './components/axis.js';
-export { PhaseBar, PhaseKey, type BarPhase, type PhaseBarProps } from './components/PhaseBar.js';
-export { Shot, type ShotGone, type ShotProps, type ShotRegion } from './components/Shot.js';
-export { Segmented, type SegmentedProps, type SegmentItem } from './components/Segmented.js';
-export { Status, type StatusProps } from './components/Status.js';
-export { Steps, type Step } from './components/Steps.js';
-export { Table, type Column, type TableProps } from './components/Table.js';
-export { TabPanel, Tabs, ViewNav, type TabItem, type TabsProps, type ViewNavProps } from './components/Tabs.js';
-export { Tag, Tags, type TagProps } from './components/Tag.js';
-export { SubHead, Text, type TextProps } from './components/Text.js';
-export { Timeline, TimelineItem, type TimelineItemProps } from './components/Timeline.js';
+} from './organisms/WbParts.js';
+export { thinTicks, useBoxWidth, type AxisTick } from './organisms/axis.js';
+
+// --- shared --------------------------------------------------------------------------------------
 export { STATUS_WORD, STATUSES, type StatusKind } from './status.js';
 export { cx } from './cx.js';

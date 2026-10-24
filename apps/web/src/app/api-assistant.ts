@@ -2,8 +2,9 @@
 // pydantic models declare them; the stream of a turn (the dashboard's SSE relay of the chat
 // service, `/chat/conversations/{id}/events`); and its calls, the dashboard's `/chat/…` forwarders.
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import { useDispatch } from 'react-redux';
+import type { StatusOut } from './api';
+import { api, invalidateKey, read, useLive } from './state/api';
 import { useGo } from './RouterAnchor';
 
 export interface AssistantItem {
@@ -59,25 +60,15 @@ export interface PageContext {
 
 export const assistantKey = (portal: string) => ['portals', portal, 'assistant'] as const;
 
-export const useAssistant = (portal: string, enabled: boolean) =>
-  useQuery({
-    queryKey: assistantKey(portal),
-    queryFn: () => getJson<AssistantPage>(`/api/portals/${encodeURIComponent(portal)}/assistant`),
-    enabled,
-    // The scan line follows a running run (every 3 s while it runs).
-    refetchInterval: (q) => (q.state.data?.scan?.running ? 3000 : false),
-  });
+const assistantApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    assistant: read<AssistantPage, string>(b, (portal) => `/api/portals/${encodeURIComponent(portal)}/assistant`, assistantKey),
+  }),
+});
 
-/** A call to the chat service through the dashboard: its status and JSON answer (a refusal's `message` and `ref`). */
-export async function chatCall(path: string, body: unknown): Promise<{ status: number; answer: { message?: string; ref?: string | null; id?: string } }> {
-  try {
-    const r = await fetch(path, { method: 'POST', headers: { 'content-type': 'application/json', accept: 'application/json' }, body: JSON.stringify(body) });
-    const answer = (await r.json().catch(() => ({}))) as { message?: string; ref?: string | null; id?: string };
-    return { status: r.status, answer };
-  } catch {
-    return { status: 0, answer: { message: 'The dashboard did not answer.' } };
-  }
-}
+/** The scan line follows a running run (every 3 s while it runs). */
+export const useAssistant = (portal: string, enabled: boolean) =>
+  useLive(assistantApi.useAssistantQuery, portal, (d: AssistantPage) => Boolean(d.scan?.running), 3000, !enabled);
 
 /** A line the turn adds before the stored history catches up: the streamed reply, a notice, a failure. */
 export interface LiveLine {
@@ -134,13 +125,13 @@ const parse = (e: MessageEvent<string>): Record<string, unknown> => {
  * live lines go. EventSource reconnects by itself; the relay passes Last-Event-ID on.
  */
 export function useChatStream(portal: string, conversation: AssistantConversation | null, serviceUp: boolean) {
-  const client = useQueryClient();
+  const dispatch = useDispatch();
   const [busy, setBusy] = useState(false);
   const [live, setLive] = useState<LiveLine[]>([]);
   const [now, setNow] = useState('');
   const tools = useRef(new Map<string, Tool>());
   const go = useGo();
-  const refresh = useCallback(() => void client.invalidateQueries({ queryKey: assistantKey(portal) }), [client, portal]);
+  const refresh = useCallback(() => void dispatch(invalidateKey(assistantKey(portal))), [dispatch, portal]);
   const add = useCallback((line: LiveLine) => setLive((l) => [...l, line]), []);
   const settle = useCallback(
     (on: boolean) => {

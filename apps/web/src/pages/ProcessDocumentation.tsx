@@ -1,7 +1,6 @@
-import { useQuery } from '@tanstack/react-query';
 import { useParams, useSearchParams } from 'react-router';
 import { Callout, LinkButton, PageHead, Plate, Prose, Stack, ViewNav } from '../design-system';
-import { getJson } from '../app/api';
+import { api, read } from '../app/state/api';
 import { exportHref } from '../app/api-processes';
 import { QueryState } from '../app/QueryState';
 import { useGo } from '../app/RouterAnchor';
@@ -17,16 +16,23 @@ interface ExportPage {
   zip: string;
 }
 
+const exportApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    processExport: read<ExportPage, { portal: string; key: string; tab: string }>(
+      b,
+      ({ portal, key, tab }) => `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}/export?tab=${encodeURIComponent(tab)}`,
+      ({ portal, key, tab }) => ['portals', portal, 'processes', key, 'export', tab],
+    ),
+  }),
+});
+
 /** A documented process in the export's layout (spec 034 R-68): one tab per file, and the folder as a zip. */
 export function ProcessDocumentation() {
   const { portal = '', key = '' } = useParams();
   const [params] = useSearchParams();
   const tab = params.get('tab') ?? 'README.md';
   const go = useGo();
-  const q = useQuery({
-    queryKey: ['portals', portal, 'processes', key, 'export', tab],
-    queryFn: () => getJson<ExportPage>(`/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}/export?tab=${encodeURIComponent(tab)}`),
-  });
+  const q = exportApi.useProcessExportQuery({ portal, key, tab });
   const base = exportHref(portal, key);
   const back = key.startsWith('PRC-')
     ? { label: key, href: `/app/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}` }

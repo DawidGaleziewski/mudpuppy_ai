@@ -8,10 +8,10 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { A2uiSurface } from '@a2ui/react/v0_9';
 import { EventType } from '@ag-ui/core';
-import { liveCatalog } from '../src/workbench-live/catalog';
-import { LiveContext } from '../src/workbench-live/context';
-import type { LiveState } from '../src/workbench-live/protocol';
-import { itemOf, LiveLink, onFrame, useLiveWorkbench } from '../src/workbench-live/useLiveWorkbench';
+import { liveCatalog } from '../src/features/workbench-live/catalog';
+import { LiveContext } from '../src/features/workbench-live/context';
+import type { LiveState } from '../src/features/workbench-live/protocol';
+import { itemOf, LiveLink, onFrame, useLiveWorkbench } from '../src/features/workbench-live/useLiveWorkbench';
 
 const RUN = '01a110d5-0000-7000-8000-000000000001';
 const CONV = '0199a000-0000-7000-8000-0000000000c1';
@@ -26,7 +26,7 @@ function state(): LiveState {
     scans: {
       [RUN]: {
         short: '01a110d5-0000',
-        meter: { status: 'running', steps: 12, limit: 400, pages: 3, queued: 9, at: '/porownanie' },
+        meter: { status: 'running', shown: { shape: 'running', word: 'Running' }, steps: 12, limit: 400, pages: 3, queued: 9, at: '/porownanie' },
         pages: [
           { order: 1, route: '/', state: 1, title: 'Start', at: '2026-10-06T10:47:00.000Z', step: 2, status: 'ok', sideTrips: 0 },
           { order: 2, route: '/porownanie', state: 1, title: 'Porównanie', at: '2026-10-06T10:48:00.000Z', step: 12, status: 'here', sideTrips: 1 },
@@ -45,7 +45,7 @@ function state(): LiveState {
     },
     commands: {
       'cmd-0000000000d1': {
-        commandId: '0199a000-0000-7000-8000-0000000000d1', command: 'persona.add', label: 'Add a persona', state: 'proposed',
+        commandId: '0199a000-0000-7000-8000-0000000000d1', command: 'persona.add', label: 'Add a persona', state: 'proposed', shown: { shape: 'draft', word: 'Proposed' },
         facts: [['Adds', 'a persona to reference-insurer']], reason: 'you asked for one.', result: '', links: [], error: null,
         errorRef: null, running: 'Adding…', editable: true, args: { name: 'agent-anna' }, signIns: ['KLIENT'], personas: [],
         persona: null, askPersona: false, undo: false,
@@ -107,8 +107,8 @@ describe('frames into surfaces', () => {
     onFrame(link, s, { seq: 2, type: EventType.CUSTOM, ...surface('stage', [{ id: 'map', component: 'LiveMap', scan: RUN, data: { path: `/scans/${RUN}` } }]) });
     render(<Shown link={link} id="stage" />);
     expect(await screen.findByText(/step 12 of 400/)).toBeTruthy();
-    expect(screen.getByText('◉ crawler here')).toBeTruthy();
-    expect(screen.getByRole('img', { name: /2 screens/ })).toBeTruthy();
+    expect(screen.getByText('Crawler here')).toBeTruthy();
+    expect(screen.getByLabelText(/Graph of scan .*: 2 screens/)).toBeTruthy();
     act(() => onFrame(link, s, { seq: 3, type: EventType.STATE_DELTA, delta: [{ op: 'replace', path: `/scans/${RUN}/meter/steps`, value: 13 }] }));
     expect(await screen.findByText(/step 13 of 400/)).toBeTruthy();
     expect(link.state?.scans[RUN]?.meter.steps).toBe(13);
@@ -136,11 +136,11 @@ describe('the persona creator', () => {
     onFrame(link, setters(), { seq: 2, type: EventType.CUSTOM, ...surface('t2', [{ id: 'cmd-0000000000d1', component: 'CommandCard', command: 'persona.add', data: { path: '/commands/cmd-0000000000d1' } }]) });
     const sent = attachSent(link);
     render(<Shown link={link} id="t2" />);
-    fireEvent.click(await screen.findByLabelText(/Signs in/));
+    fireEvent.change(await screen.findByLabelText(/Signs in with/), { target: { value: '__new' } });
     fireEvent.change(screen.getByLabelText(/Credential name/), { target: { value: 'AGENT_ANNA' } });
     fireEvent.change(screen.getByLabelText(/^Login/), { target: { value: 'test-login-not-real' } });
     fireEvent.change(screen.getByLabelText(/^Password/), { target: { value: 'test-password-not-real' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save persona' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     await waitFor(() => expect(sent).toHaveLength(1));
     const [url, init] = vi.mocked(fetch).mock.calls[0] as [string, RequestInit];
     expect(url).toBe(`/chat/conversations/${CONV}/credentials`);
@@ -159,10 +159,11 @@ describe('the persona creator', () => {
     onFrame(link, setters(), { seq: 2, type: EventType.CUSTOM, ...surface('t2', [{ id: 'cmd-0000000000d1', component: 'CommandCard', command: 'persona.add', data: { path: '/commands/cmd-0000000000d1' } }]) });
     const sent = attachSent(link);
     render(<Shown link={link} id="t2" />);
-    fireEvent.click(await screen.findByLabelText(/Signs in/));
+    fireEvent.change(await screen.findByLabelText(/Signs in with/), { target: { value: '__new' } });
     fireEvent.change(screen.getByLabelText(/Credential name/), { target: { value: 'AGENT_ANNA' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save persona' }));
-    expect(await screen.findByRole('alert')).toBeTruthy();
+    // a new credential without its login and password: Confirm stays off
+    expect(screen.getByRole('button', { name: 'Confirm' }).hasAttribute('disabled')).toBe(true);
+    fireEvent.click(screen.getByRole('button', { name: 'Confirm' }));
     expect(sent).toEqual([]);
     expect(fetch).not.toHaveBeenCalled();
   });

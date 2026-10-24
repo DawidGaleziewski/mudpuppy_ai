@@ -3,7 +3,7 @@ import { Button, Cluster, CommandCard, Facts, Film, FilmItem, GenView, Meter, Mi
 import type { StatusOut } from '../app/api';
 import { stateHref } from '../app/api-state';
 import type { WbCard, WbCommandCard, WbPage, WbPageModel, WbScan, WbTurn } from '../app/api-workbench';
-import { argsOf, draftOf, PersonaFields, problemsOf, type PersonaArgs, type PersonaDraft } from '../app/PersonaForm';
+import { argsOf, draftOf, PersonaFields, usePersonaForm, type PersonaArgs } from '../app/PersonaForm';
 import { ShownStatus } from '../app/ShownStatus';
 
 /** What a card can do on the page: select a page, ask about something, open a command, switch path, answer feedback. */
@@ -194,9 +194,8 @@ const freeName = (taken: readonly string[]) => {
 function PersonaCommand({ c, a }: { c: WbCommandCard; a: WbActions }) {
   const id = c.dom_id.replace(/^cmd-/, '');
   const signIns = c.sign_ins ?? [];
-  const drafted = draftOf(c.args as unknown as PersonaArgs, signIns);
-  const [draft, setDraft] = useState<PersonaDraft>(drafted);
-  const ready = Object.keys(problemsOf(draft, c.personas)).length === 0;
+  const drafted = draftOf(c.args as PersonaArgs, signIns);
+  const form = usePersonaForm(drafted, c.personas);
   return (
     <CommandCard
       title={c.title}
@@ -205,13 +204,13 @@ function PersonaCommand({ c, a }: { c: WbCommandCard; a: WbActions }) {
       facts={c.facts}
       reason={c.reason}
       proposedBy={c.proposed_by}
-      edit={{ body: <PersonaFields draft={draft} onChange={setDraft} signIns={signIns} taken={c.personas} drafted={drafted} />, ready }}
+      edit={{ body: <PersonaFields form={form} signIns={signIns} drafted={drafted} />, ready: form.formState.isValid }}
       runningWord={c.running_word}
       result={c.result}
       resultLinks={c.result_links}
       error={c.error}
       errorRef={c.error_ref && <Text mono small href={`/app/errors/${encodeURIComponent(c.error_ref)}`}>{c.error_ref}</Text>}
-      onConfirm={() => a.confirm(id, c.token ?? '', null, argsOf(draft) as unknown as Record<string, unknown>)}
+      onConfirm={() => a.confirm(id, c.token ?? '', null, argsOf(form.getValues()))}
       onCancel={() => a.cancel(id)}
       {...(c.undo_url ? { onUndo: () => a.undo(id) } : {})}
     />

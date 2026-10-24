@@ -1,4 +1,7 @@
 import { useState } from 'react';
+import { useForm, useWatch } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { Button, Cluster, Disclosure, Field, Input, Note, Plate, Select, Stack, SubHead, Tag, Text, Textarea, Timeline, TimelineItem } from '../design-system';
 import { amendmentWrites, type Amendment, type Amendments as AmendmentList } from '../app/api-state';
 import type { Ask } from '../app/ConfirmedWrite';
@@ -85,54 +88,64 @@ function Item({ portal, a, ask }: { portal: string; a: Amendment; ask: (x: Ask) 
   );
 }
 
+interface AddValues {
+  element: string;
+  text: string;
+  /** The input's files (React Hook Form keeps a file input's FileList). */
+  files: FileList | null;
+}
+
+const AddSchema = z
+  .object({ element: z.string(), text: z.string().max(50000), files: z.custom<FileList | null>() })
+  .refine((v) => v.text.trim() !== '' || (v.files?.length ?? 0) > 0, { path: ['text'], message: 'A note or an attachment.' });
+
+/** Add an amendment (React Hook Form, spec 076): an element or the whole screen, a note, an attachment. */
 function AddForm({ portal, state, elements, ask }: { portal: string; state: string; elements: [string, string][]; ask: (x: Ask) => void }) {
-  const [element, setElement] = useState('');
-  const [text, setText] = useState('');
-  const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const add = async () => {
-    setError(null);
+  const form = useForm<AddValues>({ defaultValues: { element: '', text: '', files: null }, resolver: zodResolver(AddSchema) });
+  const [text, files] = useWatch({ control: form.control, name: ['text', 'files'] });
+  const fileError = form.formState.errors.files?.message;
+  const add = form.handleSubmit(async ({ element, text: note, files: picked }) => {
+    const file = picked?.[0];
     let attachment: { name: string; content_base64: string } | undefined;
     try {
       if (file) attachment = { name: file.name, content_base64: await readFile(file) };
     } catch (e) {
-      setError(e instanceof Error ? e.message : 'The attachment could not be read.');
+      form.setError('files', { message: e instanceof Error ? e.message : 'The attachment could not be read.' });
       return;
     }
     ask({
       title: 'Add the amendment?',
       text: `It is written on ${element ? `the element ${element}` : 'the whole screen'}, kept apart from how the screen works today.`,
       confirm: 'Add amendment',
-      write: amendmentWrites.add(portal, { state_id: state, element, text: text.trim(), ...(attachment ? { attachment } : {}) }),
-      onDone: () => {
-        setText('');
-        setFile(null);
-      },
+      write: amendmentWrites.add(portal, { state_id: state, element, text: note.trim(), ...(attachment ? { attachment } : {}) }),
+      onDone: () => form.reset({ element, text: '', files: null }),
     });
-  };
+  });
   return (
-    <Stack>
-      <SubHead>Add an amendment</SubHead>
-      <Field label="Applies to" help={elements.length ? undefined : 'No wireframe layout is recorded for this screen, so only the whole screen can be amended.'}>
-        <Select value={element} onChange={(e) => setElement(e.target.value)}>
-          <option value="">The whole screen</option>
-          {elements.map(([key, label]) => (
-            <option key={key} value={key}>{`${label} · ${key}`}</option>
-          ))}
-        </Select>
-      </Field>
-      <Field label="Note">
-        <Textarea rows={3} maxLength={50000} placeholder="What should be different, and why" value={text} onChange={(e) => setText(e.target.value)} />
-      </Field>
-      <Field label="Attachment" help="Optional, up to 8 MB." error={error ?? undefined}>
-        <Input type="file" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
-      </Field>
-      <Cluster>
-        <Button variant="primary" disabled={!text.trim() && !file} onClick={() => void add()}>
-          Add amendment
-        </Button>
-      </Cluster>
-    </Stack>
+    <form onSubmit={(e) => void add(e)} aria-label="Add an amendment">
+      <Stack>
+        <SubHead>Add an amendment</SubHead>
+        <Field label="Applies to" help={elements.length ? undefined : 'No wireframe layout is recorded for this screen, so only the whole screen can be amended.'}>
+          <Select {...form.register('element')}>
+            <option value="">The whole screen</option>
+            {elements.map(([key, label]) => (
+              <option key={key} value={key}>{`${label} · ${key}`}</option>
+            ))}
+          </Select>
+        </Field>
+        <Field label="Note">
+          <Textarea rows={3} maxLength={50000} placeholder="What should be different, and why" {...form.register('text')} />
+        </Field>
+        <Field label="Attachment" help="Optional, up to 8 MB." {...(fileError ? { error: fileError } : {})}>
+          <Input type="file" {...form.register('files')} />
+        </Field>
+        <Cluster>
+          <Button type="submit" variant="primary" disabled={!text.trim() && !files?.length}>
+            Add amendment
+          </Button>
+        </Cluster>
+      </Stack>
+    </form>
   );
 }
 

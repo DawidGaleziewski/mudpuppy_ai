@@ -4,6 +4,37 @@ import reactHooks from 'eslint-plugin-react-hooks';
 import { defineConfig, globalIgnores } from 'eslint/config';
 import tseslint from 'typescript-eslint';
 
+const APP = ['**/app/**', '**/pages/**', '**/features/**'];
+
+/** What each design-system layer may not import (the layers above it, and the app). */
+const LAYERS = {
+  atoms: ['**/molecules/**', '**/organisms/**', '**/layout/**', ...APP],
+  layout: ['**/molecules/**', '**/organisms/**', ...APP],
+  molecules: ['**/organisms/**', ...APP],
+  organisms: APP,
+};
+
+function layerRules() {
+  const blocks = Object.entries(LAYERS).map(([layer, group]) => ({
+    files: [`src/design-system/${layer}/**/*.{ts,tsx}`],
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [{ group, message: `A ${layer.replace(/s$/, '')} imports only from its own layer and the ones below it (atomic design).` }] }],
+    },
+  }));
+  return [
+    ...blocks,
+    {
+      files: ['src/pages/**/*.{ts,tsx}', 'src/app/**/*.{ts,tsx}', 'src/features/**/*.{ts,tsx}'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          { patterns: [{ group: ['**/design-system/*/**', '!**/design-system/index*'], message: 'Import the design system from its index (design-system), not a component file.' }] },
+        ],
+      },
+    },
+  ];
+}
+
 // The typed rules of apps/chat and apps/crawler (G-21, G-22), plus React's hooks rules.
 export default defineConfig(
   globalIgnores(['**/node_modules/', '**/dist/', 'storybook-static/', 'src/design-system/assets/', 'public/vendor/']),
@@ -17,7 +48,7 @@ export default defineConfig(
     languageOptions: {
       parserOptions: {
         projectService: {
-          allowDefaultProject: ['eslint.config.mjs', 'scripts/*.mjs', '.storybook/*.ts', '.storybook/*.tsx'],
+          allowDefaultProject: ['eslint.config.mjs', 'stylelint.config.mjs', 'scripts/*.mjs', '.storybook/*.ts', '.storybook/*.tsx'],
         },
         tsconfigRootDir: import.meta.dirname,
       },
@@ -49,7 +80,7 @@ export default defineConfig(
   },
   {
     // Skill mudpuppy-react-ui rule 1: pages compose design-system components, they never style.
-    files: ['src/pages/**/*.tsx', 'src/app/**/*.tsx'],
+    files: ['src/pages/**/*.tsx', 'src/app/**/*.tsx', 'src/features/**/*.tsx'],
     rules: {
       'no-restricted-syntax': [
         'error',
@@ -69,6 +100,10 @@ export default defineConfig(
       ],
     },
   },
+  // Atomic layers (skill frontend-architecture § 1, spec 076): imports go one way, atoms → molecules
+  // → organisms → templates → pages; layout sits beside the atoms. The design system never imports
+  // the app, and the app reaches the design system through its index only.
+  ...layerRules(),
   {
     // The one place a plain anchor is drawn: files, downloads and other sites.
     files: ['src/app/RouterAnchor.tsx'],

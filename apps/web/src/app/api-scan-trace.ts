@@ -1,7 +1,7 @@
 // A scan's Trace and Process (`web/api_scan_trace.py` over `queries_app_trace*.py`), typed as the
 // pydantic models declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 import type { Evidence, Paged } from './api-scan-tabs';
 
@@ -88,18 +88,24 @@ export interface ProcessTab {
 
 const base = (scan: string) => `/api/scans/${encodeURIComponent(scan)}`;
 
-export const useTraceSummary = (scan: string) =>
-  useQuery({ queryKey: ['scans', scan, 'trace', 'summary'], queryFn: () => getJson<TraceSummary>(`${base(scan)}/trace/summary`) });
+const traceApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    traceSummary: read<TraceSummary, string>(b, (scan) => `${base(scan)}/trace/summary`, (scan) => ['scans', scan, 'trace', 'summary']),
+    traceCalls: read<TraceCalls, { scan: string; qs: string }>(
+      b,
+      ({ scan, qs }) => `${base(scan)}/trace${qs ? `?${qs}` : ''}`,
+      ({ scan, qs }) => ['scans', scan, 'trace', qs],
+    ),
+    tracePhases: read<ScanPhases, string>(b, (scan) => `${base(scan)}/trace/phases`, (scan) => ['scans', scan, 'trace', 'phases']),
+    spanChildren: read<SpanChildren, string>(b, (span) => `/api/spans/${encodeURIComponent(span)}/children`, (span) => ['spans', span, 'children']),
+    scanProcess: read<ProcessTab, string>(b, (scan) => `${base(scan)}/process`, (scan) => ['scans', scan, 'process']),
+  }),
+});
+
+export const useTraceSummary = (scan: string) => traceApi.useTraceSummaryQuery(scan);
 
 /** One page of calls, asked with the page address's filters and cursor. */
-export function useTraceCalls(scan: string, params: URLSearchParams) {
-  const qs = params.toString();
-  return useQuery({
-    queryKey: ['scans', scan, 'trace', qs],
-    queryFn: () => getJson<TraceCalls>(`${base(scan)}/trace${qs ? `?${qs}` : ''}`),
-    placeholderData: keepPreviousData,
-  });
-}
+export const useTraceCalls = (scan: string, params: URLSearchParams) => traceApi.useTraceCallsQuery({ scan, qs: params.toString() });
 
 /** One phase of the scan's time (`queries_app_trace_phases.PhaseOut`). */
 export interface ScanPhase {
@@ -124,8 +130,7 @@ export interface ScanPhases {
   axis: { left: number; label: string }[];
 }
 
-export const useTracePhases = (scan: string) =>
-  useQuery({ queryKey: ['scans', scan, 'trace', 'phases'], queryFn: () => getJson<ScanPhases>(`${base(scan)}/trace/phases`) });
+export const useTracePhases = (scan: string) => traceApi.useTracePhasesQuery(scan);
 
 /**
  * The calls query for the page address: a pressed phase (`?phase=`) becomes its steps
@@ -142,12 +147,6 @@ export function callsParams(params: URLSearchParams, phase: ScanPhase | null): U
 }
 
 /** A call's phases and events, asked only once the call is opened. */
-export const useSpanChildren = (span: string, open: boolean) =>
-  useQuery({
-    queryKey: ['spans', span, 'children'],
-    queryFn: () => getJson<SpanChildren>(`/api/spans/${encodeURIComponent(span)}/children`),
-    enabled: open,
-  });
+export const useSpanChildren = (span: string, open: boolean) => traceApi.useSpanChildrenQuery(span, { skip: !open });
 
-export const useProcess = (scan: string) =>
-  useQuery({ queryKey: ['scans', scan, 'process'], queryFn: () => getJson<ProcessTab>(`${base(scan)}/process`) });
+export const useProcess = (scan: string) => traceApi.useScanProcessQuery(scan);

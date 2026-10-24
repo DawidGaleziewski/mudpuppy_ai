@@ -1,7 +1,7 @@
 // One process (`web/api_process.py` over `queries_app_process.py`), typed as the pydantic models
 // declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 import type { Option } from './api-map';
 import type { ProcessRow } from './api-processes';
 import type { RawStep } from './stepOps';
@@ -87,15 +87,26 @@ export const docHref = (portal: string, key: string) => `/app/portals/${encodeUR
 
 export const processKey =(portal: string, key: string) => ['portals', portal, 'processes', key] as const;
 
+interface ProcessArg {
+  portal: string;
+  key: string;
+  model: string;
+  step: string;
+}
+
+function processPath({ portal, key, model, step }: ProcessArg): string {
+  const p = new URLSearchParams();
+  if (model) p.set('model', model);
+  if (step) p.set('step', step);
+  const qs = p.toString();
+  return `/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}${qs ? `?${qs}` : ''}`;
+}
+
+const processApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    processPage: read<ProcessPage, ProcessArg>(b, processPath, (a) => [...processKey(a.portal, a.key), a.model, a.step]),
+  }),
+});
+
 export const useProcessPage = (portal: string, key: string, model: string, step: string) =>
-  useQuery({
-    queryKey: [...processKey(portal, key), model, step],
-    queryFn: () => {
-      const p = new URLSearchParams();
-      if (model) p.set('model', model);
-      if (step) p.set('step', step);
-      const qs = p.toString();
-      return getJson<ProcessPage>(`/api/portals/${encodeURIComponent(portal)}/processes/${encodeURIComponent(key)}${qs ? `?${qs}` : ''}`);
-    },
-    placeholderData: keepPreviousData,
-  });
+  processApi.useProcessPageQuery({ portal, key, model, step });

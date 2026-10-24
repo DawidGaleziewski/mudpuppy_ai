@@ -1,9 +1,8 @@
 // Same screen? (`web/api_same_screen.py` over `queries_app_same_screen.py`): one pair of page
 // versions, typed as the pydantic models declare them, and the person's answer.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson } from './api';
 import type { ChangeSide } from './api-changes';
-import type { Write } from './api-write';
+import { api, read } from './state/api';
+import type { Write } from './state/http';
 
 export interface PairLabel {
   answer: string;
@@ -62,15 +61,20 @@ export const sameScreenHref = (portal: string, pick: Partial<PairPick> = {}) => 
 
 export const sameScreenKey = (portal: string) => ['portals', portal, 'same-screen'] as const;
 
+const sameScreenApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    sameScreen: read<SameScreenView, { portal: string; query: string }>(
+      b,
+      ({ portal, query }) => `/api/portals/${encodeURIComponent(portal)}/same-screen${query ? `?${query}` : ''}`,
+      ({ portal, query }) => [...sameScreenKey(portal), query],
+    ),
+  }),
+});
+
 export const useSameScreen = (portal: string, pick: PairPick) => {
   const q = new URLSearchParams();
   for (const k of ['screen', 'a', 'b'] as const) if (pick[k]) q.set(k, pick[k]);
-  const query = q.toString();
-  return useQuery({
-    queryKey: [...sameScreenKey(portal), query],
-    queryFn: () => getJson<SameScreenView>(`/api/portals/${encodeURIComponent(portal)}/same-screen${query ? `?${query}` : ''}`),
-    placeholderData: keepPreviousData,
-  });
+  return sameScreenApi.useSameScreenQuery({ portal, query: q.toString() });
 };
 
 export const labelPair = (portal: string, a: string, b: string, answer: string, why: string): Write => ({

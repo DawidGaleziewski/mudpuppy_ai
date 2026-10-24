@@ -1,7 +1,7 @@
 // The Screens API (`web/api_screens.py` over `queries_app_screens.py`): the model's screens and
 // one screen, typed as the pydantic models declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type ChipOut, type NeedsItem, type StatusOut } from './api';
+import type { ChipOut, NeedsItem, StatusOut } from './api';
+import { api, read } from './state/api';
 
 export interface ScreenOut {
   key: string;
@@ -93,18 +93,24 @@ export function screenFilter(params: URLSearchParams): ScreenFilter {
   return { status: get('status'), q: get('q'), process: get('process'), part: get('part'), why: get('why'), sort: get('sort') };
 }
 
+const screensApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    // a new filter keeps the old rows on screen until its rows arrive (RTK Query's `data`)
+    screens: read<ScreensData, { portal: string; f: ScreenFilter }>(
+      b,
+      ({ portal, f }) => `${base(portal)}?${new URLSearchParams({ ...f }).toString()}`,
+      ({ portal, f }) => ['portals', portal, 'screens', f],
+    ),
+    screen: read<ScreenDetailData, { portal: string; key: string }>(
+      b,
+      ({ portal, key }) => `${base(portal)}/${encodeURIComponent(key)}`,
+      ({ portal, key }) => ['portals', portal, 'screens', key],
+    ),
+  }),
+});
+
 /** `enabled` false: not asked (a screen opened from elsewhere has no list to walk). */
 export const useScreens = (portal: string, f: ScreenFilter, enabled = true) =>
-  useQuery({
-    queryKey: ['portals', portal, 'screens', f],
-    queryFn: () => getJson<ScreensData>(`${base(portal)}?${new URLSearchParams({ ...f }).toString()}`),
-    // A new filter keeps the old rows on screen until its rows arrive (no flash of the loader).
-    placeholderData: keepPreviousData,
-    enabled,
-  });
+  screensApi.useScreensQuery({ portal, f }, { skip: !enabled });
 
-export const useScreen = (portal: string, key: string) =>
-  useQuery({
-    queryKey: ['portals', portal, 'screens', key],
-    queryFn: () => getJson<ScreenDetailData>(`${base(portal)}/${encodeURIComponent(key)}`),
-  });
+export const useScreen = (portal: string, key: string) => screensApi.useScreenQuery({ portal, key });

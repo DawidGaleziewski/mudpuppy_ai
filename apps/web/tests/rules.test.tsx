@@ -1,18 +1,10 @@
 // Business rules (spec 065) over a stubbed API: the list by status, one rule with its decision
 // table, tests, history and export, Reword and Run the rule tests behind a confirm; DecisionTable.
 import { fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { DecisionTable } from '../src/design-system';
 import { at } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();

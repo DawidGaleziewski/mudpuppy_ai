@@ -1,17 +1,9 @@
 // One process (spec 058) over a stubbed API: the head, the model switch, the facts and paths, A as
 // documentation with its records, a step selected, and A's edits and the sign-off behind a confirm.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { at } from './render-at';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { at, confirmIn } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -85,9 +77,6 @@ const page = {
   },
 };
 
-const confirmIn = (name: string, button: string) => {
-  fireEvent.click(within(screen.getByRole('dialog', { name })).getByRole('button', { name: button }));
-};
 
 describe('Process', () => {
   it('shows the head, the facts, the paths and A as documentation', async () => {
@@ -109,7 +98,7 @@ describe('Process', () => {
       '/api/portals/shop/processes/pr-1/models/A/edit': { ok: true, message: 'A changed: a new signed revision.', href: null },
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Move step 1 down' }));
-    confirmIn('Move Kalkulator down?', 'Change A');
+    await confirmIn('Move Kalkulator down?', 'Change A');
     expect(await screen.findByText('A changed: a new signed revision.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === '/api/portals/shop/processes/pr-1/models/A/edit') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({ base_rev: 3, state_ids: ['st-s2', 'st-s1'] });
@@ -122,7 +111,7 @@ describe('Process', () => {
       '/api/portals/shop/processes/pr-1/stage': { ok: true, message: 'Stage set; it shows in History.', href: null },
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Mark as-is documented' }));
-    confirmIn('Mark as-is documented?', 'Mark as-is documented');
+    await confirmIn('Mark as-is documented?', 'Mark as-is documented');
     expect(await screen.findByText('Stage set; it shows in History.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === '/api/portals/shop/processes/pr-1/stage') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({ stage: 'as_is_documented', base_rev: 2 });

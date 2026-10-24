@@ -1,9 +1,9 @@
 // Business rules (`web/api_rules.py` over `queries_app_rules.py`), typed as the pydantic models
 // declare them, and the rule's writes: Reword, and Run the rule tests (a check run, `writes.replay`).
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
 import type { Option } from './api-review';
-import type { Write } from './api-write';
+import { api as rtk, read } from './state/api';
+import type { Write } from './state/http';
 
 export interface RuleRow {
   key: string;
@@ -80,19 +80,30 @@ export const ruleHref = (portal: string, key: string) => `/app/portals/${encodeU
 
 export const rulesKey = (portal: string) => ['portals', portal, 'rules'] as const;
 
-export const useRules = (portal: string, status: string | undefined) =>
-  useQuery({
-    queryKey: [...rulesKey(portal), status ?? null],
-    queryFn: () => getJson<RulesPage>(`${api(portal)}${status ? `?status=${encodeURIComponent(status)}` : ''}`),
-    placeholderData: keepPreviousData,
-  });
+type RuleArg = { portal: string; key: string };
 
-export const useRule = (portal: string, key: string) =>
-  useQuery({ queryKey: [...rulesKey(portal), 'one', key], queryFn: () => getJson<RulePage>(`${api(portal)}/${encodeURIComponent(key)}`) });
+const rulesApi = rtk.injectEndpoints({
+  endpoints: (b) => ({
+    rules: read<RulesPage, { portal: string; status: string | null }>(
+      b,
+      ({ portal, status }) => `${api(portal)}${status ? `?status=${encodeURIComponent(status)}` : ''}`,
+      ({ portal, status }) => [...rulesKey(portal), status],
+    ),
+    rule: read<RulePage, RuleArg>(b, ({ portal, key }) => `${api(portal)}/${encodeURIComponent(key)}`, ({ portal, key }) => [...rulesKey(portal), 'one', key]),
+    ruleExport: read<RuleExport, RuleArg>(
+      b,
+      ({ portal, key }) => `${api(portal)}/${encodeURIComponent(key)}/export`,
+      ({ portal, key }) => [...rulesKey(portal), 'export', key],
+    ),
+  }),
+});
+
+export const useRules = (portal: string, status: string | undefined) => rulesApi.useRulesQuery({ portal, status: status ?? null });
+
+export const useRule = (portal: string, key: string) => rulesApi.useRuleQuery({ portal, key });
 
 /** The rule in the export: built by a command, so asked for after the page shows. */
-export const useRuleExport = (portal: string, key: string) =>
-  useQuery({ queryKey: [...rulesKey(portal), 'export', key], queryFn: () => getJson<RuleExport>(`${api(portal)}/${encodeURIComponent(key)}/export`) });
+export const useRuleExport = (portal: string, key: string) => rulesApi.useRuleExportQuery({ portal, key });
 
 export const ruleWrites = {
   /** A person's sentence for the rule (`key`: its H key), in place of the mined one. */

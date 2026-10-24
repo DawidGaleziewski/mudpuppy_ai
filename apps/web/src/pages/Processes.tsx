@@ -186,7 +186,7 @@ function Body({ d, setView }: { d: ProcessList; setView: (archived: boolean, pag
   );
 }
 
-/** What "Ask the assistant to regroup" says (R-78 (6), as on htmx). */
+/** What "Ask the assistant to regroup" says (R-78 (6)). */
 const REGROUP = 'Cut this portal into processes and suggest groupings';
 
 /** The BA's processes (designer screen 04): the list, the assistant's suggestions and the screens in no process. */

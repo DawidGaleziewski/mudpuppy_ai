@@ -1,7 +1,7 @@
 // The Processes list (`web/api_processes.py` over `queries_app_processes.py`), typed as the pydantic
 // models declare them.
-import { keepPreviousData, useQuery } from '@tanstack/react-query';
-import { getJson, type StatusOut } from './api';
+import type { StatusOut } from './api';
+import { api, read } from './state/api';
 
 export interface ProcessRow {
   id: string;
@@ -55,18 +55,23 @@ export interface ProcessList {
 
 export const processesKey = (portal: string) => ['portals', portal, 'processes'] as const;
 
-export const useProcesses = (portal: string, archived: boolean, page: number) =>
-  useQuery({
-    queryKey: [...processesKey(portal), archived, page],
-    queryFn: () => {
-      const p = new URLSearchParams();
-      if (archived) p.set('archived', 'true');
-      if (page > 1) p.set('page', String(page));
-      const qs = p.toString();
-      return getJson<ProcessList>(`/api/portals/${encodeURIComponent(portal)}/processes${qs ? `?${qs}` : ''}`);
-    },
-    placeholderData: keepPreviousData,
-  });
+type ProcessesArg = { portal: string; archived: boolean; page: number };
+
+function processesPath({ portal, archived, page }: ProcessesArg): string {
+  const p = new URLSearchParams();
+  if (archived) p.set('archived', 'true');
+  if (page > 1) p.set('page', String(page));
+  const qs = p.toString();
+  return `/api/portals/${encodeURIComponent(portal)}/processes${qs ? `?${qs}` : ''}`;
+}
+
+const processesApi = api.injectEndpoints({
+  endpoints: (b) => ({
+    processes: read<ProcessList, ProcessesArg>(b, processesPath, (a) => [...processesKey(a.portal), a.archived, a.page]),
+  }),
+});
+
+export const useProcesses = (portal: string, archived: boolean, page: number) => processesApi.useProcessesQuery({ portal, archived, page });
 
 /** One process's page, on a model (its default when left out). */
 export const processHref = (portal: string, key: string, model?: string) =>

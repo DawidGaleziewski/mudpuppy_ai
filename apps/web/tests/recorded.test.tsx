@@ -1,19 +1,10 @@
 // The recorded map (One scan's path) and the Recorded pages (spec 054) over a stubbed API; a
 // mark asks first, then posts and says what happened.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { RECORDED, recorded, recordedNode, recordedPages } from './fixtures-scan-views';
 import { at } from './render-at';
 
-beforeAll(() => {
-  // jsdom has no modal dialogs: open and close by the attribute, as a browser shows them.
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();

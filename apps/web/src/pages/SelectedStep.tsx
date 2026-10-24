@@ -5,25 +5,22 @@ import { ShownStatus } from '../app/ShownStatus';
 import { plural } from '../app/plural';
 import { stepOps } from '../app/stepOps';
 import type { Draft } from '../app/useDraft';
+import { titleError, useStepForm } from '../app/useStepForm';
 import { stateHref } from './RecordedInspector';
 
 /** Change the selected step's title or route (it becomes a designed step), or remove it. */
 function ChangeStep({ s, draft, label }: { s: ProcessStep; draft: Draft; label: string }) {
-  const [title, setTitle] = useState(s.title);
-  const [route, setRoute] = useState(s.route ?? '');
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    if (title.trim()) draft.apply((st) => stepOps.edit(st, s.id, { title: title.trim(), route: route.trim() }));
-  };
+  const form = useStepForm({ title: s.title, route: s.route ?? '' });
+  const submit = form.handleSubmit((step) => draft.apply((st) => stepOps.edit(st, s.id, step)));
   return (
     <Stack>
-      <form onSubmit={submit} aria-label="Change this step">
+      <form onSubmit={(e) => void submit(e)} aria-label="Change this step">
         <Stack>
-          <Field label="Title">
-            <Input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={200} autoComplete="off" />
+          <Field label="Title" {...titleError(form)}>
+            <Input required maxLength={200} autoComplete="off" {...form.register('title')} />
           </Field>
           <Field label="Route" help="A changed observed step becomes a designed one.">
-            <Input value={route} onChange={(e) => setRoute(e.target.value)} maxLength={500} autoComplete="off" spellCheck={false} />
+            <Input maxLength={500} autoComplete="off" spellCheck={false} {...form.register('route')} />
           </Field>
           <Cluster>
             <Button size="sm" type="submit">

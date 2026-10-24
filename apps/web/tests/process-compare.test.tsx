@@ -1,17 +1,9 @@
 // A process's Compare and History (spec 060) over a stubbed API: the diff and the change spec saved
 // after a confirm with lists split per line; History's live marks and a restore.
 import { fireEvent, screen, within } from '@testing-library/react';
-import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
-import { at } from './render-at';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { at, confirmIn } from './render-at';
 
-beforeAll(() => {
-  HTMLDialogElement.prototype.showModal = function (this: HTMLDialogElement) {
-    this.setAttribute('open', '');
-  };
-  HTMLDialogElement.prototype.close = function (this: HTMLDialogElement) {
-    this.removeAttribute('open');
-  };
-});
 
 afterEach(() => {
   vi.unstubAllGlobals();
@@ -86,9 +78,6 @@ const history = {
   conflicts: [],
 };
 
-const confirmIn = (name: string, button: string) => {
-  fireEvent.click(within(screen.getByRole('dialog', { name })).getByRole('button', { name: button }));
-};
 
 describe('Compare', () => {
   it('shows the diff and saves the change spec with lists one item per line', async () => {
@@ -101,7 +90,7 @@ describe('Compare', () => {
     expect(within(table).getByText('Ask once — Anna')).toBeTruthy();
     fireEvent.change(screen.getByRole('textbox', { name: 'Delta (one per line)' }), { target: { value: 'Car and Driver merge\n\nOffer is new' } });
     fireEvent.click(screen.getByRole('button', { name: 'Save spec as r1' }));
-    confirmIn('Save the change spec as r1?', 'Save spec as r1');
+    await confirmIn('Save the change spec as r1?', 'Save spec as r1');
     expect(await screen.findByText('Change spec saved as a new revision.')).toBeTruthy();
     const post = fetch.mock.calls.find((c) => c[0] === '/api/portals/shop/processes/pr-1/change-spec') as unknown as [string, { body: string }];
     expect(JSON.parse(post[1].body)).toEqual({
@@ -121,10 +110,10 @@ describe('History', () => {
       '/api/portals/shop/processes/pr-1/models/B/restore': { ok: true, message: 'Restored as a new revision; nothing was deleted.', href: null },
     });
     fireEvent.click(await screen.findByRole('button', { name: 'Mark live in staging' }));
-    confirmIn('Mark B live in staging?', 'Mark live in staging');
+    await confirmIn('Mark B live in staging?', 'Mark live in staging');
     expect(await screen.findByText('Marked live in staging.')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', { name: 'Restore as r3' }));
-    confirmIn('Restore B r1 as B r3?', 'Restore as r3');
+    await confirmIn('Restore B r1 as B r3?', 'Restore as r3');
     expect(await screen.findByText('Restored as a new revision; nothing was deleted.')).toBeTruthy();
     const restore = fetch.mock.calls.find((c) => c[0] === '/api/portals/shop/processes/pr-1/models/B/restore') as unknown as [string, { body: string }];
     expect(JSON.parse(restore[1].body)).toEqual({ rev: 1, base_rev: 2 });

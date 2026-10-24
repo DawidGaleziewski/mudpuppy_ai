@@ -10,6 +10,10 @@ The console is a React single-page app in `apps/web`, the only UI (R-100, owner 
 designer's CSS is the source of truth, the React components draw it, pages compose the
 components. Consistency comes from one rule: **pages never style; they compose.**
 
+**The code's shape** (atomic layers, compound components, where state lives, styling through
+tokens, component classes and utilities, the commit checks) is skill `frontend-architecture`;
+this skill is how pages compose. Where the two differ, `frontend-architecture` wins.
+
 ## Where things are
 
 | What | Where |
@@ -53,9 +57,11 @@ Commands (in `apps/web`): `pnpm dev` (Vite on 5173, `/api` proxied to the dashbo
 
 ## Add a component
 
-1. `src/design-system/components/<Name>.tsx`: a typed function component that owns its `sy-`
-   classes (from the designer's class reference in skill `mudpuppy-salvage-ui`); JSDoc on the
-   component and on every prop says what it is for and its rule.
+1. `src/design-system/<layer>/<Name>.tsx` (`atoms/`, `molecules/`, `organisms/` or `layout/`:
+   the lowest layer it fits, skill `frontend-architecture` § 1): a typed function component that
+   owns its `sy-` classes (from the designer's class reference in skill `mudpuppy-salvage-ui`);
+   JSDoc on the component and on every prop says what it is for and its rule; a compound API
+   (`Dialog.Head` …) when the consumer arranges its parts.
 2. Export it (and its props type) from `src/design-system/index.ts`.
 3. `src/design-system/stories/<Name>.stories.tsx`: `title: 'Components/<Name>'`, a
    `docs.description.component` that states its purpose and rules, `args` for the default story,
@@ -70,7 +76,8 @@ Commands (in `apps/web`): `pnpm dev` (Vite on 5173, `/api` proxied to the dashbo
    components.
 2. The data: one read model per page in the dashboard (`queries_*.py`, pytest first), one JSON
    route in `web/api_<page>.py` under `/api` (no SQL in routers, G-15), typed response models.
-3. In `apps/web`: a typed fetch function and hook in `src/app/api.ts`, the page in
+3. In `apps/web`: an RTK Query endpoint (`read(...)` in the page group's `api-<page>.ts`,
+   `api.injectEndpoints`; its key's prefixes are its tags) and a hook named for it, the page in
    `src/pages/<Page>.tsx` composed from the design system, the route in the `routes` list of `src/app/App.tsx`.
 4. A test that renders the page with a stubbed API: its states (loading, empty, error, data).
 5. Links: every `href` goes through a design-system component (`Text`, `LinkButton`, `Anchor`…),
@@ -80,8 +87,9 @@ Commands (in `apps/web`): `pnpm dev` (Vite on 5173, `/api` proxied to the dashbo
 
 ## Before you say done
 
-- `pnpm typecheck && pnpm lint && pnpm test` in `apps/web` (and `uv run ruff check && uv run pytest`
-  in `apps/dashboard` when the API changed); `pnpm build-storybook` succeeds.
+- `pnpm check` in `apps/web` (typecheck, lint, lint:css, lint:dead, lint:dup, test; the commit
+  hook runs it) and `uv run ruff check && uv run pytest` in `apps/dashboard` when the API changed;
+  `pnpm build-storybook` succeeds.
 - Look at it: the page and its components at 1280 and 390 px (Playwright screenshot of the story
   or the page), no page-level horizontal scroll, one `h1`, at most one primary button and one
   intent plate.
