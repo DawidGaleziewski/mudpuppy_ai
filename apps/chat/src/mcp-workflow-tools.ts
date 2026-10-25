@@ -12,6 +12,7 @@ import type { ChatMcpContext } from './mcp-chat.js';
 import { savePersona } from './personas.js';
 import { ProposeInput, proposeChange } from './proposals.js';
 import { runningRunOf, stopRun } from './runs.js';
+import { RequestSampleScansInput, requestSampleScans } from './sample-scans.js';
 import { RequestScanInput, requestScan } from './scan.js';
 import {
   ScopeRefusal,
@@ -104,7 +105,7 @@ export function registerSetupTools(
   );
 }
 
-/** request_scan, stop_scan. */
+/** request_scan, request_sample_scans, stop_scan. */
 export function registerScanTools(
   server: McpServer,
   ctx: ChatMcpContext,
@@ -120,6 +121,22 @@ export function registerScanTools(
     (args) => {
       try {
         return ok(requestScan(ctx.raw, ctx.paths, ctx.conversationId, args));
+      } catch (error) {
+        return fail(error);
+      }
+    },
+  );
+
+  server.registerTool(
+    'request_sample_scans',
+    {
+      description:
+        "Scan a sample of the portal's personas one after another (spec 080), when the BA wants to compare what different users see (access, tariffs, segments). Without personas it proposes the sample: one persona per distinct attribute combination, plus the pairs that differ in one attribute (say it back to the BA with each persona's attributes before the first scan). It checks every persona of the batch first (files, environment, stored credentials; MISSING_INPUT lists each persona's problems), then returns the next persona's hand-off: start the crawler agent with exactly that prompt, wait for the scan to finish, then call this tool again with the same personas and the returned since, until complete is true. Then point the BA to the Access page to compare the personas.",
+      inputSchema: RequestSampleScansInput.shape,
+    },
+    (args) => {
+      try {
+        return ok(requestSampleScans(ctx.raw, ctx.paths, ctx.conversationId, args));
       } catch (error) {
         return fail(error);
       }

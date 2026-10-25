@@ -8,7 +8,7 @@ store, vault, workflow.
 ## Public API
 - HTTP + SSE API (127.0.0.1:4310); used by apps/dashboard. `api` wires the routes of each
   resource (`api-*`) in order; the first that answers wins.
-- MCP chat server (`mcp-chat`): `workflow_state`, `save_persona`, `save_test_data`, `request_scan`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`, `propose_change` (`mcp-workflow-tools`); `page_context`, `highlight_element`, `open_page`, `request_credential` (`mcp-page-tools`); `list_grouping_inputs`, `suggest_grouping` (`mcp-process-tools`); the model tools (`mcp-model-tools`).
+- MCP chat server (`mcp-chat`): `workflow_state`, `save_persona`, `save_test_data`, `request_scan`, `request_sample_scans`, `stop_scan`, `list_process_candidates`, `set_process_scope`, `request_documentation`, `list_amendments`, `propose_change` (`mcp-workflow-tools`); `page_context`, `highlight_element`, `open_page`, `request_credential` (`mcp-page-tools`); `list_grouping_inputs`, `suggest_grouping` (`mcp-process-tools`); the model tools (`mcp-model-tools`).
 
 ## Modules
 - `acp-client` (ACP session lifecycle), `service` (orchestrator core), `session-config`

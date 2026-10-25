@@ -101,13 +101,21 @@ const RENEW_SHORTCUT = '<li><a href="/moje-polisy/przedluz">Przedłuż polisę</
  * What a built scenario does to the portal: the build it ships, how it changes a page's HTML, and
  * which GET requests it answers with a server error.
  */
-/** Who is visiting (spec 046): the logged-in customer's segment and the A/B arm of the session. */
+/**
+ * Who is visiting (spec 046): the logged-in customer's segment and the A/B arm of the session;
+ * `manualReview` (spec 080): this load of "Moje polisy" is drawn for manual review.
+ */
 export interface Visit {
   segment: 'standard' | 'premium' | null;
   abArm: 'A' | 'B' | null;
+  manualReview: boolean;
 }
 
-export const NO_VISIT: Visit = { segment: null, abArm: null };
+export const NO_VISIT: Visit = { segment: null, abArm: null, manualReview: false };
+
+/** The notice a standard customer's "Moje polisy" shows above the policies when drawn for manual review. */
+const MANUAL_REVIEW =
+  '<p role="status">Twoje polisy są w ręcznej weryfikacji. Skontaktujemy się z Tobą w ciągu dwóch dni roboczych.</p>';
 
 /** The A/B cookie of scenario ab-test (spec 046 FR-003). */
 export const AB_COOKIE = 'ab_baner';
@@ -274,6 +282,15 @@ const EFFECTS: Partial<Record<ScenarioId, ScenarioEffect>> = {
             '<p><a href="/moje-polisy/przedluz">Przedłuż polisę</a></p>',
             '<p><a href="/moje-polisy/przedluz">Przedłuż polisę</a></p>\n<p><button type="button">Oferta dla klientów premium</button></p>',
           )
+        : html,
+  },
+  // M4 (spec 080, R-91 (5)): a standard customer's "Moje polisy" is, on every third load, a
+  // manual-review notice instead of the policies; nothing the visitor sends decides it (no
+  // cookie) → R5's replays alternate with no separating flag: nondeterministic.
+  'overlapping-rule': {
+    html: (path, html, visit) =>
+      path === '/moje-polisy' && visit.manualReview
+        ? html.replace('<table>', `${MANUAL_REVIEW}\n<table>`)
         : html,
   },
   // M3 (spec 046): the home page's banner by the session's A/B cookie, given in turn → ab_test (R5).

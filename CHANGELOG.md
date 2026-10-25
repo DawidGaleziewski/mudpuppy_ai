@@ -6,6 +6,21 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 ## [Unreleased]
 
 ### Added
+- **R-35, R-97, R-98, R-99: 2.0 leftovers and the crawler bundle** (spec 080, v2.11.0,
+  2026-10-25). The crawler stops opening more pages of a kind once five of them were the same
+  screen (the list cap, `scope.max_items_per_template`; never where the address names the
+  screen), and can hand the repetitive tail to the server with `drain_frontier` (up to ten
+  read-only links, each recorded like an act). A pop-up a script writes into, with no address, is
+  read before it closes and kept as evidence the BA can cite. The BA is told about screens behind
+  a login wall that a link reaches and no process cites ("Przedłuż polisę"), a hint next to a
+  form is tied to the control it names, and `pnpm model:sweep` replays a walk over a number
+  field's range to find where the results change (the engine bands 1400/1401 and 2000/2001),
+  which the rules pass then lists; `pnpm eval … --sweep-inputs` runs it in a trial. A
+  documentation session for one process refuses evidence off that process's screens. The chat can
+  scan a sample of a portal's personas one after another (`request_sample_scans`). A replay after
+  a login starts on the page the login opened. New: scenario `overlapping-rule` on the reference
+  portal, scar SC-25 (a date form without server state), gates F-04@080 and F-05@080 (the bank's
+  shared "Wyloguj"). Migration 0053. Not measured in a paid trial (no budget given).
 - **R-106 leftovers, the vault in the persona card, the live Workbench's look** (spec 079,
   v2.10.1, 2026-10-25). Lists load small pictures (a 192 × 120 WebP per screenshot, made once by
   the dashboard and kept on disk) instead of whole recordings. A scan that didn't start has one

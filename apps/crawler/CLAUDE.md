@@ -30,7 +30,8 @@ own `CLAUDE.md`), the operator scripts under `scripts/`, and the test tiers.
   `model:decide … accept-tau` puts a calibrated τ in force), `pnpm model:refingerprint` and
   `pnpm model:compare-fingerprints` (fingerprint profiles, T113), `pnpm model:explore` (the
   stopping rule per process on the headless driver; without a key, every unexplored process, T075),
-  `pnpm model:classify` (the similarity classifier on the pair labels, used when it beats τ, T090).
+  `pnpm model:classify` (the similarity classifier on the pair labels, used when it beats τ, T090),
+  `pnpm model:sweep` (input sweeps: band edges of a bounded number, spec 080).
 
 ## Layout
 

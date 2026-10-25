@@ -46,7 +46,10 @@ keeps the map (spec 042 T050, G-30).
   `form_probing` starts a form-probing scan. Spec 034 (R-66): all six mark kinds on their targets
   (`MARK_TARGETS`); `request_scan` `run_type` + `plan` (continue, focused, recheck, retry) with
   `scan-directed.ts` (the checks and the crawler brief: reach each start point with `go_to_state`).
-- `scan`, `scope`: process scanning and scope management.
+- `scan`, `scope`: process scanning and scope management. Spec 080: `sample-scans`
+  (`request_sample_scans`: the persona sample of `@mudpuppy/config`, every persona checked
+  first with `scan`'s `checkScanTarget`, then the next one without a finished scan since the
+  batch began; stateless, one scan at a time).
 - Spec 039 (T077): `mcp-model-tools` (`list_process_proposals`, `name_proposal`,
   `reconcile_model`, `model_actions`: the model's proposals to name, a rebuild, the probe work
   waiting for the owner to start).

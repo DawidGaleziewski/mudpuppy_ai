@@ -45,7 +45,7 @@ fi
 # The dashboard's review page shells out to the crawler's operator scripts (`docs:review`), so a
 # script change can break it without a dashboard file changing (spec 030 F-15).
 if code '^apps/crawler/scripts/' && ! { code '^apps/dashboard/' || has '^(data/migrations/|docs/glossary/)'; }; then
-  run "dashboard (review)" apps/dashboard bash -c 'uv run pytest -q tests/test_review.py tests/test_review_inbox.py'
+  run "dashboard (review)" apps/dashboard bash -c 'uv run pytest -q tests/test_api_review.py tests/test_review_inbox.py'
 fi
 # The hooks themselves (spec 031 T001).
 if code '^(\.claude/hooks/|\.githooks/)'; then

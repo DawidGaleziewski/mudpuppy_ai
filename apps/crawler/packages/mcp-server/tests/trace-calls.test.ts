@@ -112,6 +112,7 @@ describe('call spans for the agent tools (US1)', () => {
       about_ref: s.state_id,
       test: { inputs: {}, refutes_if: { notIn: ['A'] } },
     });
+    await call('drain_frontier', { run_id: run, rationale: 'nothing repetitive left' });
     await call('finish_run', { run_id: run, rationale: 'frontier exhausted' });
     const rows = calls();
     expect(rows.map((r) => r.name)).toEqual([
@@ -125,6 +126,7 @@ describe('call spans for the agent tools (US1)', () => {
       'login',
       'add_open_question',
       'add_hypothesis',
+      'drain_frontier',
       'finish_run',
     ]);
     expect(new Set(rows.map((r) => r.name))).toEqual(new Set(AGENT_TOOL_NAMES));

@@ -80,12 +80,34 @@ gate(
 gap(
   'LO-27',
   'a window.open pop-up is recorded as its own screen',
-  'a pop-up with a URL is queued and visited (F-04@020), but this one is written by script into about:blank: no URL, and the session observes only its own page',
+  'a pop-up with a URL is queued and visited (F-04@020), and since spec 080 a script-written one is kept as evidence (F-04@080), but not as a screen: the session observes only its own page',
   async () => {
     const home = await nav(gs.call, run, '/ubezpieczenia');
     await actOn(gs.call, run, home, /Ogólne warunki/);
     const titles = rows<{ title: string }>(gs, 'SELECT title FROM states').map((s) => s.title);
     expect(titles.some((t) => /warunki/i.test(t))).toBe(true);
+  },
+);
+
+gate(
+  'F-04@080',
+  'a pop-up a script writes into (no URL) is kept as evidence the BA can cite',
+  async () => {
+    // A run of its own, so no earlier case's pop-up shares its decision log.
+    const own = await startRun(gs.call, 'proving-ground-insurer', 'client');
+    await nav(gs.call, own, '/ubezpieczenia');
+    await loginAs(gs.call, own);
+    const home = await nav(gs.call, own, '/ubezpieczenia');
+    await actOn(gs.call, own, home, /Ogólne warunki/);
+    const notes = rows<{ subject_ref: string }>(
+      gs,
+      "SELECT subject_ref FROM decision_log WHERE run_id = ? AND rule = 'popup_written'",
+      own,
+    );
+    expect(notes).toHaveLength(1);
+    expect(readFileSync(gs.ctx.evidence.resolve(notes[0]!.subject_ref), 'utf8')).toMatch(
+      /warunki/i,
+    );
   },
 );
 

@@ -114,6 +114,7 @@ describe('mudpuppy-chat MCP server', () => {
       'reconcile_model',
       'request_credential',
       'request_documentation',
+      'request_sample_scans',
       'request_scan',
       'save_persona',
       'save_test_data',

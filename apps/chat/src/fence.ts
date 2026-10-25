@@ -17,6 +17,8 @@ export const CHAT_TOOLS = [
   // Spec 032: test values a form needs, asked once in chat (O-M3).
   'save_test_data',
   'request_scan',
+  // Spec 080 (R-33 US4.2): a persona sample scanned one after another.
+  'request_sample_scans',
   'stop_scan',
   'set_process_scope',
   'request_documentation',
@@ -77,6 +79,8 @@ export const CRAWLER_TOOLS = [
   'start_run',
   'get_known_states',
   'get_next_frontier_item',
+  // Spec 080 (R-58, D-3): the server drains repetitive read-only links on the agent's ask.
+  'drain_frontier',
   'navigate',
   'act',
   'probe_form',

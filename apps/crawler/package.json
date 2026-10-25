@@ -30,6 +30,7 @@
     "model:replay": "tsx scripts/model-replay.ts",
     "model:regress": "tsx scripts/model-replay.ts --regress",
     "model:explore": "tsx scripts/model-explore.ts",
+    "model:sweep": "tsx scripts/model-sweep.ts",
     "model:classify": "tsx scripts/model-classify.ts",
     "model:rules-export": "tsx scripts/model-rules-export.ts",
     "model:pairs": "tsx scripts/model-pairs.ts",

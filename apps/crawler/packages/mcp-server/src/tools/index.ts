@@ -9,6 +9,7 @@ import type { Runtime } from '../runtime.js';
 import {
   addHypothesis,
   addOpenQuestion,
+  drainFrontier,
   finishRun,
   getKnownStates,
   getNextFrontierItem,
@@ -25,6 +26,8 @@ export const AGENT_TOOL_NAMES = [
   'start_run',
   'get_known_states',
   'get_next_frontier_item',
+  // Spec 080 (R-58, D-3): the frontier's repetitive tail, done by the server on the agent's ask.
+  'drain_frontier',
   'navigate',
   'act',
   'probe_form',
@@ -158,6 +161,16 @@ export function registerTools(server: McpServer, ctx: ServerContext, runtime: Ru
     'Next unexplored item chosen by the server, or null. Map-run navigate/act results already carry it as `next`. A link whose target the run already reached is not handed out: the server records it as an inferred transition.',
     { run_id: z.string() },
     (a) => getNextFrontierItem(ctx, a),
+  );
+  tool(
+    'drain_frontier',
+    'Map runs: let the server act on up to max_items (default 10) pending read-only links to page kinds this run already visited (more items of a list, more pages of the same kind), one after another, each checked and recorded like act. It stops at the first link that reaches a new page, at the first item that is not such a link (returned as `next`: yours to decide), or at a refusal. Use it when the next items are repetitive; you lose nothing, every page is recorded.',
+    {
+      run_id: z.string(),
+      rationale: z.string().trim().min(1).max(300),
+      max_items: z.number().int().min(1).max(10).optional(),
+    },
+    (a) => drainFrontier(ctx, runtime, a),
   );
   tool(
     'navigate',

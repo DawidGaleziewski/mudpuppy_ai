@@ -156,8 +156,9 @@ export const dateRange = defineProbe({
   id: 'date-range',
   group: 'validation',
   summary: 'A far past and a far future date in a date field the page sets no limit on',
-  // proven on the proving ground's claim form (gate LO-47), which already is this obstacle
-  scars: ['LO-47'],
+  // proven on the proving ground's claim form (gate LO-47, server-held wizard) and on SC-25 (a
+  // plain date form without server state, spec 080)
+  scars: ['LO-47', 'SC-25'],
   tries: ({ fields }: ProbeContext) =>
     controls(fields)
       .filter((f) => f.type === 'date')

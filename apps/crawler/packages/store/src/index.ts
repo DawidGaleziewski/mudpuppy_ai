@@ -20,6 +20,7 @@ export * from './replay-tests.js';
 export * from './error-replays.js';
 export * from './overturn-guard.js';
 export * from './context-replays.js';
+export * from './input-sweeps.js';
 export * from './deviation-visits.js';
 export * from './rule-export.js';
 export * from './rule-export-text.js';

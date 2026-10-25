@@ -199,6 +199,12 @@ export const Scope = Budgets.extend({
    * (spec 019 FR-007): an interstitial ("Proszę czekać…") is passed, not recorded as a screen.
    */
   client_redirect_wait_ms: z.number().int().min(0).max(30000).default(5000),
+  /**
+   * The list cap (spec 080 FR-009, F-17@015): after this many addresses of one route template all
+   * showed the same screen, the run's other links to that template are settled, not explored.
+   * Left out: 5 (the mcp-server's default).
+   */
+  max_items_per_template: z.number().int().min(1).max(1000).optional(),
 })
   // Strict: a leftover `allowed_paths` (moved to `urls`, spec 023) must not be dropped silently,
   // which would widen the scan to every URL of the domains.

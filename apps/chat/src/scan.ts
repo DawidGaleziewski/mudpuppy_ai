@@ -222,6 +222,25 @@ function requireCredentials(
     );
 }
 
+/**
+ * What a new scan of `persona` checks before its hand-off (files, environment, credentials),
+ * without recording anything; batch scans check every persona first (spec 080 FR-006).
+ */
+export function checkScanTarget(
+  raw: BetterSqlite3.Database,
+  paths: WorkspacePaths,
+  { portal, persona, environment }: { portal: string; persona: string; environment?: Environment },
+): Environment {
+  const files = requireFiles(paths, portal, persona);
+  const target = scanEnvironment(
+    paths,
+    { portal, ...files },
+    { asked: environment, resumed: undefined },
+  );
+  requireCredentials(raw, portal, target);
+  return target.environment;
+}
+
 /** One crawler per portal at a time: a scan and a process trace share the browser. */
 function requireIdle(raw: BetterSqlite3.Database, portal: string): void {
   const running = raw

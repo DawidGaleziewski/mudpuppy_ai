@@ -1242,17 +1242,6 @@
       },
       {
         "from_state": "<id:7>",
-        "to_state": "<id:5>",
-        "role": "link",
-        "name": "Laptop model 6",
-        "safety_class": "read",
-        "status": "executed",
-        "confidence": "observed",
-        "error": null,
-        "stabilization": "settled"
-      },
-      {
-        "from_state": "<id:7>",
         "to_state": "<id:7>",
         "role": "link",
         "name": "Następna strona",
@@ -1669,8 +1658,8 @@
       {
         "state_id": "<id:7>",
         "action_id": "<id:75>",
-        "status": "done",
-        "reason": null
+        "status": "budget_reached",
+        "reason": "list_cap: 5 addresses of /oferta/:param all showed the same screen"
       },
       {
         "state_id": "<id:7>",
@@ -2007,13 +1996,6 @@
         "reason": "merge into cluster-e638e9c44a05 (similarity 1.00, threshold 0.9)",
         "subject_ref": "<sha:3>",
         "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/oferty\"}"
-      },
-      {
-        "kind": "merge",
-        "rule": "fingerprint:identical-fingerprint",
-        "reason": "merge into cluster-55d1a8f8689b (similarity 1.00, threshold 0.9)",
-        "subject_ref": "<sha:9>",
-        "detail_json": "{\"matched\":\"[token]\",\"route_template\":\"/oferta/:id\"}"
       },
       {
         "kind": "merge",
@@ -16352,12 +16334,8 @@
             "actions_omitted": 13,
             "transition_id": "<id:1141>",
             "next": {
-              "item": {
-                "frontier_id": "<id:953>",
-                "state_id": "<id:7>",
-                "action_id": "<id:75>",
-                "description": "link \"Laptop model 6\""
-              }
+              "item": null,
+              "reason": "empty"
             }
           }
         },
@@ -16861,21 +16839,49 @@
         "id": "<id:1178>",
         "parent_id": "<id:1140>",
         "kind": "event",
-        "name": "frontier_pick",
+        "name": "frontier_skip",
         "status": "ok",
         "attrs_json": {
           "frontier_id": "<id:953>",
-          "priority": -30,
-          "depth": 3,
-          "tier": 2,
-          "pending": 2
+          "rule": "list_cap",
+          "reason": "list_cap: 5 addresses of /oferta/:param all showed the same screen"
+        },
+        "summary": "frontier_skip",
+        "decision": 0,
+        "between_calls": 0
+      },
+      {
+        "id": "<id:1179>",
+        "parent_id": "<id:1140>",
+        "kind": "event",
+        "name": "frontier_infer",
+        "status": "ok",
+        "attrs_json": {
+          "frontier_id": "<id:955>",
+          "transition_id": "<id:1180>",
+          "same_as_transition_id": "<id:84>",
+          "to_state": "[token]"
+        },
+        "summary": "frontier_infer",
+        "decision": 0,
+        "between_calls": 0
+      },
+      {
+        "id": "<id:1181>",
+        "parent_id": "<id:1140>",
+        "kind": "event",
+        "name": "frontier_pick",
+        "status": "ok",
+        "attrs_json": {
+          "reason": "empty",
+          "pending": 0
         },
         "summary": "frontier_pick",
         "decision": 0,
         "between_calls": 0
       },
       {
-        "id": "<id:1179>",
+        "id": "<id:1182>",
         "parent_id": "<id:1140>",
         "kind": "phase",
         "name": "pw_trace",
@@ -16886,7 +16892,7 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1180>",
+        "id": "<id:1183>",
         "parent_id": "<id:1140>",
         "kind": "event",
         "name": "request_aggregate",
@@ -16904,7 +16910,7 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1181>",
+        "id": "<id:1184>",
         "parent_id": null,
         "kind": "call",
         "name": "get_next_frontier_item",
@@ -16915,629 +16921,6 @@
           },
           "request_id": 41,
           "output": {
-            "item": {
-              "frontier_id": "<id:953>",
-              "state_id": "<id:7>",
-              "action_id": "<id:75>",
-              "description": "link \"Laptop model 6\""
-            }
-          }
-        },
-        "summary": "get_next_frontier_item ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1182>",
-        "parent_id": "<id:1181>",
-        "kind": "event",
-        "name": "frontier_pick",
-        "status": "ok",
-        "attrs_json": {
-          "frontier_id": "<id:953>",
-          "priority": -30,
-          "depth": 3,
-          "tier": 2,
-          "pending": 2
-        },
-        "summary": "frontier_pick",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1183>",
-        "parent_id": null,
-        "kind": "call",
-        "name": "act",
-        "status": "ok",
-        "attrs_json": {
-          "args": {
-            "run_id": "<id:107>",
-            "action_id": "<id:75>"
-          },
-          "request_id": 42,
-          "output": {
-            "state_id": "<id:5>",
-            "created": false,
-            "cluster_id": "cluster-55d1a8f8689b",
-            "title": "Oferta 1",
-            "route_template": "/oferta/:id",
-            "forms": 0,
-            "actions_omitted": 13,
-            "transition_id": "<id:1184>",
-            "next": {
-              "item": null,
-              "reason": "empty"
-            }
-          }
-        },
-        "summary": "act ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1185>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "begin_step",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "begin_step ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1186>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "pw_trace",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "pw_trace ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1187>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "gate",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "gate ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1188>",
-        "parent_id": "<id:1187>",
-        "kind": "event",
-        "name": "gate_decision",
-        "status": "ok",
-        "attrs_json": {
-          "input_kind": "act",
-          "action": {
-            "role": "link",
-            "accessible_name": "Laptop model 6",
-            "nth": 0
-          },
-          "safety_class": "read",
-          "allowed": true,
-          "rule": null,
-          "reason": null
-        },
-        "summary": "gate_decision",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1189>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "gate",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "gate ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1190>",
-        "parent_id": "<id:1189>",
-        "kind": "event",
-        "name": "gate_decision",
-        "status": "ok",
-        "attrs_json": {
-          "input_kind": "navigate",
-          "url": {
-            "origin": "<origin>",
-            "route": "/oferty",
-            "query_keys": [
-              "page"
-            ]
-          },
-          "safety_class": "read",
-          "allowed": true,
-          "rule": null,
-          "reason": null
-        },
-        "summary": "gate_decision",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1191>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "reach_state",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "reach_state ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1192>",
-        "parent_id": "<id:1183>",
-        "kind": "event",
-        "name": "request",
-        "status": "ok",
-        "attrs_json": {
-          "method": "GET",
-          "resource_type": "document",
-          "url": {
-            "origin": "<origin>",
-            "route": "/oferty",
-            "query_keys": [
-              "page"
-            ]
-          },
-          "main_frame": true,
-          "decision": "fulfill",
-          "limiter_wait_ms": "<ms>",
-          "status": 200
-        },
-        "summary": "request",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1193>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "gate",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "gate ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1194>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "locate",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "locate ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1195>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "autofill",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "autofill ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1196>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "click",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "click ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1197>",
-        "parent_id": "<id:1183>",
-        "kind": "event",
-        "name": "request",
-        "status": "ok",
-        "attrs_json": {
-          "method": "GET",
-          "resource_type": "document",
-          "url": {
-            "origin": "<origin>",
-            "route": "/oferta/:id",
-            "query_keys": []
-          },
-          "main_frame": true,
-          "decision": "fulfill",
-          "limiter_wait_ms": "<ms>",
-          "status": 200
-        },
-        "summary": "request",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1198>",
-        "parent_id": "<id:1196>",
-        "kind": "event",
-        "name": "locator",
-        "status": "ok",
-        "attrs_json": {
-          "role": "link",
-          "accessible_name": "Laptop model 6",
-          "nth": 0,
-          "matches": 1,
-          "outcome": "clicked"
-        },
-        "summary": "locator",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1199>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "settle",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "settle ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1200>",
-        "parent_id": "<id:1199>",
-        "kind": "event",
-        "name": "obstacle",
-        "status": "ok",
-        "attrs_json": {
-          "obstacle_id": "cookie_banner",
-          "selector": "#cookie button.accept",
-          "via": "sweep"
-        },
-        "summary": "obstacle",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1201>",
-        "parent_id": "<id:1199>",
-        "kind": "event",
-        "name": "obstacle",
-        "status": "ok",
-        "attrs_json": {
-          "obstacle_id": "cookie_banner",
-          "selector": "#cookie button.accept",
-          "via": "sweep"
-        },
-        "summary": "obstacle",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1202>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "observe",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "observe ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1203>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "net_drain",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "net_drain ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1204>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "fingerprint",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "fingerprint ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1205>",
-        "parent_id": "<id:1204>",
-        "kind": "event",
-        "name": "decision",
-        "status": "ok",
-        "attrs_json": {
-          "decision_id": "<id:1206>",
-          "kind": "merge",
-          "rule": "fingerprint:identical-fingerprint"
-        },
-        "summary": "merge: merge into cluster-55d1a8f8689b (similarity 1.00, threshold 0.9)",
-        "decision": 1,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1207>",
-        "parent_id": "<id:1204>",
-        "kind": "event",
-        "name": "fingerprint_assign",
-        "status": "ok",
-        "attrs_json": {
-          "route_template": "/oferta/:id",
-          "level1": "<sha:9>",
-          "decision": "merge",
-          "cluster_id": "cluster-55d1a8f8689b",
-          "matched": "<sha:9>",
-          "similarity": 1,
-          "threshold": 0.9
-        },
-        "summary": "fingerprint_assign",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1208>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "model_capture",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "model_capture ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1209>",
-        "parent_id": "<id:1208>",
-        "kind": "event",
-        "name": "model_capture",
-        "status": "ok",
-        "attrs_json": {
-          "result": "ok",
-          "builds": [
-            "shell:unknown"
-          ],
-          "calls": 1
-        },
-        "summary": "model_capture",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1210>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "record_state",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "record_state ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1211>",
-        "parent_id": "<id:1210>",
-        "kind": "event",
-        "name": "state_recorded",
-        "status": "ok",
-        "attrs_json": {
-          "state_id": "<id:5>",
-          "created": false,
-          "evidence_ref": "<sha:19>.yaml"
-        },
-        "summary": "state_recorded",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1212>",
-        "parent_id": "<id:1210>",
-        "kind": "event",
-        "name": "form_step",
-        "status": "ok",
-        "attrs_json": {
-          "state_id": "<id:5>",
-          "form_step_id": "<id:396>",
-          "step_index": 1,
-          "created": false,
-          "reason": "form-name",
-          "overlap": 1,
-          "added": [],
-          "state_kind": "main"
-        },
-        "summary": "form_step",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1213>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "record_forms",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "record_forms ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1214>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "record_transition",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "record_transition ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1215>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "record_api_calls",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "record_api_calls ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1216>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "record_observation",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "record_observation ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1217>",
-        "parent_id": "<id:1216>",
-        "kind": "event",
-        "name": "observation",
-        "status": "ok",
-        "attrs_json": {
-          "via": "action",
-          "params": 0,
-          "hops": [
-            "start",
-            "navigate"
-          ]
-        },
-        "summary": "observation",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1218>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "enqueue_frontier",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "enqueue_frontier ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1219>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "run_bookkeeping",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "run_bookkeeping ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1220>",
-        "parent_id": "<id:1219>",
-        "kind": "event",
-        "name": "run_status",
-        "status": "ok",
-        "attrs_json": {
-          "status": "running",
-          "steps_used": 21,
-          "elapsed_ms": "<ms>",
-          "max_depth_reached": 4
-        },
-        "summary": "run_status",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1221>",
-        "parent_id": "<id:1183>",
-        "kind": "event",
-        "name": "frontier_infer",
-        "status": "ok",
-        "attrs_json": {
-          "frontier_id": "<id:955>",
-          "transition_id": "<id:1222>",
-          "same_as_transition_id": "<id:84>",
-          "to_state": "[token]"
-        },
-        "summary": "frontier_infer",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1223>",
-        "parent_id": "<id:1183>",
-        "kind": "event",
-        "name": "frontier_pick",
-        "status": "ok",
-        "attrs_json": {
-          "reason": "empty",
-          "pending": 0
-        },
-        "summary": "frontier_pick",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1224>",
-        "parent_id": "<id:1183>",
-        "kind": "phase",
-        "name": "pw_trace",
-        "status": "ok",
-        "attrs_json": {},
-        "summary": "pw_trace ok",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1225>",
-        "parent_id": "<id:1183>",
-        "kind": "event",
-        "name": "request_aggregate",
-        "status": "ok",
-        "attrs_json": {
-          "by_type_decision": {
-            "document:fulfill": 2,
-            "fetch:continue": 2
-          },
-          "limiter_wait_ms_total": "<ms>",
-          "count": 4
-        },
-        "summary": "request_aggregate",
-        "decision": 0,
-        "between_calls": 0
-      },
-      {
-        "id": "<id:1226>",
-        "parent_id": null,
-        "kind": "call",
-        "name": "get_next_frontier_item",
-        "status": "ok",
-        "attrs_json": {
-          "args": {
-            "run_id": "<id:107>"
-          },
-          "request_id": 43,
-          "output": {
             "item": null,
             "reason": "empty"
           }
@@ -17547,8 +16930,8 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1227>",
-        "parent_id": "<id:1226>",
+        "id": "<id:1185>",
+        "parent_id": "<id:1184>",
         "kind": "event",
         "name": "frontier_pick",
         "status": "ok",
@@ -17561,7 +16944,7 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1228>",
+        "id": "<id:1186>",
         "parent_id": null,
         "kind": "call",
         "name": "finish_run",
@@ -17570,19 +16953,19 @@
           "args": {
             "run_id": "<id:107>"
           },
-          "request_id": 44,
+          "request_id": 42,
           "output": {
             "run_id": "<id:107>",
             "status": "completed",
             "coverage": {
               "states": 7,
-              "actions_executed": 20,
+              "actions_executed": 19,
               "actions_inferred": 30,
               "actions_skipped_by_class": {
                 "destructive": 7,
                 "external-side-effect": 4,
                 "mutating": 2,
-                "read": 7
+                "read": 8
               },
               "api_endpoints": 2,
               "item_pages_visited": 1,
@@ -17602,8 +16985,8 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1229>",
-        "parent_id": "<id:1228>",
+        "id": "<id:1187>",
+        "parent_id": "<id:1186>",
         "kind": "phase",
         "name": "complete_run",
         "status": "ok",
@@ -17613,8 +16996,8 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1230>",
-        "parent_id": "<id:1229>",
+        "id": "<id:1188>",
+        "parent_id": "<id:1187>",
         "kind": "event",
         "name": "model_reconciled",
         "status": "ok",
@@ -17625,7 +17008,7 @@
           "newScreens": 6,
           "lineage": 0,
           "actionClasses": 72,
-          "transitions": 19,
+          "transitions": 18,
           "conflicts": 0,
           "planned": 0
         },
@@ -17634,14 +17017,14 @@
         "between_calls": 0
       },
       {
-        "id": "<id:1231>",
-        "parent_id": "<id:1229>",
+        "id": "<id:1189>",
+        "parent_id": "<id:1187>",
         "kind": "event",
         "name": "run_status",
         "status": "ok",
         "attrs_json": {
           "status": "completed",
-          "steps_used": 21,
+          "steps_used": 20,
           "elapsed_ms": "<ms>",
           "max_depth_reached": 4
         },

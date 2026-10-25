@@ -9,6 +9,7 @@ export { addCost, emptyCost, type Cost } from './cost.js';
 export { findCrawlRun } from './crawl-run.js';
 export { runProcessTraces, type ProcessTraceRun } from './process-traces.js';
 export { runFormProbing, type FormProbingRun } from './form-probing.js';
+export { runInputSweeps } from './input-sweeps.js';
 export { ensurePortal, stopServer, type StartedServer } from './portal-server.js';
 export { preflight } from './preflight.js';
 export { createWorkspace } from './workspace.js';

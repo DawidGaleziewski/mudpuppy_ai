@@ -106,6 +106,7 @@ it('0049 workbench: kind defaults to chat, CHECKs hold, one view per turn, down 
       .all(),
   ).toEqual([{ name: 'ix_workbench_commands_conversation' }]);
 
+  expect(migrateDown(o.raw, MIGRATIONS)).toBe('0053');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0051');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0050');
   expect(migrateDown(o.raw, MIGRATIONS)).toBe('0049');

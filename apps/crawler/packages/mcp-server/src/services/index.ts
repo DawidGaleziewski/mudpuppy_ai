@@ -5,6 +5,7 @@ export * from './record-transition.js';
 export * from './record-api-call.js';
 export * from './agent-notes.js';
 export * from './frontier.js';
+export * from './drain-frontier.js';
 export * from './complete-run.js';
 export * from './run-budget.js';
 export * from './refs.js';

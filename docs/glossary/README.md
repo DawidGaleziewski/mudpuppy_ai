@@ -1859,6 +1859,74 @@ landed on different pages, the button is clicked as usual.
 
 <sub>Last changed in R-58, 2026-10-18.</sub>
 
+<a id="list-cap"></a>
+
+#### List cap
+
+**Once a run has opened a few addresses of one kind of page (five by default) and they were all the same screen, its other links to that kind are set aside, not opened.**
+
+A catalogue with hundreds of products, or a list with many pages, would otherwise spend a
+whole scan opening pages that show the same screen with other data. After
+`max_items_per_template` addresses of one route template that all showed one screen, the
+rest of that template's links are recorded as `budget_reached` with the reason `list_cap`
+and never handed to the crawler. A template whose pages turned out different, or whose
+address part names the screen (an identity parameter of the portal model), is never capped.
+
+*Example:* Five product pages /sklep/produkt/… were one screen, so the other 40 product links are list_cap: 5 addresses of /sklep/produkt/:param all showed the same screen.
+
+*Seen in:* Frontier report; portal.yaml scope.max_items_per_template
+
+*Labels:* `list_cap`, `max_items_per_template`
+
+*Related:* [Frontier](#frontier), [Budget](#budget)
+
+<sub>Last changed in R-35, 2026-10-25.</sub>
+
+<a id="drain-frontier"></a>
+
+#### Drain the frontier
+
+**A crawler tool that lets the server open up to ten repetitive links (more pages of a kind the run already saw) in one call, and hands the next real decision back.**
+
+When the next frontier items are read-only links to kinds of page the run already visited,
+the crawler calls `drain_frontier` instead of acting on each one. The server opens them one
+after another, each checked and recorded exactly like an act, and stops at the first one
+that shows a new screen, at the first item that is not such a link (returned as `next`),
+or at a refusal. The crawler still decides where to go; the server only takes the tail.
+
+*Example:* drain_frontier opened six catalogue pages and stopped at the button "Zastosuj": that one is the crawler's to decide.
+
+*Seen in:* Run page → Trace (drain_frontier calls)
+
+*Labels:* `drain_frontier`
+
+*Related:* [Frontier](#frontier), [Next item](#next-item), [List cap](#list-cap)
+
+<sub>Last changed in R-58, 2026-10-25.</sub>
+
+<a id="input-sweep"></a>
+
+#### Input sweep
+
+**Replaying a recorded walk with one number spread over its allowed range, to find where the page's results change (a band edge such as 1400 → 1401 cm³).**
+
+A scan types one value into each field, so a rule with bands (an engine factor that changes
+at 1400 and 2000 cm³) shows one band only. For a number field with a minimum and a maximum
+that a walk typed before a page of results, `pnpm model:sweep` replays the walk on the
+headless driver at five points of the range and halves every gap whose two ends show
+different results, until the edge is two neighbouring numbers. Each edge is a decision note
+`input_band`; the BA's rules pass lists every edge no business rule states yet.
+
+*Example:* "Pojemność silnika (cm³)" 1400 → 1401 changes what the page shows: współczynnik_silnika 0,90 → 1,00
+
+*Seen in:* pnpm model:sweep; the rules pass's warning; eval --sweep-inputs
+
+*Labels:* `input_band`, `model:sweep`
+
+*Related:* [Headless driver (probe run)](#headless-driver), [Business rule (BR)](#business-rule)
+
+<sub>Last changed in R-97, 2026-10-25.</sub>
+
 <a id="next-item"></a>
 
 #### Next item

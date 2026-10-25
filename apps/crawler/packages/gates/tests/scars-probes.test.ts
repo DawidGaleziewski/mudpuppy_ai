@@ -299,6 +299,35 @@ gate(
   { timeout: 180_000 },
 );
 
+gate(
+  'SC-25',
+  "a date field with no limit gets a far past and a far future date; the server's window refuses both",
+  async () => {
+    const map = await startRun(gs.call, PORTAL, 'quote-tester');
+    const mapped = await scarNav(gs.call, map, '/sc25/');
+    markForProbing(gs, PORTAL, mapped.route_template as string);
+    const run = await startRun(gs.call, PORTAL, 'quote-tester', { form_probing: true });
+    const page = await scarNav(gs.call, run, '/sc25/');
+    for (let call = 0; call < 4; call++) {
+      const r = await gs.call('probe_form', {
+        run_id: run,
+        action_id: actionNamed(page, 'Continue')!.action_id,
+        probes: ['date-range'],
+        rationale: 'gate: probe the policy start date',
+      });
+      if (r.isError) throw new Error(`probe_form: ${JSON.stringify(r.body).slice(0, 400)}`);
+      if (!(r.body as Probed).more) break;
+    }
+    const tries = outcomes(run).filter((o) => o.probe_id === 'date-range');
+    expect(tries).toHaveLength(2);
+    for (const t of tries) {
+      expect(t.outcome_kind).toBe('validation');
+      expect(t.messages_json).toContain('The policy start date must be between');
+    }
+  },
+  { timeout: 180_000 },
+);
+
 gate('SC-19', 'a read-only persona probes nothing, and the budget is the portal file', async () => {
   const run = await probeRun('guest');
   const step1 = await scarNav(gs.call, run, '/sc19/apply');

@@ -26,6 +26,7 @@ import { sc21 } from './sc21-unread-ping.js';
 import { sc22 } from './sc22-hidden-box.js';
 import { sc23 } from './sc23-blocked-submit.js';
 import { sc24 } from './sc24-revealed-limits.js';
+import { sc25 } from './sc25-date-window.js';
 
 export const SCARS: readonly Scar[] = [
   sc01,
@@ -52,4 +53,5 @@ export const SCARS: readonly Scar[] = [
   sc22,
   sc23,
   sc24,
+  sc25,
 ];

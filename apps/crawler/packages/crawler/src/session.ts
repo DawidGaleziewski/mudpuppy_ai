@@ -94,6 +94,16 @@ export class BrowserSession {
     this.popupsTaken = this.popups.length;
     return fresh.filter((u) => /^https?:/i.test(u));
   }
+
+  /** Script-written windows read since the last call (spec 080, LO-27), once each has been read. */
+  readonly written: Promise<WrittenPopup>[] = [];
+  private writtenTaken = 0;
+
+  async takeWritten(): Promise<WrittenPopup[]> {
+    const fresh = this.written.slice(this.writtenTaken);
+    this.writtenTaken = this.written.length;
+    return Promise.all(fresh);
+  }
   readonly browser: Browser;
   readonly context: BrowserContext;
   readonly page: Page;
@@ -164,7 +174,7 @@ export class BrowserSession {
         obstacles,
         stabilizerOptions: opts.stabilizer ?? {},
       });
-      watchPopups(context, page, session.popups);
+      watchPopups(context, page, { popups: session.popups, written: session.written });
       return session;
     } catch (e) {
       await browser.close().catch(() => undefined);
@@ -282,7 +292,32 @@ function gateOptions(opts: SessionOptions, limiter: RateLimiter): RequestGateOpt
  * first request comes before its frame exists (Playwright throws on `frame()`): its URL names the
  * window when the window itself has not committed (refused, still loading).
  */
-function watchPopups(context: BrowserContext, page: Page, popups: string[]): void {
+/** A window a script wrote into (`about:blank`, no URL): what it showed before it was closed. */
+export interface WrittenPopup {
+  title: string;
+  /** The window's ARIA snapshot (its text when the snapshot fails); empty when nothing was read. */
+  snapshot: string;
+}
+
+/** How long a script-written window gets to fill before it is read and closed (LO-27). */
+const WRITTEN_WAIT_MS = 1500;
+
+/** Read a script-written window (spec 080 FR-011, LO-27 option (b)); never throws. */
+async function readWritten(p: Page): Promise<WrittenPopup> {
+  await p.waitForLoadState('domcontentloaded', { timeout: WRITTEN_WAIT_MS }).catch(() => undefined);
+  const title = await p.title().catch(() => '');
+  const snapshot = await p
+    .locator('body')
+    .ariaSnapshot({ timeout: WRITTEN_WAIT_MS })
+    .catch(() => p.innerText('body', { timeout: WRITTEN_WAIT_MS }).catch(() => ''));
+  return { title, snapshot };
+}
+
+function watchPopups(
+  context: BrowserContext,
+  page: Page,
+  sinks: { popups: string[]; written: Promise<WrittenPopup>[] },
+): void {
   const unclaimed: string[] = [];
   context.on('request', (r) => {
     if (!r.isNavigationRequest()) return;
@@ -295,8 +330,14 @@ function watchPopups(context: BrowserContext, page: Page, popups: string[]): voi
   context.on('page', (p) => {
     if (p === page) return;
     const first = unclaimed.shift();
-    popups.push(p.url() === 'about:blank' && first ? first : p.url());
-    void p.close().catch(() => undefined);
+    const url = p.url() === 'about:blank' && first ? first : p.url();
+    sinks.popups.push(url);
+    if (url !== 'about:blank') {
+      void p.close().catch(() => undefined);
+      return;
+    }
+    // A window with no address is read before it closes: its text is the only evidence there is.
+    sinks.written.push(readWritten(p).finally(() => void p.close().catch(() => undefined)));
   });
 }
 

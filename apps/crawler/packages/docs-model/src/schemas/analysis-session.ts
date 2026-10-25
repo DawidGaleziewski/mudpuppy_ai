@@ -33,6 +33,8 @@ export const AnalysisSession = z
     gaps_json: z.array(z.string().min(1)),
     started_at: Timestamp,
     ended_at: Timestamp.nullable(),
+    /** 0053 (spec 080): the process scope a documentation request named; null: the whole portal. */
+    scope_id: Id.nullable().default(null),
   })
   .refine((s) => s.status !== 'completed' || s.summary !== null, {
     message: 'summary is required when status is completed',

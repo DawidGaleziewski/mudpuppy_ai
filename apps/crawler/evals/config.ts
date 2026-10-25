@@ -8,7 +8,7 @@ import { parseArgs } from 'node:util';
 export const USAGE =
   'usage: pnpm eval <portal> [--persona guest] [--budget-usd 5] [--model <m>] [--env sandbox]\n' +
   '       [--session-timeout <s>] [--crawler-only] [--promote [--force-promote]] [--dry-run]\n' +
-  '       [--in-place] [--no-judges] [--no-process-traces] [--no-form-probing]\n' +
+  '       [--in-place] [--no-judges] [--no-process-traces] [--no-form-probing] [--sweep-inputs]\n' +
   '       [--ba-replay <kept trial result.json>]';
 
 export interface EvalConfig {
@@ -35,6 +35,8 @@ export interface EvalConfig {
   processTraces: boolean;
   /** Probe the task's `probeForms` after the map (spec 034 phase 9); `--no-form-probing` skips it. */
   formProbing: boolean;
+  /** Spec 080 (R-97 (4)): input sweeps on the headless driver after the map; off by default. */
+  sweepInputs: boolean;
   /**
    * Spec 045: a kept trial's result file. Only the BA sessions run again, on a copy of that trial's
    * workspace with its documentation taken out: the same crawl evidence, so a BA change is
@@ -64,6 +66,7 @@ const OPTIONS = {
   'no-judges': { type: 'boolean', default: false },
   'no-process-traces': { type: 'boolean', default: false },
   'no-form-probing': { type: 'boolean', default: false },
+  'sweep-inputs': { type: 'boolean', default: false },
   'ba-replay': { type: 'string' },
 } as const;
 
@@ -100,6 +103,7 @@ export function parseConfig(argv: readonly string[], root = REPO_ROOT): ConfigRe
       judges: !values['no-judges'],
       processTraces: !values['no-process-traces'],
       formProbing: !values['no-form-probing'],
+      sweepInputs: values['sweep-inputs'],
       baReplay: values['ba-replay'],
       resultsDir: join(root, 'data', 'evals', portal),
     },

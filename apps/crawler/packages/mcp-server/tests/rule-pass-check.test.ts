@@ -1,5 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { hintsOf, isStated, type RuleCandidate } from '../src/services/ba/rule-pass-check.js';
+import {
+  controlNamedBy,
+  hintsOf,
+  isStated,
+  type RuleCandidate,
+} from '../src/services/ba/rule-pass-check.js';
 
 const hint = (text: string, field: string | null, controls?: string[]): RuleCandidate => ({
   text,
@@ -36,7 +41,53 @@ describe('isStated (spec 045)', () => {
   });
 });
 
+describe('controlNamedBy (R-97 (2))', () => {
+  const controls = ['Tylko OC', 'OC + Autocasco (AC)', 'Assistance', 'Kod rabatowy'];
+  it('ties a hint to the control whose acronym it names', () => {
+    expect(controlNamedBy('AC dostępne tylko dla pojazdów młodszych niż 15 lat.', controls)).toBe(
+      'OC + Autocasco (AC)',
+    );
+  });
+  it('falls back to a long word, and gives up when several controls match', () => {
+    expect(controlNamedBy('Assistance kosztuje 49 zł.', controls)).toBe('Assistance');
+    expect(controlNamedBy('OC jest obowiązkowe.', controls)).toBeNull(); // both OC controls
+    expect(controlNamedBy('Wybierz dwa różne produkty.', ['Pierwszy produkt'])).toBeNull();
+  });
+});
+
+describe('isStated for a hint tied to a control', () => {
+  it('needs the control label next to the quoted hint', () => {
+    const c = hint('AC dostępne tylko dla pojazdów młodszych niż 15 lat.', 'OC + Autocasco (AC)');
+    expect(isStated(c, ['ac dostępne tylko dla pojazdów młodszych niż 15 lat'])).toBe(false);
+    expect(
+      isStated(c, [
+        '"oc + autocasco (ac)" can be chosen only when: ac dostępne tylko dla pojazdów młodszych niż 15 lat',
+      ]),
+    ).toBe(true);
+  });
+});
+
 describe('hintsOf', () => {
+  it('ties a free hint to the radio its acronym names (the options step)', () => {
+    const snap = [
+      '- main:',
+      '  - group "Zakres":',
+      '    - paragraph:',
+      '      - radio "Tylko OC"',
+      '    - paragraph:',
+      '      - radio "OC + Autocasco (AC)"',
+      '    - text: AC dostępne tylko dla pojazdów młodszych niż 15 lat.',
+    ].join('\n');
+    expect(hintsOf(snap, new Set())).toEqual([
+      {
+        text: 'AC dostępne tylko dla pojazdów młodszych niż 15 lat.',
+        field: 'OC + Autocasco (AC)',
+        route: '',
+        source: 'hint',
+      },
+    ]);
+  });
+
   it('ties a hint to the control before it and lists all controls for a free one', () => {
     const snap = [
       '- main:',

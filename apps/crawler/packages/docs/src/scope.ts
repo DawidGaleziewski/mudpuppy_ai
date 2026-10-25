@@ -14,7 +14,10 @@ export interface ExportScope {
  * The states one evidence target sits on. `null` means the target has no state of its own
  * (another record, a review): neutral, it neither keeps nor drops a record.
  */
-export function evidenceStates(raw: RawDb, e: ExportEvidence): string[] | null {
+export function evidenceStates(
+  raw: RawDb,
+  e: Pick<ExportEvidence, 'target_kind' | 'target_id'>,
+): string[] | null {
   const one = (sql: string): string[] =>
     (raw.prepare(sql).all({ id: e.target_id }) as { s: string | null }[])
       .map((r) => r.s)

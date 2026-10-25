@@ -40,25 +40,54 @@ export type ReplayResult =
 const PRESSED = "e.kind NOT IN ('fill', 'select', 'check')";
 
 /**
- * The way a replay walks journey `journeyId` up to transition `seq`: its first page and the
- * element keys of the clicks and submits in order; null when the journey has no page.
+ * The way a replay walks journey `journeyId` up to transition `seq`: its first page (or the last
+ * login landing before it) and the element keys of the clicks and submits in order; null when
+ * the journey has no page. `visitAt`: the walk repeats a visit observed then, at position `seq`.
  */
 export function journeyPath(
   raw: Raw,
   journeyId: string,
   seq: number,
+  visitAt?: string,
 ): { startUrl: string; steps: string[] } | null {
   const start = raw
     .prepare('SELECT url FROM observations WHERE journey_id = ? ORDER BY seq LIMIT 1')
     .get(journeyId) as { url: string } | undefined;
   if (!start) return null;
+  // A replay that logs in first starts on the page the login opened, its own address, with the
+  // presses after it: walking the login form again while logged in lands elsewhere (F-03@046).
+  const landings = raw
+    .prepare(
+      `SELECT o.url, o.created_at, ${POSITION} AS pos FROM observations o
+       WHERE o.journey_id = ? AND o.via IN ('login', 'relogin') ORDER BY o.created_at DESC, o.seq DESC`,
+    )
+    .all(journeyId) as { url: string; created_at: string; pos: number }[];
+  // Up to a visit: a landing before it. Up to step `seq`: a landing before that step was taken.
+  const before = (l: (typeof landings)[number]) =>
+    visitAt === undefined ? l.pos < seq : l.created_at <= visitAt;
+  const from = landings.find(before) ?? { url: start.url, pos: 0 };
   const steps = raw
     .prepare(
-      `SELECT e.element_key FROM transitions e WHERE e.journey_id = ? AND e.seq <= ?
+      `SELECT e.element_key FROM transitions e WHERE e.journey_id = ? AND e.seq > ? AND e.seq <= ?
        AND e.status = 'executed' AND ${PRESSED} ORDER BY e.seq`,
     )
-    .all(journeyId, seq) as { element_key: string }[];
-  return { startUrl: start.url, steps: steps.map((s) => s.element_key) };
+    .all(journeyId, from.pos, seq) as { element_key: string }[];
+  return { startUrl: from.url, steps: steps.map((s) => s.element_key) };
+}
+
+/**
+ * An observation's place in its journey: the `transitions.seq` of the last step taken before it
+ * (0 before the first). `observations.seq` numbers the whole run, `transitions.seq` one journey
+ * (spec 039 design § 5.7), so a visit's own `seq` cannot cut its journey (F-02@080).
+ */
+const POSITION = `(SELECT coalesce(max(t.seq), 0) FROM transitions t
+  WHERE t.journey_id = o.journey_id AND t.created_at <= o.created_at)`;
+
+export function journeyPosition(raw: Raw, observationId: string): number {
+  const row = raw
+    .prepare(`SELECT ${POSITION} AS pos FROM observations o WHERE o.id = ?`)
+    .get(observationId) as { pos: number } | undefined;
+  return row?.pos ?? 0;
 }
 
 interface Execution {

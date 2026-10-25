@@ -24,6 +24,8 @@ export interface AnalysisSessionsTable {
   gaps_json: string;
   started_at: string;
   ended_at: string | null;
+  /** 0053 (spec 080): the process scope a documentation request named; NULL: the whole portal. */
+  scope_id: ColumnType<string | null, string | null | undefined, string | null>;
 }
 
 export interface AnalysisSessionRunsTable {

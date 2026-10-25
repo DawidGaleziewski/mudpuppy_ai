@@ -232,6 +232,19 @@ function abArmPicker(scenarios: readonly ScenarioId[]) {
   };
 }
 
+/**
+ * Scenario overlapping-rule (spec 080): every third load of "Moje polisy" by a standard customer
+ * is drawn for manual review. The counter belongs to one instance; no cookie carries the draw.
+ */
+function manualReviewPicker(scenarios: readonly ScenarioId[]) {
+  let loads = 0;
+  return (path: string, account: Account | undefined): boolean => {
+    if (!scenarios.includes('overlapping-rule')) return false;
+    if (path !== '/moje-polisy' || account?.segment !== 'standard') return false;
+    return loads++ % 3 === 2;
+  };
+}
+
 /** A login form post: the session cookie and the customer area, or the form again (spec 046). */
 function logIn(res: ServerResponse, body: Params): void {
   const who = accountFor(body.login ?? '', body.haslo ?? '');
@@ -285,6 +298,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
   };
 
   const abArmOf = abArmPicker(scenarios);
+  const drawnForReview = manualReviewPicker(scenarios);
 
   /** An asset, a page, or the error a scenario injects for this request. */
   const serveGet = (res: ServerResponse, path: string, p: Params, account?: Account): void => {
@@ -312,6 +326,7 @@ export function startReferencePortal(opts: StartOptions): Promise<ReferencePorta
     const visit: Visit = {
       segment: account?.segment ?? null,
       abArm: method === 'GET' ? abArmOf(res, path, cookies) : null,
+      manualReview: method === 'GET' && drawnForReview(path, account),
     };
     pageOf.set(res, { path, scenarios, visit });
 

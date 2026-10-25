@@ -299,11 +299,12 @@ export function registerBaTools(server: McpServer, ctx: BaContext): void {
   // Session
   tool(
     'start_session',
-    'Start an analysis session over runs of one portal, or resume an interrupted one with resume_session_id (may add runs). Evidence from other runs is refused.',
+    'Start an analysis session over runs of one portal, or resume an interrupted one with resume_session_id (may add runs). Evidence from other runs is refused. scope_id: the process scope a documentation request names; then evidence off its states is refused (OUT_OF_SCOPE).',
     {
       portal_id: z.string(),
       run_ids: z.array(z.string()).describe('At least one run of the portal'),
       resume_session_id: z.string().optional(),
+      scope_id: z.string().optional(),
     },
     (a) => startSession(ctx, a),
   );

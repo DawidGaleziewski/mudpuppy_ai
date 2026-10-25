@@ -859,3 +859,36 @@
   title: "Same screen? keeps every answer (migration 0045)"
   tier: not_testable
   reason: a person's labels; covered by model-calibration.test.ts and test_same_screen.py
+# Spec 080 (R-97, R-98, R-99, R-35 with R-58 and R-80): 2.0 leftovers and the crawler bundle.
+- id: F-01@080
+  title: The Write tool refused a findings file in a worktree agent
+  tier: not_testable
+  reason: a tooling slip of the session, not product behaviour
+- id: F-02@080
+  title: R4/R5 replays cut a visit's journey by its run-wide number
+  tier: not_testable
+  reason: fixed; covered by store tests/journey-path.test.ts
+- id: F-03@080
+  title: A page swapped whole for a review page is a new screen, so R5 never sees it
+  tier: not_testable
+  reason: a design gap noted for the owner; the overlapping-rule scenario's e2e covers the member case
+- id: F-04@080
+  title: A pop-up a script writes into (no URL) was closed unread
+  tier: gate
+  reason: the insurer's terms pop-up is kept as an evidence file with a popup_written note
+- id: F-05@080
+  title: The banner's shared button had no gate on a real estate
+  tier: gate
+  reason: the bank's "Wyloguj" clicked once is settled shared_button on the next page
+- id: F-06@080
+  title: The list cap and the older opt-in item view cap both apply
+  tier: not_testable
+  reason: a configuration note; covered by frontier-drain.e2e.test.ts and list-cap.test.ts
+- id: F-07@080
+  title: The commit hook named a test file that is gone
+  tier: not_testable
+  reason: a hook fix; the idea of a hooks unittest for named paths is in the findings
+- id: F-08@080
+  title: R-99 (5) and the trials wait for a budget
+  tier: not_testable
+  reason: a plan for paid runs, not a defect

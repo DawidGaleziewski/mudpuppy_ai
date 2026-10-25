@@ -1,7 +1,7 @@
 ---
 name: crawler
 description: Maps a portal or traces one named process through the mudpuppy MCP server as a guest or logged-in persona, recording states, transitions, forms and API shapes or the steps of one process, with evidence, plus a worklist of what it skipped. Use to map a portal or trace a named process; never interprets business intent or tests.
-tools: mcp__mudpuppy__start_run, mcp__mudpuppy__get_known_states, mcp__mudpuppy__get_next_frontier_item, mcp__mudpuppy__navigate, mcp__mudpuppy__act, mcp__mudpuppy__probe_form, mcp__mudpuppy__go_to_state, mcp__mudpuppy__login, mcp__mudpuppy__add_open_question, mcp__mudpuppy__add_hypothesis, mcp__mudpuppy__finish_run
+tools: mcp__mudpuppy__start_run, mcp__mudpuppy__get_known_states, mcp__mudpuppy__get_next_frontier_item, mcp__mudpuppy__drain_frontier, mcp__mudpuppy__navigate, mcp__mudpuppy__act, mcp__mudpuppy__probe_form, mcp__mudpuppy__go_to_state, mcp__mudpuppy__login, mcp__mudpuppy__add_open_question, mcp__mudpuppy__add_hypothesis, mcp__mudpuppy__finish_run
 model: sonnet
 ---
 
@@ -17,7 +17,7 @@ tools: no shell, no files, no web, no other browser.
 2. Loop: act on `next.item` from the latest result's `navigate` or `act` (an `action_id` the server issued, or `null` when the frontier is empty or the budget is spent). On the first step, `navigate` to the `base_url` that `start_run` returned (the focus's start page when the run has one). Out-of-focus links come back refused; that is expected. When a result has no `next` field (an error result, or after `start_run`/`login`), call `get_next_frontier_item` to get the next item. A link whose target this run already reached through another link is recorded as an inferred transition and not handed out again.
 3. Prefer breadth: visit each kind of page once before going deeper. Use `get_known_states` to avoid
    revisiting a cluster you already have.
-4. Drain the frontier: loop acting on each result's `next.item` (or call `get_next_frontier_item` when a result has no `next`) until there is no next item. Ending your turn with items pending leaves the run stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop early only on `RUN_STOPPED`.
+4. Drain the frontier: loop acting on each result's `next.item` (or call `get_next_frontier_item` when a result has no `next`) until there is no next item. When the next items are repetitive (more pages or items of a kind you already visited), call `drain_frontier` instead: the server acts on them in one call and hands the next real decision back as `next`. Ending your turn with items pending leaves the run stuck as `running`. Then call `finish_run`; if it answers `FRONTIER_NOT_EMPTY`, keep exploring. Stop early only on `RUN_STOPPED`.
 5. Every `navigate`, `act` and `finish_run` carries a one-sentence `rationale`: what you expect this step to
    reveal, or why you stop.
 6. Pressing a form's submit button is allowed when the server issues it: the server first fills the

@@ -8,3 +8,5 @@ test_data:
   Promo code (optional): ""
   Company name: Test Company
   Tax number: "1234567890"
+  # SC-25 (spec 080): inside the scar's fixed window
+  Policy start date: "2027-01-01"

@@ -26,6 +26,7 @@ const FINDINGS: [string, string][] = [
   ['specs/037-probes-transit-shop/findings.md', '037'],
   ['specs/038-grouping-eval-crawler-gaps/findings.md', '038'],
   ['specs/039-mudpuppy-2-portal-model/findings.md', '039'],
+  ['specs/080-2-0-leftovers/findings.md', '080'],
 ];
 
 describe('coverage (spec 009 FR-024, FR-025)', () => {

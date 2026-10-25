@@ -8,6 +8,20 @@ import { nextPendingRow } from './frontier-order.js';
 import { inferSameTarget } from './same-target.js';
 import { inferSharedButton } from './shared-button.js';
 import { linkPath } from './link-path.js';
+import { settleListCap } from './list-cap.js';
+
+/** The run's list cap from its config snapshot (default 5; a snapshot from before spec 080 has none). */
+function listCapOf(configSnapshot: string): number {
+  try {
+    type Capped = { max_items_per_template?: unknown };
+    const s = JSON.parse(configSnapshot) as { scope?: Capped; portal?: { scope?: Capped } };
+    // The run's narrowed scope first (portal and persona), then the portal's.
+    const cap = s.scope?.max_items_per_template ?? s.portal?.scope?.max_items_per_template;
+    return typeof cap === 'number' && cap >= 1 ? cap : 5;
+  } catch {
+    return 5;
+  }
+}
 
 export const AddFrontierItemInput = z
   .object({
@@ -117,8 +131,11 @@ export async function getNextFrontierItem(
   const run = await assertRunActive(ctx, input.run_id);
   const nextPending = () => nextPendingRow(ctx, input.run_id);
   let next = await nextPending();
+  const capped = { portal_id: run.portal_id, cap: listCapOf(run.config_snapshot) };
   const settled = async (row: Parameters<typeof inferSameTarget>[1]) =>
-    (await inferSameTarget(ctx, row)) || (await inferSharedButton(ctx, row));
+    (await inferSameTarget(ctx, row)) ||
+    (await inferSharedButton(ctx, row)) ||
+    (await settleListCap(ctx, row, capped));
   while (next && (await settled(next.row))) next = await nextPending();
   const row = next?.row;
   const pick = async (attrs: Record<string, unknown>): Promise<void> => {

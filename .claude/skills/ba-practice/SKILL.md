@@ -120,7 +120,9 @@ works from, so it starts where the business process starts, not where the browse
   ("Przedłuż polisę", "Moje polisy ▸ renew") and the persona met a login prompt on its first
   screen, write the `process` (the link's words as its name, `observed_extent: until_boundary`,
   `not_observable: true`, citing that screen) besides the `followup` for a logged-in trace. The
-  login form itself (`/logowanie`) is the wall, never a process of its own.
+  login form itself (`/logowanie`) is the wall, never a process of its own. `record_pass` for
+  `processes` and `synthesis` lists the walls a body link reaches that no process cites yet:
+  write each one's process, or say in the gaps why it is none.
 
 ### Form steps and probe outcomes (passes 1, 3, 4, 6; spec 032)
 

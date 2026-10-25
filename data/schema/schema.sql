@@ -313,6 +313,8 @@ CREATE TABLE analysis_sessions (
   gaps_json   TEXT NOT NULL DEFAULT '[]' CHECK (json_valid(gaps_json) AND json_type(gaps_json) = 'array'),
   started_at  TEXT NOT NULL,
   ended_at    TEXT,           -- NULL while running
+  -- 0053 (ALTER TABLE, spec 080): the process scope a documentation request named; NULL: the whole portal.
+  scope_id    TEXT REFERENCES process_scopes(id),
   CHECK (status <> 'completed' OR summary IS NOT NULL)
 ) STRICT;
 

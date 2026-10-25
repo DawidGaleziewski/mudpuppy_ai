@@ -19,7 +19,7 @@ import { classify, MODEL_DEFAULTS, type Deviation, type DeviationKind } from '@m
 import { visitPair, type VisitContext } from './deviation-visits.js';
 import { hypothesisKeys, writeHypothesis } from './interpret-writer.js';
 import { guardOverturned } from './overturn-guard.js';
-import { journeyPath, referenceOf, type ReplayResult } from './replay-tests.js';
+import { journeyPath, journeyPosition, referenceOf, type ReplayResult } from './replay-tests.js';
 
 type Raw = BetterSqlite3.Database;
 
@@ -121,11 +121,13 @@ function walkOf(
       }
     | undefined;
   if (!o?.journey_id || o.seq === null) return null;
-  const path = journeyPath(raw, o.journey_id, o.seq);
+  // The visit's place in its journey, not its run-wide number (F-02@080).
+  const at = journeyPosition(raw, visit.id);
+  const path = journeyPath(raw, o.journey_id, at, o.created_at);
   if (!path) return null;
   const inputs = Object.fromEntries(
     Object.entries(
-      referenceOf(raw, { journey_id: o.journey_id, seq: o.seq, created_at: o.created_at }),
+      referenceOf(raw, { journey_id: o.journey_id, seq: at, created_at: o.created_at }),
     )
       .filter(([name]) => name.startsWith('input.'))
       .map(([name, v]) => [name, String(v)]),

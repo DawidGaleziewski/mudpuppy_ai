@@ -966,6 +966,7 @@ class AnalysisSession(Row):
     gaps_json: Json
     started_at: str
     ended_at: str | None
+    scope_id: str | None = None  # 0053 (spec 080): the process scope a documentation request named
 
 
 class AnalysisSessionRun(Row):

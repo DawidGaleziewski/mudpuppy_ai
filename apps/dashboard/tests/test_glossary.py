@@ -332,6 +332,7 @@ EXPECTED_IDS = {
     "design-system-layers", "token-utilities",  # spec 076 (R-105)
     "scope-change", "process-merge", "came-from", "canvas-engage", "layout-shift",  # spec 078
     "start-again",  # spec 079 (R-106)
+    "list-cap", "drain-frontier", "input-sweep",  # spec 080 (R-35, R-58, R-97)
 
     # BA (23)
     "ears",  # R-68 (spec 034)
@@ -346,7 +347,7 @@ EXPECTED_IDS = {
 def test_real_glossary_is_valid_and_complete() -> None:
     g = load_ok(REPO_DOCS)
     assert {e.id for e in g.entries} == EXPECTED_IDS
-    assert len(EXPECTED_IDS) == 224
+    assert len(EXPECTED_IDS) == 227
     assert sum(e.category == "ba" for e in g.entries) == 23
 
 

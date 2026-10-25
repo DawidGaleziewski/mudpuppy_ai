@@ -90,3 +90,41 @@ describe('scenario ab-test (spec 046 FR-003)', () => {
     });
   });
 });
+
+describe('scenario overlapping-rule (spec 080 FR-005)', () => {
+  const review = 'ręcznej weryfikacji';
+  it("draws every third standard customer's Moje polisy for review, never the premium one's", async () => {
+    await withPortal(['overlapping-rule'], async (p) => {
+      const [jan, anna] = ACCOUNTS;
+      const standard = await login(p, jan!.login, jan!.password);
+      const premium = await login(p, anna!.login, anna!.password);
+      const loads: boolean[] = [];
+      for (let i = 0; i < 6; i++)
+        loads.push((await page(p, '/moje-polisy', standard)).includes(review));
+      expect(loads).toEqual([false, false, true, false, false, true]);
+      const drawn = await page(p, '/moje-polisy', standard); // 7th: policies again
+      expect(drawn).toContain('Zalogowano jako Jan Klient.');
+      for (let i = 0; i < 3; i++)
+        expect(await page(p, '/moje-polisy', premium)).not.toContain(review);
+    });
+  });
+
+  it('keeps the login message on the review page and draws nothing without the scenario', async () => {
+    await withPortal(['overlapping-rule'], async (p) => {
+      const [jan] = ACCOUNTS;
+      const cookie = await login(p, jan!.login, jan!.password);
+      await page(p, '/moje-polisy', cookie);
+      await page(p, '/moje-polisy', cookie);
+      const third = await page(p, '/moje-polisy', cookie);
+      expect(third).toContain(review);
+      expect(third).toContain('Zalogowano jako Jan Klient.');
+      expect(third).toContain('RP/2025/0101');
+    });
+    await withPortal([], async (p) => {
+      const [jan] = ACCOUNTS;
+      const cookie = await login(p, jan!.login, jan!.password);
+      for (let i = 0; i < 3; i++)
+        expect(await page(p, '/moje-polisy', cookie)).not.toContain(review);
+    });
+  });
+});

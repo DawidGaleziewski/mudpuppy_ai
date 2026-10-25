@@ -50,7 +50,7 @@ login:
   failure: { text: ["Nieprawidłowy login lub hasło."] }
 `;
 
-async function setUp(scenario: 'persona-variant' | 'ab-test') {
+async function setUp(scenario: 'persona-variant' | 'ab-test' | 'overlapping-rule') {
   const portal = await startReferencePortal({ host: '127.0.0.1', port: 0, scenarios: [scenario] });
   const h = await startHarness({
     'portals/reference-insurer/portal.yaml': portalYaml(portal.url.replace(/\/$/, '')),
@@ -167,5 +167,38 @@ describe.skipIf(!available)('scenario ab-test: rule R5 (spec 046)', () => {
       derived: 0,
       reason: 'waiting for a person (rule R5): separated by cookie:ab_baner',
     });
+  }, 240_000);
+});
+
+describe.skipIf(!available)('scenario overlapping-rule: rule R5 without a flag (spec 080)', () => {
+  let s: Awaited<ReturnType<typeof setUp>>;
+  beforeAll(async () => {
+    s = await setUp('overlapping-rule');
+  });
+  afterAll(async () => {
+    await s?.h.cleanup();
+    await s?.portal.close();
+  });
+
+  it('a page drawn for manual review at random is nondeterministic, for the agent', async () => {
+    const { h, portal } = s;
+    const raw = h.ctx.raw;
+    // Each replay loads Moje polisy twice (the login's landing, then the address): the third
+    // replay's page is drawn for review, another member of the screen.
+    for (let i = 0; i < 3; i++) {
+      const r = await replay(h.call, plan(portal, 'klient', '/moje-polisy', true));
+      expect(r.status).toBe('reached');
+    }
+    const report = await replayPortal(h.call, raw, 'reference-insurer');
+    const decided = report.contexts.filter((c) => c.hypothesis !== null);
+    expect(decided.length).toBeGreaterThan(0);
+    const kinds = decided.map(
+      (d) =>
+        raw
+          .prepare('SELECT kind, rule, derived FROM hypotheses WHERE key = ?')
+          .get(d.hypothesis) as { kind: string; rule: string; derived: number },
+    );
+    expect(kinds).toContainEqual({ kind: 'nondeterministic', rule: 'R5', derived: 0 });
+    expect(kinds.map((k) => k.kind)).not.toContain('ab_test');
   }, 240_000);
 });

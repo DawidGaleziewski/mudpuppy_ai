@@ -214,5 +214,12 @@ export function narrowScope(
     mfe_wait_ms: min(portal.mfe_wait_ms, r.mfe_wait_ms),
     frame_depth: min(portal.frame_depth, r.frame_depth),
     client_redirect_wait_ms: min(portal.client_redirect_wait_ms, r.client_redirect_wait_ms),
+    ...listCap(portal.max_items_per_template, r.max_items_per_template),
   };
+}
+
+/** The list cap (spec 080): the smaller of the portal's and the persona's, when either sets one. */
+function listCap(portal: number | undefined, persona: number | undefined) {
+  const set = [portal, persona].filter((n): n is number => n !== undefined);
+  return set.length === 0 ? {} : { max_items_per_template: Math.min(...set) };
 }

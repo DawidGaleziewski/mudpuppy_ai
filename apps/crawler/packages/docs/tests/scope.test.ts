@@ -42,7 +42,7 @@ describe('process-scoped export', () => {
         const states = evidenceStates(fx.raw, {
           target_kind: e.target_kind as never,
           target_id: e.target_id,
-        } as never);
+        });
         if (states === null) continue;
         resolvable += 1;
         for (const s of states) expect(scope).toContain(s);

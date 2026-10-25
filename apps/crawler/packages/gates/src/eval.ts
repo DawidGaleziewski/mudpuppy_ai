@@ -102,6 +102,8 @@ export const EvalResult = z
           process_traces: z.number().int().positive().optional(),
           /** A form-probing scan ran after the map; absent means none (spec 034 phase 9). */
           form_probing: z.boolean().optional(),
+          /** Spec 080: input sweeps ran on the headless driver after the map (`--sweep-inputs`). */
+          sweep_inputs: z.boolean().optional(),
           /** Spec 045: only the BA ran, again, on the kept trial with this result file's crawl. */
           ba_replay_of: z.string().optional(),
         })
@@ -236,6 +238,7 @@ export function comparisonMarkdown(current: EvalResult, cmp: Comparison): string
       ? [`conditions: ${current.conditions.process_traces} process trace(s) after the map`]
       : []),
     ...(current.conditions?.form_probing ? ['conditions: a form-probing scan after the map'] : []),
+    ...(current.conditions?.sweep_inputs ? ['conditions: input sweeps after the map'] : []),
     '',
     '| Measure | Baseline | Now | Change | |',
     '| --- | --- | --- | --- | --- |',

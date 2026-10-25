@@ -1,5 +1,5 @@
 import { newId, nowIso } from '@mudpuppy/core';
-import { decide } from '@mudpuppy/crawler';
+import { decide, type WrittenPopup } from '@mudpuppy/crawler';
 import { shapeUrl } from '@mudpuppy/trace';
 import type { ServerContext } from '../../context.js';
 import type { RunRow } from '../../services/index.js';
@@ -23,15 +23,13 @@ export async function queueOpenedWindows(
   depth: number,
 ): Promise<void> {
   const urls = [...new Set(rs.session.takeOpened())];
-  if (urls.length === 0) return;
+  const written = await rs.session.takeWritten();
+  if (urls.length === 0 && written.length === 0) return;
   await step({ ctx, run }, 'enqueue_frontier', async () => {
-    if (rs.isTrace)
-      return reported(
-        undefined,
-        urls.map((url) => noted(action, url)),
-      );
+    const kept = await keptWritten(ctx, action, written);
+    if (rs.isTrace) return reported(undefined, [...kept, ...urls.map((url) => noted(action, url))]);
     const g = gateContext(rs, await usage(ctx, run, rs, 0, depth));
-    const reports: Report[] = [];
+    const reports: Report[] = [...kept];
     for (const url of urls) {
       const d = decide({ kind: 'navigate', url }, g);
       const id = newId();
@@ -75,6 +73,37 @@ export async function queueOpenedWindows(
     }
     return reported(undefined, reports);
   });
+}
+
+/**
+ * A window a script wrote into has no address to visit (LO-27, spec 080 FR-011, D-4 option (b)):
+ * its title and snapshot are kept as an evidence file with a decision note on the action, which
+ * the BA can cite. It is not a state; the option of observing it as a screen stays on R-35.
+ */
+async function keptWritten(
+  ctx: ServerContext,
+  action: ActionRow,
+  written: readonly WrittenPopup[],
+): Promise<Report[]> {
+  const out: Report[] = [];
+  for (const w of written.filter((x) => x.title !== '' || x.snapshot !== '')) {
+    const evidence_ref = await ctx.evidence.storeText(
+      `# pop-up written by script (no URL)\n# title: ${w.title}\n${w.snapshot}\n`,
+      'yaml',
+    );
+    out.push(
+      decision({
+        kind: 'note',
+        rule: 'popup_written',
+        reason:
+          'the action opened a window a script wrote into (no URL); its text was kept as evidence and the window closed',
+        // The evidence file is the subject: detail is scrubbed, and a sha256 reads as a token there.
+        subject_ref: evidence_ref,
+        detail: { title: w.title, action_role: action.role, action_name: action.accessible_name },
+      }),
+    );
+  }
+  return out;
 }
 
 const noted = (action: ActionRow, url: string): Report =>

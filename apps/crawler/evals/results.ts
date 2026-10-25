@@ -51,6 +51,7 @@ function conditionsOf(config: EvalConfig, processTraces: number, formProbing: bo
     ...(config.crawlerOnly && { crawler_only: true }),
     ...(processTraces > 0 && { process_traces: processTraces }),
     ...(formProbing && { form_probing: true }),
+    ...(config.sweepInputs && { sweep_inputs: true }),
     ...(config.baReplay && { ba_replay_of: basename(config.baReplay) }),
   };
   return Object.keys(c).length > 0 ? { conditions: c } : {};
@@ -116,6 +117,11 @@ const CONDITION_CHECKS: {
     value: (c) => !!c?.form_probing,
     warning: () =>
       'one of the baseline and this eval ran a form-probing scan after the map, the other not',
+  },
+  {
+    value: (c) => !!c?.sweep_inputs,
+    warning: () =>
+      'one of the baseline and this eval ran input sweeps after the map, the other not',
   },
 ];
 

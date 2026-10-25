@@ -24,6 +24,7 @@ describe('parseConfig', () => {
         judges: true,
         processTraces: true,
         formProbing: true,
+        sweepInputs: false,
         resultsDir: '/repo/data/evals/reference-insurer',
       },
     });

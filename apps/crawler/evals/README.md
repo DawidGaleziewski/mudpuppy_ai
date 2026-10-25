@@ -124,6 +124,11 @@ and the condition `form_probing` (`probe_scan` in trials before spec 039 T116, r
 name); `--no-form-probing` skips it. The P01 trace chooses "OC + Autocasco (AC)", so the
 options step's variant 4b is recorded (the map's happy path records 4a).
 
+`--sweep-inputs` (spec 080, R-97 (4)) runs the input sweeps after the map and the traces, on the
+headless driver (no LLM): every bounded number a walk typed before a page of values is replayed
+over its range and each band edge is noted (`input_band`), which the BA's rules pass lists (R05's
+engine bands). Off by default; recorded as the condition `sweep_inputs`.
+
 `--ba-replay <result.json>` (spec 045) runs only the two BA sessions again, on a copy of that
 kept trial's workspace with its documentation and groupings taken out: the same crawl evidence,
 so a BA change is measured alone. Recorded as the condition `ba_replay_of`; it costs about as

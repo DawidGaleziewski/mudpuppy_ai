@@ -29,6 +29,7 @@ import {
   preflight,
   runAgent,
   runFormProbing,
+  runInputSweeps,
   runProcessTraces,
   serverReport,
   serverTools,
@@ -126,6 +127,7 @@ async function runTrial(c: EvalConfig, task: EvalTask, gt: GroundTruth): Promise
       abort(`the crawler made no run (session ${sessions.crawler})`);
     const probe = await runFormProbing(c, ws, probeFormsFor(task, c.formProbing));
     const traces = await runProcessTraces(c, ws, traceTasks);
+    await runInputSweeps(c, ws);
     const runs = { crawlRunId, probeRunId: probe?.runId, traces };
     const { ba, baTraces } = await runBaSessions(c, ws, runs, sessions);
     const { cost, outcomes, sessionIds } = ledger(

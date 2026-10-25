@@ -16,6 +16,7 @@ import {
   type SessionRow,
 } from './common.js';
 import { dataPassWarnings } from './data-pass-check.js';
+import { processPassWarnings } from './process-pass-check.js';
 import { rulePassWarnings } from './rule-pass-check.js';
 import { feedbackSummary, pendingFeedback } from './feedback.js';
 
@@ -27,6 +28,8 @@ export const StartSessionInput = z
     portal_id: z.string().min(1),
     run_ids: z.array(z.string().min(1)).min(1),
     resume_session_id: z.string().min(1).optional(),
+    /** Spec 080 FR-007: the process scope this session documents. */
+    scope_id: z.string().min(1).optional(),
   })
   .strict();
 
@@ -105,6 +108,20 @@ function assertRunsOfPortal(ctx: BaContext, portalId: string, runIds: readonly s
   }
 }
 
+/** The process scope a new session documents: one of the portal's (spec 080 FR-007). */
+function scopeOf(ctx: BaContext, input: { portal_id: string; scope_id?: string }): string {
+  const scope = ctx.raw
+    .prepare('SELECT id FROM process_scopes WHERE id = ? AND portal_id = ?')
+    .get(input.scope_id, input.portal_id) as { id: string } | undefined;
+  if (!scope)
+    throw new ToolError(
+      'UNKNOWN_REF',
+      `no process scope ${String(input.scope_id)} of portal ${input.portal_id}`,
+      { scope_id: input.scope_id },
+    );
+  return scope.id;
+}
+
 /** Create a session over the given runs, or resume an interrupted one (which may add runs). */
 export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
   const input = parseInput(StartSessionInput, raw);
@@ -145,12 +162,13 @@ export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
       passes = json<AnalysisSessionPassEntry[]>(session.passes_json).map((p) => p.pass);
     } else {
       sessionId = newId();
+      const scopeId = input.scope_id === undefined ? null : scopeOf(ctx, input);
       ctx.raw
         .prepare(
-          `INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json, started_at, ended_at)
-           VALUES (?, ?, 'running', '[]', NULL, '[]', ?, NULL)`,
+          `INSERT INTO analysis_sessions (id, portal_id, status, passes_json, summary, gaps_json, started_at, ended_at, scope_id)
+           VALUES (?, ?, 'running', '[]', NULL, '[]', ?, NULL, ?)`,
         )
-        .run(sessionId, input.portal_id, nowIso());
+        .run(sessionId, input.portal_id, nowIso(), scopeId);
     }
     for (const runId of input.run_ids) addRun.run(sessionId, runId);
 
@@ -169,7 +187,10 @@ export function startSession(ctx: BaContext, raw: unknown): SessionOutput {
   });
 }
 
-/** The server's coverage checks after a pass: fields and terms after `data`, limits after `rules` and `synthesis`. */
+/**
+ * The server's coverage checks after a pass: login-wall processes after `processes`, fields and
+ * terms after `data`, limits after `rules`; `synthesis` repeats the processes and limits checks.
+ */
 function passWarnings(
   ctx: BaContext,
   pass: AnalysisPass,
@@ -177,7 +198,13 @@ function passWarnings(
   portalId: string,
 ): string[] {
   if (pass === 'data') return dataPassWarnings(ctx, sessionId, portalId);
-  if (pass === 'rules' || pass === 'synthesis') return rulePassWarnings(ctx, sessionId, portalId);
+  if (pass === 'processes') return processPassWarnings(ctx, sessionId, portalId);
+  if (pass === 'rules') return rulePassWarnings(ctx, sessionId, portalId);
+  if (pass === 'synthesis')
+    return [
+      ...processPassWarnings(ctx, sessionId, portalId),
+      ...rulePassWarnings(ctx, sessionId, portalId),
+    ];
   return [];
 }
 

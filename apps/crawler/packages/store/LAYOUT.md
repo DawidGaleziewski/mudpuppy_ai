@@ -37,7 +37,10 @@ this file keeps the map (spec 042 T050, G-30).
   `processGraph`, `writeProposals` (`process-proposals.ts`, `pnpm model:propose`; it skips what
   `proposalConstraints` / `blockedBy` (`proposal-constraints.ts`) say a person dismissed or kept,
   spec 040 T034),
-  `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`),
+  `pendingReplays`, `recordReplay`, `judgeReplays` (`replay-tests.ts`, `pnpm model:replay`;
+  `journeyPath` starts at the last login landing before the step or visit, `journeyPosition` an
+  observation's place in its journey, spec 080), `pendingSweeps`, `shownOf`, `recordBand`
+  (`input-sweeps.ts`, spec 080 R-97 (4): input sweeps' plans and their band-edge notes),
   `pendingErrorReplays`, `resolveErrorReplays` (`error-replays.ts`, rule R1 on the driver),
   `pendingContextReplays`, `resolveContextReplays`, `separatingFlag`, `replayLanding`
   (`context-replays.ts`, rules R4 and R5 on the driver, spec 046), `guardOverturned`,

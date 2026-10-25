@@ -12,6 +12,7 @@ import {
   describeRecordKind,
   describeRelations,
   elementKeysReader,
+  evidenceStates,
   isAllowed,
   resolveTargets,
   type ResolvedTarget,
@@ -168,9 +169,42 @@ export function validateWrite(
         { checked: check.checked },
       );
   }
+  assertInScope(ctx, session, targets);
   const relations = resolveRelations(ctx, session.portal_id, args.kind, args.key, args.relations);
   if (args.notObservable) assertQuestionLinked(ctx, args.kind, targets, relations);
   return { targets, relations };
+}
+
+/**
+ * A session for one process scope cites only evidence on the scope's states (spec 080 FR-007,
+ * R-99 (1)): the scoped export keeps a record only when all its evidence is in scope, so an
+ * off-scope citation (the home page's analytics call in an "every page" NFR, F-01@047) dropped
+ * the record silently. Targets with no state of their own (records, reviews, questions) pass.
+ */
+function assertInScope(ctx: BaContext, session: SessionRow, targets: readonly ResolvedTarget[]) {
+  if (session.scope_id === null) return;
+  const scope = ctx.raw
+    .prepare(
+      'SELECT start_state_id, end_state_id, selected_state_ids FROM process_scopes WHERE id = ?',
+    )
+    .get(session.scope_id) as
+    { start_state_id: string; end_state_id: string; selected_state_ids: string } | undefined;
+  if (!scope) return;
+  const inScope = new Set([
+    scope.start_state_id,
+    scope.end_state_id,
+    ...(JSON.parse(scope.selected_state_ids) as string[]),
+  ]);
+  const off = targets.filter((t) => {
+    const states = evidenceStates(ctx.raw, t);
+    return states !== null && (states.length === 0 || !states.every((s) => inScope.has(s)));
+  });
+  if (off.length > 0)
+    throw new ToolError(
+      'OUT_OF_SCOPE',
+      `this session documents process scope ${session.scope_id}; ${off.map((t) => `${t.target_kind} ${t.target_id}`).join(', ')} lies outside its states. Cite evidence recorded on the scope's states (for an NFR about every page, one in-scope page or call is enough)`,
+      { scope_id: session.scope_id, off_scope: off.map((t) => t.target_id) },
+    );
 }
 
 /** The record a revise/withdraw targets, refused unless `base_rev` is still the latest revision. */

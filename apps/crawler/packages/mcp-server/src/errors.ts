@@ -60,6 +60,8 @@ export const ERROR_CODES = [
   'PROCESS_DOCUMENTED',
   // API endpoints (spec 038 FR-008): an api_endpoint record that cites no captured call matching it.
   'API_CALL_NOT_CITED',
+  // A scoped BA session (spec 080 FR-007): evidence off the process scope's states.
+  'OUT_OF_SCOPE',
 ] as const;
 export type ErrorCode = (typeof ERROR_CODES)[number];
 

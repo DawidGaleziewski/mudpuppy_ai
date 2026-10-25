@@ -17,7 +17,8 @@ Layer: servers (G-07; `apps/crawler/layers.json`)
   `flaky-page` (HTTP 500 on loads 2–4 of every five of one address; `fails` gets the count of
   earlier loads) and `threshold-rule` (under 18 → an exit page of its own); spec 046's
   `persona-variant` (the premium customer's extra button on Moje polisy) and `ab-test` (the home
-  banner by cookie `ab_baner`, A and B in turn). The customer area (`src/pages/account.ts`): two
+  banner by cookie `ab_baner`, A and B in turn); spec 080's `overlapping-rule` (every third
+  load of a standard customer's Moje polisy adds a manual-review notice, no cookie). The customer area (`src/pages/account.ts`): two
   test customers (`ACCOUNTS`, fake passwords) log in at `/logowanie` (cookie `sesja`). A scenario's
   effect may change HTML, ship a build, fail GET requests (`failsUnder`) or serve a page of its own
   (`scenarioPage`; such pages are not in the ground truth).

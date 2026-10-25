@@ -18,7 +18,8 @@ obstacles, safety, store.
   document, reload, blocked) and `client-redirect.ts` (waiting through short client redirects).
 - Spec 020: `BrowserSession.takeOpened()` returns the http(s) URLs of pop-up windows opened since
   the last call (the run queues them, LO-27); a pop-up's first request has no frame yet, so frame
-  reads in `request-gate.ts` and `navigation-recorder.ts` treat it as top-level.
+  reads in `request-gate.ts` and `navigation-recorder.ts` treat it as top-level. Spec 080:
+  `takeWritten()` returns what script-written windows (no URL) showed, read before closing.
 - Spec 030: `condition-wait.ts` (`waitForCondition`: waits while the page shows progress, gives up
   when quiet), `transient-error.ts` (`transientError`: 5xx and soft error pages, EN/DE/PL),
   `asset-health.ts` (`trackAssetHealth`: failed stylesheets, scripts and fonts); the request gate

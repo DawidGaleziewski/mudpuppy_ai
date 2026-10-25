@@ -255,6 +255,46 @@ gate('LO-29', 'dead links and 500 pages are recorded and the run goes on', async
   void actOn;
 });
 
+gate(
+  'F-05@080',
+  'the banner button "Wyloguj" clicked once is settled on the next page without a turn (R-80 (2))',
+  async () => {
+    // A run of its own: the click logs out, so the case logs in again.
+    const own = await startRun(gs.call, 'proving-ground-bank', 'client');
+    await nav(gs.call, own, '/bank');
+    await loginAs(gs.call, own);
+    const desk = await nav(gs.call, own, '/bank/pulpit');
+    await actOn(gs.call, own, desk, 'Wyloguj');
+    await loginAs(gs.call, own);
+    const transfer = await nav(gs.call, own, '/bank/przelew');
+    const [item] = rows<{ id: string }>(
+      gs,
+      `SELECT id FROM frontier WHERE run_id = ? AND state_id = ? AND status = 'pending'
+       AND json_extract(action_json, '$.accessible_name') = 'Wyloguj'`,
+      own,
+      transfer.state_id,
+    );
+    expect(item).toBeDefined();
+    // Only that item is left, so the next pick reaches it at once.
+    gs.ctx.raw
+      .prepare(
+        "UPDATE frontier SET status = 'done', reason = 'gate: set aside' WHERE run_id = ? AND status = 'pending' AND id <> ?",
+      )
+      .run(own, item!.id);
+    const next = await gs.call('get_next_frontier_item', { run_id: own });
+    expect(next.body.item).toBeNull();
+    const [settled] = rows<{ status: string; reason: string }>(
+      gs,
+      'SELECT status, reason FROM frontier WHERE id = ?',
+      item!.id,
+    );
+    expect(settled).toMatchObject({
+      status: 'done',
+      reason: expect.stringMatching(/^shared_button: /),
+    });
+  },
+);
+
 gate('F-10@009', 'a frameset page is recorded as a state, not an internal error', async () => {
   const p = await nav(gs.call, run, `/legacy/bank/historia.do;jsessionid=${await legacySid()}`);
   expect(p.state_id).toBeTruthy();

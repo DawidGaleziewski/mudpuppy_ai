@@ -193,3 +193,11 @@
   before: Probes start from the happy option, so the group's "nothing chosen" message is filed under one option's label and the added box is filled but never probed.
   after: The group's message is filed under "Cover"; the box is tried empty, below its minimum and above its maximum with "Comprehensive" chosen, within the step's budget.
   status: gate
+
+- id: SC-25
+  title: A date field with no limit whose server refuses a date outside its window, with no server state
+  source: [R-80 (4), LO-47]
+  route: /sc25/
+  before: The date-range probe was proven only on the proving ground's claim wizard, which keeps its step on the server; a plain date form had no scar.
+  after: Both of the date-range probe's tries (far past, far future) are validation outcomes with the server's message.
+  status: gate

@@ -14,9 +14,11 @@ export interface RuleCandidate {
   text: string;
   field: string | null;
   route: string;
-  source: 'message' | 'hint';
+  source: 'message' | 'hint' | 'sweep';
   /** A hint tied to no control: the form's controls, so the rule can quote the one it is about. */
   controls?: string[];
+  /** The numbers a rule must give, when not every number of the text (a sweep's band edge). */
+  numbers?: string[];
 }
 
 const LIST_CAP = 30;
@@ -96,8 +98,36 @@ export function hintsOf(snapshot: string, labels: ReadonlySet<string>): RuleCand
     const hint = hintOfLine(line, lastControl.get(indent) ?? null, labels);
     if (hint) out.push(hint);
   }
-  // Every control of the page, also those after the hint ("Wybierz dwa różne produkty" comes first).
-  return out.map((h) => (h.field === null && controls.length > 0 ? { ...h, controls } : h));
+  // A free hint that names one control is about it ("AC dostępne tylko …" names "OC + Autocasco
+  // (AC)", R-97 (2)); else every control of the page, also those after the hint ("Wybierz dwa
+  // różne produkty" comes first).
+  return out.map((h) => {
+    if (h.field !== null || controls.length === 0) return h;
+    const named = controlNamedBy(h.text, controls);
+    return named === null ? { ...h, controls } : { ...h, field: named };
+  });
+}
+
+const ACRONYM = /\b\p{Lu}{2,5}\b/gu;
+const LONG_WORD = /[\p{L}]{6,}/gu;
+
+/**
+ * The one control a hint names: by an acronym of its label (matched case and all), else by a
+ * long word of its label (six letters or more, any case). Null when none or several match.
+ */
+export function controlNamedBy(text: string, controls: readonly string[]): string | null {
+  const wordsOf = (s: string, re: RegExp, fold: boolean) =>
+    new Set((s.match(re) ?? []).map((w) => (fold ? w.toLowerCase() : w)));
+  for (const [re, fold] of [
+    [ACRONYM, false],
+    [LONG_WORD, true],
+  ] as const) {
+    const inHint = wordsOf(text, re, fold);
+    const hits = controls.filter((c) => [...wordsOf(c, re, fold)].some((w) => inHint.has(w)));
+    if (hits.length === 1) return hits[0]!;
+    if (hits.length > 1) return null;
+  }
+  return null;
 }
 
 /** Validation messages of the session's probes, minus the browser's required-only wording. */
@@ -180,6 +210,34 @@ function formHints(ctx: BaContext, sessionId: string): RuleCandidate[] {
   return out;
 }
 
+/**
+ * Band edges input sweeps found on the portal (spec 080, R-97 (4), `pnpm model:sweep`): a rule
+ * states one when it names the field and both numbers of the edge. Portal-wide, since the sweep's
+ * probe runs are not runs a session documents.
+ */
+function sweepBands(ctx: BaContext, sessionId: string): RuleCandidate[] {
+  const rows = ctx.raw
+    .prepare(
+      `SELECT d.reason, d.detail_json, s.route_template AS route FROM decision_log d
+       JOIN runs r ON r.id = d.run_id
+       JOIN analysis_sessions a ON a.portal_id = r.portal_id
+       LEFT JOIN states s ON s.id = (SELECT o.state_id FROM observations o WHERE o.run_id = d.run_id
+         ORDER BY o.created_at DESC, o.id DESC LIMIT 1)
+       WHERE a.id = ? AND d.rule = 'input_band'`,
+    )
+    .all(sessionId) as { reason: string; detail_json: string; route: string | null }[];
+  return rows.map((r) => {
+    const band = json<{ label?: unknown; below?: unknown; above?: unknown }>(r.detail_json);
+    return {
+      text: r.reason,
+      field: typeof band.label === 'string' ? band.label : null,
+      route: r.route ?? '?',
+      source: 'sweep' as const,
+      numbers: [String(band.below), String(band.above)],
+    };
+  });
+}
+
 /** Every candidate of the session once (same text, field and route). */
 export function ruleCandidates(ctx: BaContext, sessionId: string): RuleCandidate[] {
   const seen = new Map<string, RuleCandidate>();
@@ -187,6 +245,7 @@ export function ruleCandidates(ctx: BaContext, sessionId: string): RuleCandidate
     ...probeMessages(ctx, sessionId),
     ...validationAlerts(ctx, sessionId),
     ...formHints(ctx, sessionId),
+    ...sweepBands(ctx, sessionId),
   ]) {
     const key = `${c.route}|${normText(c.field ?? '')}|${normText(c.text)}`;
     if (!seen.has(key)) seen.set(key, c);
@@ -214,20 +273,22 @@ function ruleTexts(ctx: BaContext, portalId: string): string[] {
 }
 
 /**
- * A rule states a candidate when it quotes its text (and, for a hint tied to no control, one of
- * the form's controls), or names the candidate's field and every number it gives ("Rok
+ * A rule states a candidate when it quotes its text (and, for a hint, the label of its control or,
+ * tied to none, one of the form's controls), or names the candidate's field and every number it gives ("Rok
  * produkcji" and 1990 for "Value must be … 1990"), or, for a message with no number, names the
  * field and its format ("Please match the requested format.").
  */
 export function isStated(c: RuleCandidate, rules: readonly string[]): boolean {
   const text = normText(c.text);
-  const numbers = numbersOf(c.text);
+  const numbers = c.numbers ?? numbersOf(c.text);
   const field = c.field ? normText(c.field) : null;
   const controls = (c.controls ?? []).map(normText);
   const namesControl = (r: string) => controls.length === 0 || controls.some((l) => r.includes(l));
+  // A hint's rule names the control it is about: the grader anchors a rule on its label (R-97 (2)).
+  const namesField = (r: string) => c.source !== 'hint' || field === null || r.includes(field);
   return rules.some(
     (r) =>
-      (r.includes(text) && namesControl(r)) ||
+      (r.includes(text) && namesControl(r) && namesField(r)) ||
       (numbers.length > 0 &&
         (field === null ? namesControl(r) : r.includes(field)) &&
         numbers.every((n) => numbersOf(r).includes(n))) ||

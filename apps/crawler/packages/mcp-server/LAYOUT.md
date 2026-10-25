@@ -75,6 +75,21 @@ rules; this file keeps the map (spec 042 T050, G-30).
   `synthesis` returns `warnings`: probe validation messages, validation screens' alerts and hints
   next to form fields that no business rule states); `runtime/pipeline/probe.ts` `textMessages`
   (plain text a press made appear, `source: 'dom-text'`, R-80 (1)).
+- Spec 080 (R-97 (1), (2)): `services/ba/process-pass-check.ts` (`record_pass` for `processes`
+  and `synthesis` warns about login-wall screens a body link reaches that no process cites);
+  `rule-pass-check.ts` `controlNamedBy` (a free hint is about the control whose acronym or long
+  word it names; its rule must name that control). R-99 (1): `start_session` `scope_id`
+  (migration 0053) and `record-checks.ts` `assertInScope` (`OUT_OF_SCOPE`: evidence off the
+  scope's states, mapped by `@mudpuppy/docs` `evidenceStates`). R-35 with R-58 and R-80:
+  `services/list-cap.ts` (`settleListCap` in `getNextFrontierItem`'s settle loop: past
+  `scope.max_items_per_template`, default 5, addresses of one template that all showed one state,
+  its other links are `budget_reached`, `list_cap: …`; never a template with an identity
+  parameter), `services/drain-frontier.ts` (the `drain_frontier` tool: up to ten read-only links
+  to visited templates through `act`, stops at a new state or the first other item, D-3),
+  `runtime/pipeline/popups.ts` `keptWritten` (a script-written pop-up's text as an evidence file,
+  decision `popup_written` with the file as `subject_ref`, LO-27 option (b)). R-97 (4):
+  `sweep-portal.ts` (`sweepPortal`, `findBands`: input sweeps on the headless driver, band edges
+  as `input_band` notes, `pnpm model:sweep`) and the rules pass's `sweep` candidates.
 - Spec 034 (R-66, map from a known screen): `services/checkpoints.ts` (every run stores its shortest
   path per state from `navigate`/`act` bookkeeping; `resolveRecipe`: a recorded direct visit, else
   the shortest checkpoint of the persona, else a path rebuilt from page visits; `NO_PATH`),
