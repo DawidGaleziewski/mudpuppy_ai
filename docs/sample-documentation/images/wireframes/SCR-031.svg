@@ -1,0 +1,280 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2505" viewBox="0 0 960 2505" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2505" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="alert">
+<rect x="72" y="1307" width="816" height="228" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Start a map scan&quot;">
+<rect x="56" y="1257" width="848" height="372" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="alert#2">
+<rect x="72" y="1851" width="816" height="228" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Start a map scan&quot;#2">
+<rect x="56" y="1801" width="848" height="372" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Write to the Workbench&quot;">
+<rect x="56" y="2265" width="848" height="166" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Conversation&quot;">
+<rect x="40" y="1167" width="880" height="1276" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1585" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="heading &quot;Workbench&quot;">
+<text x="40" y="948" font-size="28" font-weight="600" fill="#1F2328">Workbench</text>
+</g>
+<g data-key="paragraph#t3">
+<rect x="40" y="971" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="985" width="176" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Try the live Workbench (spike: scans in the background, live over a WebSocket)&quot;">
+<text x="40" y="1025" font-size="14" fill="#1F2328">Try the live Workbench (spike: scans in the background, liv…</text>
+<line x1="40" y1="1029" x2="520" y2="1029" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Chat&quot;">
+<rect x="40" y="1045" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="80" y="1069" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Chat</text>
+</g>
+<g data-key="button &quot;Mapping&quot;">
+<rect x="40" y="1093" width="88" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="84" y="1117" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Mapping</text>
+</g>
+<g data-key="text#t4">
+<rect x="40" y="1141" width="429" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Conversation&quot;">
+<text x="48" y="1182" font-size="11" fill="#6E7781">region · Conversation</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1191" width="276" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t6">
+<rect x="56" y="1217" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1231" width="498" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Start a map scan&quot;">
+<text x="64" y="1272" font-size="11" fill="#6E7781">region · Start a map scan</text>
+</g>
+<g data-key="text#t7">
+<rect x="72" y="1281" width="296" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="alert">
+<text x="80" y="1322" font-size="11" fill="#6E7781">alert</text>
+</g>
+<g data-key="term#t8">
+<rect x="88" y="1331" width="69" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t9">
+<rect x="88" y="1357" width="431" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t10">
+<rect x="88" y="1383" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t11">
+<rect x="88" y="1409" width="784" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="88" y="1423" width="715" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t12">
+<rect x="88" y="1449" width="88" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;ERR-01M5QX8TGM535TVYZ2APWKFFZ3&quot;">
+<text x="88" y="1489" font-size="14" fill="#1F2328">ERR-01M5QX8TGM535TVYZ2APWKFFZ3</text>
+<line x1="88" y1="1493" x2="328" y2="1493" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t13">
+<rect x="88" y="1509" width="715" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Start again&quot;">
+<rect x="72" y="1547" width="120" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="132" y="1571" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Start again</text>
+</g>
+<g data-key="link &quot;Check the address&quot;">
+<text x="72" y="1609" font-size="14" fill="#1F2328">Check the address</text>
+<line x1="72" y1="1613" x2="208" y2="1613" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t14">
+<rect x="56" y="1641" width="625" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t15">
+<rect x="56" y="1667" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1681" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1695" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t16">
+<rect x="56" y="1721" width="382" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t17">
+<rect x="56" y="1747" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1761" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1775" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Start a map scan&quot;#2">
+<text x="64" y="1816" font-size="11" fill="#6E7781">region · Start a map scan</text>
+</g>
+<g data-key="text#t18">
+<rect x="72" y="1825" width="296" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="alert#2">
+<text x="80" y="1866" font-size="11" fill="#6E7781">alert</text>
+</g>
+<g data-key="term#t19">
+<rect x="88" y="1875" width="69" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t20">
+<rect x="88" y="1901" width="431" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t21">
+<rect x="88" y="1927" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t22">
+<rect x="88" y="1953" width="784" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="88" y="1967" width="715" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t23">
+<rect x="88" y="1993" width="88" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;ERR-01M5QY6BXWQNMN1GXFT2W0SHPY&quot;">
+<text x="88" y="2033" font-size="14" fill="#1F2328">ERR-01M5QY6BXWQNMN1GXFT2W0SHPY</text>
+<line x1="88" y1="2037" x2="328" y2="2037" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t24">
+<rect x="88" y="2053" width="715" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Start again&quot;#2">
+<rect x="72" y="2091" width="120" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="132" y="2115" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Start again</text>
+</g>
+<g data-key="link &quot;Check the address&quot;#2">
+<text x="72" y="2153" font-size="14" fill="#1F2328">Check the address</text>
+<line x1="72" y1="2157" x2="208" y2="2157" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t25">
+<rect x="56" y="2185" width="625" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t26">
+<rect x="56" y="2211" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2225" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2239" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="form &quot;Write to the Workbench&quot;">
+<text x="64" y="2280" font-size="11" fill="#6E7781">form · Write to the Workbench</text>
+</g>
+<g data-key="textbox &quot;Message&quot;">
+<text x="72" y="2302" font-size="13" fill="#6E7781">Message</text>
+<rect x="72" y="2307" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t27">
+<rect x="72" y="2357" width="765" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Send&quot;">
+<rect x="72" y="2383" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="112" y="2407" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Send</text>
+</g>
+<g data-key="group#t28">
+<rect x="40" y="2455" width="319" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

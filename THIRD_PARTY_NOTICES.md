@@ -1,6 +1,6 @@
 # Third-party notices
 
-The proprietary notice in `LICENSE` does not cover these files. They keep their own licences.
+MudPuppy itself is licensed under the Apache License 2.0 (`LICENSE`). These files are not covered by it; they keep their own licences.
 
 | Component | Where | Licence |
 | --- | --- | --- |

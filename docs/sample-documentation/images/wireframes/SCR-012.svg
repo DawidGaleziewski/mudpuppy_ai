@@ -1,0 +1,407 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="3554" viewBox="0 0 960 3554" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="3554" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="144" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Review views&quot;">
+<rect x="40" y="1167" width="880" height="160" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Kinds of decision&quot;">
+<rect x="40" y="1339" width="880" height="432" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Findings&quot;">
+<rect x="40" y="1993" width="880" height="127" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Rules&quot;">
+<rect x="40" y="2132" width="880" height="313" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Records to confirm&quot;">
+<rect x="40" y="2457" width="880" height="335" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Assumptions to check&quot;">
+<rect x="40" y="2804" width="880" height="193" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;New screen on Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowy&quot;">
+<rect x="40" y="3299" width="880" height="219" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="2634" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="958" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="962" x2="112" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1018" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1022" x2="240" y2="1022" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1038" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Review&quot;">
+<text x="40" y="1104" font-size="28" font-weight="600" fill="#1F2328">Review</text>
+</g>
+<g data-key="paragraph#t5">
+<rect x="40" y="1127" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1141" width="187" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Review views&quot;">
+<text x="48" y="1182" font-size="11" fill="#6E7781">navigation · Review views</text>
+</g>
+<g data-key="link &quot;Needs you 137&quot;">
+<text x="56" y="1205" font-size="14" fill="#1F2328">Needs you 137</text>
+<line x1="56" y1="1209" x2="160" y2="1209" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Explained automatically 0&quot;">
+<text x="56" y="1239" font-size="14" fill="#1F2328">Explained automatically 0</text>
+<line x1="56" y1="1243" x2="256" y2="1243" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Decided 0&quot;">
+<text x="56" y="1273" font-size="14" fill="#1F2328">Decided 0</text>
+<line x1="56" y1="1277" x2="128" y2="1277" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Same screen? 4&quot;">
+<text x="56" y="1307" font-size="14" fill="#1F2328">Same screen? 4</text>
+<line x1="56" y1="1311" x2="168" y2="1311" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Kinds of decision&quot;">
+<text x="48" y="1354" font-size="11" fill="#6E7781">navigation · Kinds of decision</text>
+</g>
+<g data-key="link &quot;All 137&quot;">
+<text x="56" y="1377" font-size="14" fill="#1F2328">All 137</text>
+<line x1="56" y1="1381" x2="112" y2="1381" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Findings 1&quot;">
+<text x="56" y="1411" font-size="14" fill="#1F2328">Findings 1</text>
+<line x1="56" y1="1415" x2="136" y2="1415" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules 2&quot;">
+<text x="56" y="1445" font-size="14" fill="#1F2328">Rules 2</text>
+<line x1="56" y1="1449" x2="112" y2="1449" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Removals 0&quot;">
+<text x="56" y="1479" font-size="14" fill="#1F2328">Removals 0</text>
+<line x1="56" y1="1483" x2="136" y2="1483" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes 0&quot;">
+<text x="56" y="1513" font-size="14" fill="#1F2328">Processes 0</text>
+<line x1="56" y1="1517" x2="144" y2="1517" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Records to confirm 130&quot;">
+<text x="56" y="1547" font-size="14" fill="#1F2328">Records to confirm 130</text>
+<line x1="56" y1="1551" x2="232" y2="1551" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Assumptions to check 4&quot;">
+<text x="56" y="1581" font-size="14" fill="#1F2328">Assumptions to check 4</text>
+<line x1="56" y1="1585" x2="232" y2="1585" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Unexplained differences 0&quot;">
+<text x="56" y="1615" font-size="14" fill="#1F2328">Unexplained differences 0</text>
+<line x1="56" y1="1619" x2="256" y2="1619" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Amendments to re-anchor 0&quot;">
+<text x="56" y="1649" font-size="14" fill="#1F2328">Amendments to re-anchor 0</text>
+<line x1="56" y1="1653" x2="256" y2="1653" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Assistant proposals 0&quot;">
+<text x="56" y="1683" font-size="14" fill="#1F2328">Assistant proposals 0</text>
+<line x1="56" y1="1687" x2="224" y2="1687" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Probe suites to approve 0&quot;">
+<text x="56" y="1717" font-size="14" fill="#1F2328">Probe suites to approve 0</text>
+<line x1="56" y1="1721" x2="256" y2="1721" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Edit conflicts 0&quot;">
+<text x="56" y="1751" font-size="14" fill="#1F2328">Edit conflicts 0</text>
+<line x1="56" y1="1755" x2="184" y2="1755" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;Part&quot;">
+<text x="40" y="1796" font-size="13" fill="#6E7781">Part</text>
+<rect x="40" y="1801" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="380" y="1823" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="combobox &quot;Age&quot;">
+<text x="40" y="1864" font-size="13" fill="#6E7781">Age</text>
+<rect x="40" y="1869" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="380" y="1891" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="button &quot;Filter&quot;">
+<rect x="40" y="1919" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="80" y="1943" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Filter</text>
+</g>
+<g data-key="group#t6">
+<rect x="40" y="1967" width="770" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Findings&quot;">
+<text x="48" y="2008" font-size="11" fill="#6E7781">region · Findings</text>
+</g>
+<g data-key="heading &quot;Findings&quot;">
+<text x="56" y="2039" font-size="22" font-weight="600" fill="#1F2328">Findings</text>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="2060" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;Findings&quot;">
+<ellipse cx="59" cy="2095" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2099" font-size="13" fill="#1F2328">Unexplained Kalkulator OC/AC — dane pojazdu | Tow…</text>
+<line x1="70" y1="2103" x2="420" y2="2103" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Rules&quot;">
+<text x="48" y="2147" font-size="11" fill="#6E7781">region · Rules</text>
+</g>
+<g data-key="heading &quot;Rules&quot;">
+<text x="56" y="2178" font-size="22" font-weight="600" fill="#1F2328">Rules</text>
+</g>
+<g data-key="text#t8">
+<rect x="56" y="2199" width="774" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Reason for 2&quot;">
+<text x="56" y="2238" font-size="13" fill="#6E7781">Reason for 2</text>
+<rect x="56" y="2243" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Confirm 2&quot;">
+<rect x="56" y="2293" width="104" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="108" y="2317" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Confirm 2</text>
+</g>
+<g data-key="button &quot;Reject 2&quot;">
+<rect x="56" y="2341" width="96" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="104" y="2365" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Reject 2</text>
+</g>
+<g data-key="list &quot;Rules&quot;">
+<ellipse cx="59" cy="2398" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2402" font-size="13" fill="#1F2328">Select Select H-0001 Rule decides Ubezpieczenia d…</text>
+<line x1="70" y1="2406" x2="420" y2="2406" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2420" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2424" font-size="13" fill="#1F2328">Select Select H-0002 Rule decides Ubezpieczenia d…</text>
+<line x1="70" y1="2428" x2="420" y2="2428" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Records to confirm&quot;">
+<text x="48" y="2472" font-size="11" fill="#6E7781">region · Records to confirm</text>
+</g>
+<g data-key="heading &quot;Records to confirm&quot;">
+<text x="56" y="2503" font-size="22" font-weight="600" fill="#1F2328">Records to confirm</text>
+</g>
+<g data-key="text#t9">
+<rect x="56" y="2524" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;Records to confirm&quot;">
+<ellipse cx="59" cy="2559" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2563" font-size="13" fill="#1F2328">BR-001 Draft rev 2 · business rule All vehicle fi…</text>
+<line x1="70" y1="2567" x2="420" y2="2567" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2581" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2585" font-size="13" fill="#1F2328">BR-002 Draft rev 1 · business rule Production yea…</text>
+<line x1="70" y1="2589" x2="420" y2="2589" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2603" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2607" font-size="13" fill="#1F2328">BR-003 Draft rev 1 · business rule Engine capacit…</text>
+<line x1="70" y1="2611" x2="420" y2="2611" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2625" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2629" font-size="13" fill="#1F2328">BR-004 Draft rev 1 · business rule Postal code fo…</text>
+<line x1="70" y1="2633" x2="420" y2="2633" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2647" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2651" font-size="13" fill="#1F2328">BR-005 Draft rev 1 · business rule Model at most …</text>
+<line x1="70" y1="2655" x2="420" y2="2655" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2669" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2673" font-size="13" fill="#1F2328">BR-006 Draft rev 1 · business rule Driver aged 18…</text>
+<line x1="70" y1="2677" x2="420" y2="2677" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2691" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2695" font-size="13" fill="#1F2328">BR-007 Draft rev 1 · business rule Driving licenc…</text>
+<line x1="70" y1="2699" x2="420" y2="2699" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2713" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2717" font-size="13" fill="#1F2328">BR-008 Draft rev 1 · business rule Claim-free yea…</text>
+<line x1="70" y1="2721" x2="420" y2="2721" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2737" font-size="11" fill="#6E7781">+2 more</text>
+</g>
+<g data-key="link &quot;Show all 130&quot;">
+<text x="56" y="2772" font-size="14" fill="#1F2328">Show all 130</text>
+<line x1="56" y1="2776" x2="152" y2="2776" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Assumptions to check&quot;">
+<text x="48" y="2819" font-size="11" fill="#6E7781">region · Assumptions to check</text>
+</g>
+<g data-key="heading &quot;Assumptions to check&quot;">
+<text x="56" y="2850" font-size="22" font-weight="600" fill="#1F2328">Assumptions to check</text>
+</g>
+<g data-key="text#t10">
+<rect x="56" y="2871" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;Assumptions to check&quot;">
+<ellipse cx="59" cy="2906" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2910" font-size="13" fill="#1F2328">ASM-001 Draft rev 1 · assumption No-claims discou…</text>
+<line x1="70" y1="2914" x2="420" y2="2914" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2928" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2932" font-size="13" fill="#1F2328">ASM-002 Draft rev 1 · assumption WIOSNA10 gives 1…</text>
+<line x1="70" y1="2936" x2="420" y2="2936" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2950" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2954" font-size="13" fill="#1F2328">ASM-003 Draft rev 1 · assumption Date and year li…</text>
+<line x1="70" y1="2958" x2="420" y2="2958" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2972" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2976" font-size="13" fill="#1F2328">ASM-004 Draft rev 1 · assumption The vehicle-step…</text>
+<line x1="70" y1="2980" x2="420" y2="2980" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t11">
+<rect x="40" y="3009" width="176" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Removals&quot;">
+<text x="40" y="3049" font-size="14" fill="#1F2328">Removals</text>
+<line x1="40" y1="3053" x2="104" y2="3053" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;#2">
+<text x="40" y="3083" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="3087" x2="112" y2="3087" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Unexplained differences&quot;">
+<text x="40" y="3117" font-size="14" fill="#1F2328">Unexplained differences</text>
+<line x1="40" y1="3121" x2="224" y2="3121" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Amendments to re-anchor&quot;">
+<text x="40" y="3151" font-size="14" fill="#1F2328">Amendments to re-anchor</text>
+<line x1="40" y1="3155" x2="224" y2="3155" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Assistant proposals&quot;">
+<text x="40" y="3185" font-size="14" fill="#1F2328">Assistant proposals</text>
+<line x1="40" y1="3189" x2="192" y2="3189" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Probe suites to approve&quot;">
+<text x="40" y="3219" font-size="14" fill="#1F2328">Probe suites to approve</text>
+<line x1="40" y1="3223" x2="224" y2="3223" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Edit conflicts&quot;">
+<text x="40" y="3253" font-size="14" fill="#1F2328">Edit conflicts</text>
+<line x1="40" y1="3257" x2="152" y2="3257" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t12">
+<rect x="40" y="3273" width="341" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;New screen on Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowy&quot;">
+<text x="48" y="3314" font-size="11" fill="#6E7781">region · New screen on Kalkulator OC/AC — dane pojazdu | To…</text>
+</g>
+<g data-key="heading &quot;New screen on Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowy&quot;">
+<text x="56" y="3345" font-size="22" font-weight="600" fill="#1F2328">New screen on Kalkulator OC/AC — dane pojazdu | Towarzystwo…</text>
+</g>
+<g data-key="text#t13">
+<rect x="56" y="3366" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t14">
+<rect x="56" y="3392" width="265" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t15">
+<rect x="56" y="3418" width="583" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Before / after&quot;">
+<text x="56" y="3458" font-size="14" fill="#1F2328">Before / after</text>
+<line x1="56" y1="3462" x2="168" y2="3462" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t16">
+<rect x="56" y="3478" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3492" width="127" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

@@ -1,0 +1,302 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2645" viewBox="0 0 960 2645" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2645" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="84" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Needs you&quot;">
+<rect x="40" y="1093" width="880" height="171" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Last scan&quot;">
+<rect x="40" y="1276" width="880" height="201" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;The model&quot;">
+<rect x="40" y="1489" width="880" height="275" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Releases&quot;">
+<rect x="40" y="1776" width="880" height="101" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Changes on reference-insurer-local by process&quot;">
+<rect x="56" y="1982" width="848" height="100" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Changes by process&quot;">
+<rect x="40" y="1889" width="880" height="205" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Ask the assistant&quot;">
+<rect x="56" y="2431" width="848" height="166" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Assistant&quot;">
+<rect x="40" y="2106" width="880" height="503" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1725" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="958" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="962" x2="112" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="265" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;reference-insurer-local&quot;">
+<text x="40" y="1044" font-size="28" font-weight="600" fill="#1F2328">reference-insurer-local</text>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="1067" width="231" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Needs you&quot;">
+<text x="48" y="1108" font-size="11" fill="#6E7781">region · Needs you</text>
+</g>
+<g data-key="heading &quot;Needs you&quot;">
+<text x="56" y="1139" font-size="22" font-weight="600" fill="#1F2328">Needs you</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1160" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;What needs you&quot;">
+<ellipse cx="59" cy="1195" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1199" font-size="13" fill="#1F2328">Rule decides link &quot;oblicz składkę oc/ac&quot; on scree…</text>
+<ellipse cx="59" cy="1217" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1221" font-size="13" fill="#1F2328">Rule decides link &quot;oblicz składkę&quot; on screen SC-0…</text>
+<ellipse cx="59" cy="1239" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1243" font-size="13" fill="#1F2328">Unexplained New screen on Kalkulator OC/AC — dane…</text>
+</g>
+<g data-key="region &quot;Last scan&quot;">
+<text x="48" y="1291" font-size="11" fill="#6E7781">region · Last scan</text>
+</g>
+<g data-key="heading &quot;Last scan&quot;">
+<text x="56" y="1322" font-size="22" font-weight="600" fill="#1F2328">Last scan</text>
+</g>
+<g data-key="text#t6">
+<rect x="56" y="1343" width="74" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;01a16ca2-a071&quot;">
+<text x="56" y="1383" font-size="14" fill="#1F2328">01a16ca2-a071</text>
+<line x1="56" y1="1387" x2="160" y2="1387" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Copy the full scan id 01a16ca2-a071-7000-a024-08bdb17527b3&quot;">
+<rect x="56" y="1403" width="496" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="304" y="1427" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Copy the full scan id 01a16ca2-a071-7000-a024-08bdb17527b3</text>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="1451" width="244" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;The model&quot;">
+<text x="48" y="1504" font-size="11" fill="#6E7781">region · The model</text>
+</g>
+<g data-key="heading &quot;The model&quot;">
+<text x="56" y="1535" font-size="22" font-weight="600" fill="#1F2328">The model</text>
+</g>
+<g data-key="term#t8">
+<rect x="56" y="1556" width="74" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t9">
+<rect x="56" y="1582" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t10">
+<rect x="56" y="1608" width="95" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t11">
+<rect x="56" y="1634" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t12">
+<rect x="56" y="1660" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t13">
+<rect x="56" y="1686" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t14">
+<rect x="56" y="1712" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t15">
+<rect x="56" y="1738" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Releases&quot;">
+<text x="48" y="1791" font-size="11" fill="#6E7781">region · Releases</text>
+</g>
+<g data-key="heading &quot;Releases&quot;">
+<text x="56" y="1822" font-size="22" font-weight="600" fill="#1F2328">Releases</text>
+</g>
+<g data-key="list &quot;Releases by part&quot;">
+<ellipse cx="59" cy="1852" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1856" font-size="13" fill="#1F2328">Shell 5696 was 7f03 2026-10-24T06:33:01.881Z</text>
+</g>
+<g data-key="region &quot;Changes by process&quot;">
+<text x="48" y="1904" font-size="11" fill="#6E7781">region · Changes by process</text>
+</g>
+<g data-key="heading &quot;Changes by process&quot;">
+<text x="56" y="1935" font-size="22" font-weight="600" fill="#1F2328">Changes by process</text>
+</g>
+<g data-key="text#t16">
+<rect x="56" y="1956" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Changes on reference-insurer-local by process&quot;">
+<text x="64" y="1997" font-size="11" fill="#6E7781">region · Changes on reference-insurer-local by process</text>
+</g>
+<g data-key="table &quot;Changes on reference-insurer-local by process&quot;">
+<rect x="72" y="2006" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2027" font-size="12" font-weight="600" fill="#1F2328">Process</text>
+<rect x="252" y="2006" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2027" font-size="12" font-weight="600" fill="#1F2328">Changes</text>
+<rect x="432" y="2006" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2027" font-size="12" font-weight="600" fill="#1F2328">Need you</text>
+<rect x="612" y="2006" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2027" font-size="12" font-weight="600" fill="#1F2328">Explained</text>
+<rect x="72" y="2038" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2059" font-size="12" fill="#1F2328">Not in a process</text>
+<rect x="252" y="2038" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2059" font-size="12" fill="#1F2328">3</text>
+<rect x="432" y="2038" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2059" font-size="12" fill="#1F2328">3</text>
+<rect x="612" y="2038" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2059" font-size="12" fill="#1F2328">0</text>
+</g>
+<g data-key="region &quot;Assistant&quot;">
+<text x="48" y="2121" font-size="11" fill="#6E7781">region · Assistant</text>
+</g>
+<g data-key="heading &quot;Assistant&quot;">
+<text x="56" y="2152" font-size="22" font-weight="600" fill="#1F2328">Assistant</text>
+</g>
+<g data-key="text#t17">
+<rect x="56" y="2173" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2187" width="212" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;What changed since the last scan?&quot;">
+<rect x="56" y="2213" width="296" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="204" y="2237" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">What changed since the last scan?</text>
+</g>
+<g data-key="button &quot;What can I do here?&quot;">
+<rect x="56" y="2261" width="184" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="148" y="2285" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">What can I do here?</text>
+</g>
+<g data-key="button &quot;Sort screens into processes&quot;">
+<rect x="56" y="2309" width="248" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="2333" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Sort screens into processes</text>
+</g>
+<g data-key="button &quot;Follow one process start to end&quot;">
+<rect x="56" y="2357" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="196" y="2381" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Follow one process start to end</text>
+</g>
+<g data-key="text#t18">
+<rect x="56" y="2405" width="742" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="form &quot;Ask the assistant&quot;">
+<text x="64" y="2446" font-size="11" fill="#6E7781">form · Ask the assistant</text>
+</g>
+<g data-key="textbox &quot;Message&quot;">
+<text x="72" y="2468" font-size="13" fill="#6E7781">Message</text>
+<rect x="72" y="2473" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t19">
+<rect x="72" y="2523" width="408" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Send&quot;">
+<rect x="72" y="2549" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="112" y="2573" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Send</text>
+</g>
+</svg>

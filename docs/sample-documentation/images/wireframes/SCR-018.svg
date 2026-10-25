@@ -1,0 +1,239 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1944" viewBox="0 0 960 1944" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="1944" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="336" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="466" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="560" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="1028" width="880" height="204" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Screens views&quot;">
+<rect x="40" y="1321" width="880" height="160" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="search &quot;Filter recorded pages&quot;">
+<rect x="40" y="1493" width="880" height="140" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Recorded pages of reference-insurer-local&quot;">
+<rect x="56" y="1712" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Recorded pages · 23&quot;">
+<rect x="40" y="1645" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="970" width="912" height="950" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="text#t2">
+<rect x="40" y="262" width="55" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;As of: Now&quot;">
+<rect x="40" y="288" width="112" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="96" y="312" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">As of: Now</text>
+</g>
+<g data-key="search">
+<text x="48" y="351" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="373" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="378" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="428" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="466" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="490" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="528" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="532" x2="176" y2="532" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="575" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="598" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="602" x2="128" y2="602" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="632" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="636" x2="72" y2="636" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="666" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="670" x2="96" y2="670" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="700" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="704" x2="88" y2="704" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="734" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="738" x2="112" y2="738" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="768" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="772" x2="96" y2="772" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="802" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="806" x2="80" y2="806" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="836" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="840" x2="72" y2="840" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="870" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="874" x2="80" y2="874" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="904" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="908" x2="112" y2="908" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="938" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="942" x2="104" y2="942" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="985" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="link &quot;Back to Screens Map&quot;">
+<text x="40" y="1008" font-size="14" fill="#1F2328">Back to Screens Map</text>
+<line x1="40" y1="1012" x2="192" y2="1012" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="1043" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="1066" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="1070" x2="112" y2="1070" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1086" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1126" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1130" x2="240" y2="1130" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1146" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;#2">
+<text x="56" y="1186" font-size="14" fill="#1F2328">Screens</text>
+<line x1="56" y1="1190" x2="112" y2="1190" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t6">
+<rect x="56" y="1206" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Recorded pages&quot;">
+<text x="40" y="1272" font-size="28" font-weight="600" fill="#1F2328">Recorded pages</text>
+</g>
+<g data-key="paragraph#t7">
+<rect x="40" y="1295" width="748" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Screens views&quot;">
+<text x="48" y="1336" font-size="11" fill="#6E7781">navigation · Screens views</text>
+</g>
+<g data-key="link &quot;List&quot;">
+<text x="56" y="1359" font-size="14" fill="#1F2328">List</text>
+<line x1="56" y1="1363" x2="88" y2="1363" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Map&quot;">
+<text x="56" y="1393" font-size="14" fill="#1F2328">Map</text>
+<line x1="56" y1="1397" x2="80" y2="1397" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Recorded pages&quot;">
+<text x="56" y="1427" font-size="14" fill="#1F2328">Recorded pages</text>
+<line x1="56" y1="1431" x2="168" y2="1431" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Access&quot;">
+<text x="56" y="1461" font-size="14" fill="#1F2328">Access</text>
+<line x1="56" y1="1465" x2="104" y2="1465" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="search &quot;Filter recorded pages&quot;">
+<text x="48" y="1508" font-size="11" fill="#6E7781">search · Filter recorded pages</text>
+</g>
+<g data-key="searchbox &quot;Title or route contains&quot;">
+<text x="56" y="1530" font-size="13" fill="#6E7781">Title or route contains</text>
+<rect x="56" y="1535" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Filter&quot;">
+<rect x="56" y="1585" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="96" y="1609" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Filter</text>
+</g>
+<g data-key="region &quot;Recorded pages · 23&quot;">
+<text x="48" y="1660" font-size="11" fill="#6E7781">region · Recorded pages · 23</text>
+</g>
+<g data-key="heading &quot;Recorded pages · 23&quot;">
+<text x="56" y="1691" font-size="22" font-weight="600" fill="#1F2328">Recorded pages · 23</text>
+</g>
+<g data-key="region &quot;Recorded pages of reference-insurer-local&quot;">
+<text x="64" y="1727" font-size="11" fill="#6E7781">region · Recorded pages of reference-insurer-local</text>
+</g>
+<g data-key="table &quot;Recorded pages of reference-insurer-local&quot;">
+<rect x="72" y="1736" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1757" font-size="12" font-weight="600" fill="#1F2328">Picture</text>
+<rect x="252" y="1736" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1757" font-size="12" font-weight="600" fill="#1F2328">Title</text>
+<rect x="432" y="1736" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1757" font-size="12" font-weight="600" fill="#1F2328">Confidence</text>
+<rect x="612" y="1736" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1757" font-size="12" font-weight="600" fill="#1F2328">Form probes</text>
+<rect x="72" y="1768" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1789" font-size="12" fill="#1F2328">Picture of Ubezpiec…</text>
+<rect x="252" y="1768" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1789" font-size="12" fill="#1F2328">Ubezpieczenia dla C…</text>
+<rect x="432" y="1768" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1789" font-size="12" fill="#1F2328">Observed</text>
+<rect x="612" y="1768" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1789" font-size="12" fill="#1F2328">—</text>
+<rect x="72" y="1800" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1821" font-size="12" fill="#1F2328">Picture of Najczęśc…</text>
+<rect x="252" y="1800" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1821" font-size="12" fill="#1F2328">Najczęściej zadawan…</text>
+<rect x="432" y="1800" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1821" font-size="12" fill="#1F2328">Observed</text>
+<rect x="612" y="1800" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1821" font-size="12" fill="#1F2328">—</text>
+<rect x="72" y="1832" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1853" font-size="12" fill="#1F2328">Picture of Kalkulat…</text>
+<rect x="252" y="1832" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1853" font-size="12" fill="#1F2328">Kalkulator OC/AC — …</text>
+<rect x="432" y="1832" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1853" font-size="12" fill="#1F2328">Observed</text>
+<rect x="612" y="1832" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1853" font-size="12" fill="#1F2328">Not probed</text>
+<text x="72" y="1879" font-size="11" fill="#6E7781">+20 more rows</text>
+</g>
+</svg>

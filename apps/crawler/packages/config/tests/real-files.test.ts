@@ -5,22 +5,12 @@ import { DENYLIST_RULE_IDS, loadEffectiveConfig } from '../src/index.js';
 const root = (p: string) => fileURLToPath(new URL(`../../../../../${p}`, import.meta.url));
 
 describe('repository config files', () => {
-  it('portals/marketsite + guest load and resolve to its explicit read ceiling', () => {
+  it('portals/wikipedia + guest load and resolve to the read ceiling of a live site', () => {
     const e = loadEffectiveConfig(
-      root('portals/marketsite/portal.yaml'),
-      root('personas/marketsite/guest.yaml'),
+      root('portals/wikipedia/portal.yaml'),
+      root('personas/wikipedia/guest.yaml'),
     );
-    expect(e.portal.environment).toBe('production');
     expect(e.effectiveMaxActionClass).toBe('read');
-    expect(e.portal.urls.disallowed).toContain('/oferty/wystaw/*');
-  });
-
-  it('portals/liveinsurer + guest load without edits (spec 002 SC-005)', () => {
-    const e = loadEffectiveConfig(
-      root('portals/liveinsurer/portal.yaml'),
-      root('personas/liveinsurer/guest.yaml'),
-    );
-    expect(e.portal.robots_page_requests).toBe('block');
   });
 
   it('portals/reference-insurer (sandbox) and -readonly (production) + guest load', () => {

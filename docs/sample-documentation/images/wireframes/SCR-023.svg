@@ -1,0 +1,417 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="3518" viewBox="0 0 960 3518" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="3518" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="954" width="880" height="204" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Content&quot;">
+<rect x="40" y="1221" width="880" height="173" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Evidence cited by revision 2&quot;">
+<rect x="56" y="1913" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Evidence · 5&quot;">
+<rect x="40" y="1846" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Relations of BR-001&quot;">
+<rect x="56" y="2188" width="848" height="132" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Relations&quot;">
+<rect x="40" y="2121" width="880" height="211" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Every revision of BR-001, newest first&quot;">
+<rect x="56" y="2411" width="848" height="132" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Revision history · 2&quot;">
+<rect x="40" y="2344" width="880" height="211" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Record&quot;">
+<rect x="40" y="2567" width="880" height="453" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Review&quot;">
+<rect x="40" y="3032" width="880" height="450" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="2598" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="link &quot;Back to Session Analysis session&quot;">
+<text x="40" y="934" font-size="14" fill="#1F2328">Back to Session Analysis session</text>
+<line x1="40" y1="938" x2="296" y2="938" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="969" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="992" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="996" x2="112" y2="996" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="1012" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1052" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1056" x2="240" y2="1056" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1072" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;#2">
+<text x="56" y="1112" font-size="14" fill="#1F2328">Docs</text>
+<line x1="56" y1="1116" x2="88" y2="1116" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1132" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;BR-001 All vehicle fields are required&quot;">
+<text x="40" y="1198" font-size="28" font-weight="600" fill="#1F2328">BR-001 All vehicle fields are required</text>
+</g>
+<g data-key="region &quot;Content&quot;">
+<text x="48" y="1236" font-size="11" fill="#6E7781">region · Content</text>
+</g>
+<g data-key="heading &quot;Content&quot;">
+<text x="56" y="1267" font-size="22" font-weight="600" fill="#1F2328">Content</text>
+</g>
+<g data-key="paragraph#t6">
+<rect x="56" y="1288" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1302" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1316" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t7">
+<rect x="56" y="1342" width="95" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t8">
+<rect x="56" y="1368" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t9">
+<rect x="40" y="1406" width="154" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="img &quot;Screenshot of Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowy&quot;">
+<rect x="40" y="1432" width="240" height="96" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<line x1="40" y1="1432" x2="280" y2="1528" stroke="#8C959F" stroke-width="1"/>
+<line x1="280" y1="1432" x2="40" y2="1528" stroke="#8C959F" stroke-width="1"/>
+<text x="160" y="1484" font-size="12" text-anchor="middle" fill="#6E7781">Screenshot of Kalkulator OC/A…</text>
+</g>
+<g data-key="mark#t10">
+<rect x="40" y="1540" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="mark#t11">
+<rect x="40" y="1566" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych&quot;">
+<text x="40" y="1606" font-size="14" fill="#1F2328">Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń W…</text>
+<line x1="40" y1="1610" x2="520" y2="1610" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t12">
+<rect x="40" y="1626" width="616" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="img &quot;Screenshot of Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowy&quot;#2">
+<rect x="40" y="1652" width="240" height="96" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<line x1="40" y1="1652" x2="280" y2="1748" stroke="#8C959F" stroke-width="1"/>
+<line x1="280" y1="1652" x2="40" y2="1748" stroke="#8C959F" stroke-width="1"/>
+<text x="160" y="1704" font-size="12" text-anchor="middle" fill="#6E7781">Screenshot of Kalkulator OC/A…</text>
+</g>
+<g data-key="mark#t13">
+<rect x="40" y="1760" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych&quot;#2">
+<text x="40" y="1800" font-size="14" fill="#1F2328">Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń W…</text>
+<line x1="40" y1="1804" x2="520" y2="1804" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t14">
+<rect x="40" y="1820" width="484" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Evidence · 5&quot;">
+<text x="48" y="1861" font-size="11" fill="#6E7781">region · Evidence · 5</text>
+</g>
+<g data-key="heading &quot;Evidence · 5&quot;">
+<text x="56" y="1892" font-size="22" font-weight="600" fill="#1F2328">Evidence · 5</text>
+</g>
+<g data-key="region &quot;Evidence cited by revision 2&quot;">
+<text x="64" y="1928" font-size="11" fill="#6E7781">region · Evidence cited by revision 2</text>
+</g>
+<g data-key="table &quot;Evidence cited by revision 2&quot;">
+<rect x="72" y="1937" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1958" font-size="12" font-weight="600" fill="#1F2328">Target</text>
+<rect x="252" y="1937" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1958" font-size="12" font-weight="600" fill="#1F2328">What it supports</text>
+<rect x="432" y="1937" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1958" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="72" y="1969" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1990" font-size="12" fill="#1F2328">form form: marka, m…</text>
+<rect x="252" y="1969" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1990" font-size="12" fill="#1F2328">required: true on a…</text>
+<rect x="432" y="1969" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1990" font-size="12" fill="#1F2328">01a16615-09c4… map …</text>
+<rect x="72" y="2001" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2022" font-size="12" fill="#1F2328">form form: marka, m…</text>
+<rect x="252" y="2001" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2022" font-size="12" fill="#1F2328">Later scan: same fi…</text>
+<rect x="432" y="2001" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2022" font-size="12" fill="#1F2328">01a16624-db89… map …</text>
+<rect x="72" y="2033" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2054" font-size="12" fill="#1F2328">screen region Kalku…</text>
+<rect x="252" y="2033" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2054" font-size="12" fill="#1F2328">—</text>
+<rect x="432" y="2033" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2054" font-size="12" fill="#1F2328">01a16615-09c4… map …</text>
+<text x="72" y="2080" font-size="11" fill="#6E7781">+2 more rows</text>
+</g>
+<g data-key="region &quot;Relations&quot;">
+<text x="48" y="2136" font-size="11" fill="#6E7781">region · Relations</text>
+</g>
+<g data-key="heading &quot;Relations&quot;">
+<text x="56" y="2167" font-size="22" font-weight="600" fill="#1F2328">Relations</text>
+</g>
+<g data-key="region &quot;Relations of BR-001&quot;">
+<text x="64" y="2203" font-size="11" fill="#6E7781">region · Relations of BR-001</text>
+</g>
+<g data-key="table &quot;Relations of BR-001&quot;">
+<rect x="72" y="2212" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2233" font-size="12" font-weight="600" fill="#1F2328">Direction</text>
+<rect x="252" y="2212" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2233" font-size="12" font-weight="600" fill="#1F2328">Type</text>
+<rect x="432" y="2212" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2233" font-size="12" font-weight="600" fill="#1F2328">Record</text>
+<rect x="612" y="2212" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2233" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="72" y="2244" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2265" font-size="12" fill="#1F2328">Out · this revision…</text>
+<rect x="252" y="2244" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2265" font-size="12" fill="#1F2328">applies on</text>
+<rect x="432" y="2244" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2265" font-size="12" fill="#1F2328">SCR-001 Kalkulator …</text>
+<rect x="612" y="2244" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2265" font-size="12" fill="#1F2328">Draft</text>
+<rect x="72" y="2276" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2297" font-size="12" fill="#1F2328">In · points to this…</text>
+<rect x="252" y="2276" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2297" font-size="12" fill="#1F2328">depends on</text>
+<rect x="432" y="2276" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2297" font-size="12" fill="#1F2328">ASM-004 The vehicle…</text>
+<rect x="612" y="2276" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2297" font-size="12" fill="#1F2328">To check</text>
+</g>
+<g data-key="region &quot;Revision history · 2&quot;">
+<text x="48" y="2359" font-size="11" fill="#6E7781">region · Revision history · 2</text>
+</g>
+<g data-key="heading &quot;Revision history · 2&quot;">
+<text x="56" y="2390" font-size="22" font-weight="600" fill="#1F2328">Revision history · 2</text>
+</g>
+<g data-key="region &quot;Every revision of BR-001, newest first&quot;">
+<text x="64" y="2426" font-size="11" fill="#6E7781">region · Every revision of BR-001, newest first</text>
+</g>
+<g data-key="table &quot;Every revision of BR-001, newest first&quot;">
+<rect x="72" y="2435" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2456" font-size="12" font-weight="600" fill="#1F2328">Rev</text>
+<rect x="252" y="2435" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2456" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="432" y="2435" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2456" font-size="12" font-weight="600" fill="#1F2328">Confidence</text>
+<rect x="612" y="2435" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2456" font-size="12" font-weight="600" fill="#1F2328">Change</text>
+<rect x="72" y="2467" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2488" font-size="12" fill="#1F2328">rev 2 shown</text>
+<rect x="252" y="2467" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2488" font-size="12" fill="#1F2328">Draft</text>
+<rect x="432" y="2467" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2488" font-size="12" fill="#1F2328">Observed</text>
+<rect x="612" y="2467" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2488" font-size="12" fill="#1F2328">revise · 2026-10-23…</text>
+<rect x="72" y="2499" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2520" font-size="12" fill="#1F2328">rev 1</text>
+<rect x="252" y="2499" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2520" font-size="12" fill="#1F2328">Superseded</text>
+<rect x="432" y="2499" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2520" font-size="12" fill="#1F2328">Observed</text>
+<rect x="612" y="2499" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2520" font-size="12" fill="#1F2328">create · 2026-10-23…</text>
+</g>
+<g data-key="region &quot;Record&quot;">
+<text x="48" y="2582" font-size="11" fill="#6E7781">region · Record</text>
+</g>
+<g data-key="heading &quot;Record&quot;">
+<text x="56" y="2613" font-size="22" font-weight="600" fill="#1F2328">Record</text>
+</g>
+<g data-key="text#t15">
+<rect x="56" y="2634" width="148" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t16">
+<rect x="56" y="2660" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t17">
+<rect x="56" y="2686" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t18">
+<rect x="56" y="2712" width="42" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t19">
+<rect x="56" y="2738" width="138" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t20">
+<rect x="56" y="2764" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t21">
+<rect x="56" y="2790" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t22">
+<rect x="56" y="2816" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t23">
+<rect x="56" y="2842" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t24">
+<rect x="56" y="2868" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;01a16628-bf66…&quot;#2">
+<text x="56" y="2908" font-size="14" fill="#1F2328">01a16628-bf66…</text>
+<line x1="56" y1="2912" x2="168" y2="2912" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="term#t25">
+<rect x="56" y="2928" width="138" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t26">
+<rect x="56" y="2954" width="254" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t27">
+<rect x="56" y="2980" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2994" width="678" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Review&quot;">
+<text x="48" y="3047" font-size="11" fill="#6E7781">region · Review</text>
+</g>
+<g data-key="heading &quot;Review&quot;">
+<text x="56" y="3078" font-size="22" font-weight="600" fill="#1F2328">Review</text>
+</g>
+<g data-key="text#t28">
+<rect x="56" y="3099" width="572" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Confirm rev 2&quot;">
+<rect x="56" y="3125" width="136" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="124" y="3149" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Confirm rev 2</text>
+</g>
+<g data-key="textbox &quot;Reason (required to reject)&quot;">
+<text x="56" y="3186" font-size="13" fill="#6E7781">Reason (required to reject)</text>
+<rect x="56" y="3191" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Reject rev 2&quot;">
+<rect x="56" y="3241" width="128" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="120" y="3265" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Reject rev 2</text>
+</g>
+<g data-key="textbox &quot;Comment (required)&quot;">
+<text x="56" y="3302" font-size="13" fill="#6E7781">Comment (required)</text>
+<rect x="56" y="3307" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Comment&quot;">
+<rect x="56" y="3357" width="88" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="100" y="3381" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Comment</text>
+</g>
+<g data-key="heading &quot;Decisions on revision 2&quot;">
+<text x="56" y="3423" font-size="18" font-weight="600" fill="#1F2328">Decisions on revision 2</text>
+</g>
+<g data-key="text#t29">
+<rect x="56" y="3442" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3456" width="191" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

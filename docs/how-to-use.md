@@ -4,9 +4,12 @@ A walkthrough for business analysts (BAs) and the developer who sets things up. 
 full path: start the tools, scan a portal, group its screens into processes, get the as-is
 documentation, draw the to-be, and hand it all over.
 
-The screenshots come from the local reference portal (`reference-insurer`) in the `sandbox`
-environment, taken on 2026-10-14. The assistant was not running when they were taken, so the
-chat is described in words.
+New here? Start with [getting-started.md](getting-started.md), the step-by-step path from a fresh
+clone to exported documentation; this page is the reference for every part of the console.
+
+The screenshots come from the local reference portal (`reference-insurer-local`) in the
+`local-dev` environment, taken on 2026-10-25. The assistant was not running when they were taken,
+so the chat is described in words.
 
 ## Contents
 
@@ -388,6 +391,8 @@ and how many times.
 
 ### The as-is first
 
+![A process: its place in the portal model, paths and as-is documentation](how-to-use/21-process.png)
+
 While a process is **scoped** or **as-is documented**, its page opens on **A** as
 documentation: per step the picture, the title and route, and the records citing that screen
 (requirements, business rules, fields, NFRs, terms, open questions). **Select** a step to see
@@ -423,8 +428,6 @@ screen looked.)
 
 Open process model B. Your work is a **draft** until you save it.
 
-![The to-be process model as a draft](how-to-use/21-process-to-be-draft.png)
-
 - Each step is a plate: select it, move it up or down, **Merge** it with the next one, or add
   a **new step** with a name and a route.
 - A step marked **Designed, not observed** exists only in the to-be.
@@ -439,7 +442,6 @@ Open process model B. Your work is a **draft** until you save it.
 
 **Compare A and B** puts the two process models side by side.
 
-![Compare A and B](how-to-use/22-process-compare.png)
 
 It also builds the **change spec**: scope, as-is, to-be, the difference step by step,
 affected records and open questions. Edit any section; each save is a spec revision. Export it

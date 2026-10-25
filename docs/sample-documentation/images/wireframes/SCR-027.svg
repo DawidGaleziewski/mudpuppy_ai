@@ -1,0 +1,276 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2579" viewBox="0 0 960 2579" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2579" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="84" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Plan next scan&quot;">
+<rect x="40" y="1107" width="880" height="1211" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;What will happen&quot;">
+<rect x="40" y="2330" width="880" height="213" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1659" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Scans&quot;#2">
+<text x="56" y="958" font-size="14" fill="#1F2328">Scans</text>
+<line x1="56" y1="962" x2="96" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Plan next scan&quot;">
+<text x="40" y="1044" font-size="28" font-weight="600" fill="#1F2328">Plan next scan</text>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="1067" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1081" width="55" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="form &quot;Plan next scan&quot;">
+<text x="48" y="1122" font-size="11" fill="#6E7781">form · Plan next scan</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1131" width="138" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="radio &quot;Focused Replays to the Start here and Focus marks and explores from there.&quot;">
+<ellipse cx="63" cy="1168" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="1173" font-size="13" fill="#1F2328">Focused Replays to the Start here and Focus marks and explo…</text>
+</g>
+<g data-key="radio &quot;Recheck Replays to the Recheck marks and records what each shows now.&quot;">
+<ellipse cx="63" cy="1204" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="1209" font-size="13" fill="#1F2328">Recheck Replays to the Recheck marks and records what each …</text>
+</g>
+<g data-key="radio &quot;Retry a path Replays to a failed action and tries it again, with a variation.&quot;">
+<ellipse cx="63" cy="1240" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="1245" font-size="13" fill="#1F2328">Retry a path Replays to a failed action and tries it again,…</text>
+</g>
+<g data-key="text#t6">
+<rect x="56" y="1265" width="445" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Start here 0&quot;">
+<text x="56" y="1309" font-size="18" font-weight="600" fill="#1F2328">Start here 0</text>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="1328" width="329" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;One scan&apos;s path&quot;">
+<text x="56" y="1368" font-size="14" fill="#1F2328">One scan&apos;s path</text>
+<line x1="56" y1="1372" x2="176" y2="1372" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t8">
+<rect x="56" y="1388" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Focus 0&quot;">
+<text x="56" y="1432" font-size="18" font-weight="600" fill="#1F2328">Focus 0</text>
+</g>
+<g data-key="text#t9">
+<rect x="56" y="1451" width="329" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;One scan&apos;s path&quot;#2">
+<text x="56" y="1491" font-size="14" fill="#1F2328">One scan&apos;s path</text>
+<line x1="56" y1="1495" x2="176" y2="1495" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t10">
+<rect x="56" y="1511" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Recheck 0&quot;">
+<text x="56" y="1555" font-size="18" font-weight="600" fill="#1F2328">Recheck 0</text>
+</g>
+<g data-key="text#t11">
+<rect x="56" y="1574" width="329" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;One scan&apos;s path&quot;#3">
+<text x="56" y="1614" font-size="14" fill="#1F2328">One scan&apos;s path</text>
+<line x1="56" y1="1618" x2="176" y2="1618" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t12">
+<rect x="56" y="1634" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Retry 0&quot;">
+<text x="56" y="1678" font-size="18" font-weight="600" fill="#1F2328">Retry 0</text>
+</g>
+<g data-key="text#t13">
+<rect x="56" y="1697" width="329" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;One scan&apos;s path&quot;#4">
+<text x="56" y="1737" font-size="14" fill="#1F2328">One scan&apos;s path</text>
+<line x1="56" y1="1741" x2="176" y2="1741" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t14">
+<rect x="56" y="1757" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Skip 0&quot;">
+<text x="56" y="1801" font-size="18" font-weight="600" fill="#1F2328">Skip 0</text>
+</g>
+<g data-key="text#t15">
+<rect x="56" y="1820" width="329" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;One scan&apos;s path&quot;#5">
+<text x="56" y="1860" font-size="14" fill="#1F2328">One scan&apos;s path</text>
+<line x1="56" y1="1864" x2="176" y2="1864" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t16">
+<rect x="56" y="1880" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t17">
+<rect x="56" y="1906" width="424" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;Persona&quot;">
+<text x="56" y="1945" font-size="13" fill="#6E7781">Persona</text>
+<rect x="56" y="1950" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="396" y="1972" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="combobox &quot;Environment&quot;">
+<text x="56" y="2013" font-size="13" fill="#6E7781">Environment</text>
+<rect x="56" y="2018" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="396" y="2040" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="spinbutton &quot;Depth from the start (focused)&quot;">
+<text x="56" y="2081" font-size="13" fill="#6E7781">Depth from the start (focused)</text>
+<rect x="56" y="2086" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="64" y="2108" font-size="13" fill="#6E7781">2</text>
+</g>
+<g data-key="combobox &quot;Variation (retry)&quot;">
+<text x="56" y="2149" font-size="13" fill="#6E7781">Variation (retry)</text>
+<rect x="56" y="2154" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="396" y="2176" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="text#t18">
+<rect x="56" y="2204" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2218" width="689" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Start scan&quot;">
+<rect x="56" y="2244" width="112" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="112" y="2268" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Start scan</text>
+</g>
+<g data-key="text#t19">
+<rect x="56" y="2292" width="678" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;What will happen&quot;">
+<text x="48" y="2345" font-size="11" fill="#6E7781">region · What will happen</text>
+</g>
+<g data-key="heading &quot;What will happen&quot;">
+<text x="56" y="2376" font-size="22" font-weight="600" fill="#1F2328">What will happen</text>
+</g>
+<g data-key="paragraph#t20">
+<rect x="56" y="2397" width="572" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t21">
+<rect x="56" y="2423" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2437" width="689" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t22">
+<rect x="56" y="2463" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2477" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t23">
+<rect x="56" y="2503" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2517" width="837" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

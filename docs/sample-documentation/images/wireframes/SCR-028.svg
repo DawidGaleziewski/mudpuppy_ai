@@ -1,0 +1,385 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2614" viewBox="0 0 960 2614" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2614" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="84" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Scans views&quot;">
+<rect x="40" y="1121" width="880" height="126" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Scans of PROC-001&quot;">
+<rect x="56" y="1326" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;PROC-001 Kalkulator OC/AC 4&quot;">
+<rect x="40" y="1259" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Scans of PROC-002&quot;">
+<rect x="56" y="1601" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;PROC-002 Kup polisę 4&quot;">
+<rect x="40" y="1534" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Scans of PROC-003&quot;">
+<rect x="56" y="1876" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;PROC-003 Przedłuż polisę 4&quot;">
+<rect x="40" y="1809" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Scans of PRC-001&quot;">
+<rect x="56" y="2151" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;PRC-001 Kalkulator OC/AC 4&quot;">
+<rect x="40" y="2084" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Scans in no process&quot;">
+<rect x="56" y="2466" width="848" height="100" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;In no process 1&quot;">
+<rect x="40" y="2359" width="880" height="219" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1694" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Scans&quot;#2">
+<text x="56" y="958" font-size="14" fill="#1F2328">Scans</text>
+<line x1="56" y1="962" x2="96" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="127" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Scans by process&quot;">
+<text x="40" y="1044" font-size="28" font-weight="600" fill="#1F2328">Scans by process</text>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="1067" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1081" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1095" width="330" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Scans views&quot;">
+<text x="48" y="1136" font-size="11" fill="#6E7781">navigation · Scans views</text>
+</g>
+<g data-key="link &quot;All scans&quot;">
+<text x="56" y="1159" font-size="14" fill="#1F2328">All scans</text>
+<line x1="56" y1="1163" x2="128" y2="1163" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;By process&quot;">
+<text x="56" y="1193" font-size="14" fill="#1F2328">By process</text>
+<line x1="56" y1="1197" x2="136" y2="1197" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Server activity&quot;">
+<text x="56" y="1227" font-size="14" fill="#1F2328">Server activity</text>
+<line x1="56" y1="1231" x2="176" y2="1231" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="region &quot;PROC-001 Kalkulator OC/AC 4&quot;">
+<text x="48" y="1274" font-size="11" fill="#6E7781">region · PROC-001 Kalkulator OC/AC 4</text>
+</g>
+<g data-key="heading &quot;PROC-001 Kalkulator OC/AC 4&quot;">
+<text x="56" y="1305" font-size="22" font-weight="600" fill="#1F2328">PROC-001 Kalkulator OC/AC 4</text>
+</g>
+<g data-key="region &quot;Scans of PROC-001&quot;">
+<text x="64" y="1341" font-size="11" fill="#6E7781">region · Scans of PROC-001</text>
+</g>
+<g data-key="table &quot;Scans of PROC-001&quot;">
+<rect x="72" y="1350" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1371" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="252" y="1350" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1371" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="432" y="1350" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1371" font-size="12" font-weight="600" fill="#1F2328">Persona</text>
+<rect x="612" y="1350" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1371" font-size="12" font-weight="600" fill="#1F2328">Mode</text>
+<rect x="72" y="1382" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1403" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1382" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1403" font-size="12" fill="#1F2328">01a16615-09c4</text>
+<rect x="432" y="1382" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1403" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1382" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1403" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1414" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1435" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1414" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1435" font-size="12" fill="#1F2328">01a16624-db89</text>
+<rect x="432" y="1414" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1435" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1414" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1435" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1446" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1467" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1446" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1467" font-size="12" fill="#1F2328">01a16add-1e29</text>
+<rect x="432" y="1446" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1467" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1446" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1467" font-size="12" fill="#1F2328">map</text>
+<text x="72" y="1493" font-size="11" fill="#6E7781">+1 more rows</text>
+</g>
+<g data-key="region &quot;PROC-002 Kup polisę 4&quot;">
+<text x="48" y="1549" font-size="11" fill="#6E7781">region · PROC-002 Kup polisę 4</text>
+</g>
+<g data-key="heading &quot;PROC-002 Kup polisę 4&quot;">
+<text x="56" y="1580" font-size="22" font-weight="600" fill="#1F2328">PROC-002 Kup polisę 4</text>
+</g>
+<g data-key="region &quot;Scans of PROC-002&quot;">
+<text x="64" y="1616" font-size="11" fill="#6E7781">region · Scans of PROC-002</text>
+</g>
+<g data-key="table &quot;Scans of PROC-002&quot;">
+<rect x="72" y="1625" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1646" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="252" y="1625" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1646" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="432" y="1625" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1646" font-size="12" font-weight="600" fill="#1F2328">Persona</text>
+<rect x="612" y="1625" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1646" font-size="12" font-weight="600" fill="#1F2328">Mode</text>
+<rect x="72" y="1657" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1678" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1657" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1678" font-size="12" fill="#1F2328">01a16615-09c4</text>
+<rect x="432" y="1657" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1678" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1657" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1678" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1689" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1710" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1689" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1710" font-size="12" fill="#1F2328">01a16624-db89</text>
+<rect x="432" y="1689" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1710" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1689" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1710" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1721" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1742" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1721" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1742" font-size="12" fill="#1F2328">01a16add-1e29</text>
+<rect x="432" y="1721" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1742" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1721" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1742" font-size="12" fill="#1F2328">map</text>
+<text x="72" y="1768" font-size="11" fill="#6E7781">+1 more rows</text>
+</g>
+<g data-key="region &quot;PROC-003 Przedłuż polisę 4&quot;">
+<text x="48" y="1824" font-size="11" fill="#6E7781">region · PROC-003 Przedłuż polisę 4</text>
+</g>
+<g data-key="heading &quot;PROC-003 Przedłuż polisę 4&quot;">
+<text x="56" y="1855" font-size="22" font-weight="600" fill="#1F2328">PROC-003 Przedłuż polisę 4</text>
+</g>
+<g data-key="region &quot;Scans of PROC-003&quot;">
+<text x="64" y="1891" font-size="11" fill="#6E7781">region · Scans of PROC-003</text>
+</g>
+<g data-key="table &quot;Scans of PROC-003&quot;">
+<rect x="72" y="1900" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1921" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="252" y="1900" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1921" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="432" y="1900" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1921" font-size="12" font-weight="600" fill="#1F2328">Persona</text>
+<rect x="612" y="1900" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1921" font-size="12" font-weight="600" fill="#1F2328">Mode</text>
+<rect x="72" y="1932" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1953" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1932" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1953" font-size="12" fill="#1F2328">01a16615-09c4</text>
+<rect x="432" y="1932" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1953" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1932" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1953" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1964" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1985" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1964" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1985" font-size="12" fill="#1F2328">01a16624-db89</text>
+<rect x="432" y="1964" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1985" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1964" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1985" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="1996" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2017" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="1996" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2017" font-size="12" fill="#1F2328">01a16add-1e29</text>
+<rect x="432" y="1996" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2017" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="1996" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2017" font-size="12" fill="#1F2328">map</text>
+<text x="72" y="2043" font-size="11" fill="#6E7781">+1 more rows</text>
+</g>
+<g data-key="region &quot;PRC-001 Kalkulator OC/AC 4&quot;">
+<text x="48" y="2099" font-size="11" fill="#6E7781">region · PRC-001 Kalkulator OC/AC 4</text>
+</g>
+<g data-key="heading &quot;PRC-001 Kalkulator OC/AC 4&quot;">
+<text x="56" y="2130" font-size="22" font-weight="600" fill="#1F2328">PRC-001 Kalkulator OC/AC 4</text>
+</g>
+<g data-key="region &quot;Scans of PRC-001&quot;">
+<text x="64" y="2166" font-size="11" fill="#6E7781">region · Scans of PRC-001</text>
+</g>
+<g data-key="table &quot;Scans of PRC-001&quot;">
+<rect x="72" y="2175" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2196" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="252" y="2175" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2196" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="432" y="2175" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2196" font-size="12" font-weight="600" fill="#1F2328">Persona</text>
+<rect x="612" y="2175" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2196" font-size="12" font-weight="600" fill="#1F2328">Mode</text>
+<rect x="72" y="2207" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2228" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="2207" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2228" font-size="12" fill="#1F2328">01a16615-09c4</text>
+<rect x="432" y="2207" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2228" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="2207" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2228" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="2239" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2260" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="2239" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2260" font-size="12" fill="#1F2328">01a16624-db89</text>
+<rect x="432" y="2239" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2260" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="2239" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2260" font-size="12" fill="#1F2328">map</text>
+<rect x="72" y="2271" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2292" font-size="12" fill="#1F2328">Completed</text>
+<rect x="252" y="2271" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2292" font-size="12" fill="#1F2328">01a16add-1e29</text>
+<rect x="432" y="2271" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2292" font-size="12" fill="#1F2328">guest</text>
+<rect x="612" y="2271" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2292" font-size="12" fill="#1F2328">map</text>
+<text x="72" y="2318" font-size="11" fill="#6E7781">+1 more rows</text>
+</g>
+<g data-key="region &quot;In no process 1&quot;">
+<text x="48" y="2374" font-size="11" fill="#6E7781">region · In no process 1</text>
+</g>
+<g data-key="heading &quot;In no process 1&quot;">
+<text x="56" y="2405" font-size="22" font-weight="600" fill="#1F2328">In no process 1</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="2426" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2440" width="435" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Scans in no process&quot;">
+<text x="64" y="2481" font-size="11" fill="#6E7781">region · Scans in no process</text>
+</g>
+<g data-key="table &quot;Scans in no process&quot;">
+<rect x="72" y="2490" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2511" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="252" y="2490" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2511" font-size="12" font-weight="600" fill="#1F2328">Scan</text>
+<rect x="432" y="2490" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2511" font-size="12" font-weight="600" fill="#1F2328">Persona</text>
+<rect x="612" y="2490" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2511" font-size="12" font-weight="600" fill="#1F2328">Mode</text>
+<rect x="72" y="2522" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2543" font-size="12" fill="#1F2328">Interrupted</text>
+<rect x="252" y="2522" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2543" font-size="12" fill="#1F2328">01a16ca2-a071</text>
+<rect x="432" y="2522" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2543" font-size="12" fill="#1F2328">agent-anna</text>
+<rect x="612" y="2522" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2543" font-size="12" fill="#1F2328">map</text>
+</g>
+</svg>

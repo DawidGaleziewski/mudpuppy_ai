@@ -1,0 +1,341 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="3008" viewBox="0 0 960 3008" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="3008" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="336" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="466" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="560" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="994" width="880" height="204" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;In the portal model&quot;">
+<rect x="40" y="1547" width="880" height="415" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Paths through the process, the most walked first&quot;">
+<rect x="56" y="2067" width="848" height="100" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Paths&quot;">
+<rect x="40" y="1974" width="880" height="205" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;As-is documentation&quot;">
+<rect x="40" y="2191" width="880" height="297" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Add a screen to A&quot;">
+<rect x="56" y="2715" width="848" height="140" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;A · As-is r3&quot;">
+<rect x="40" y="2500" width="880" height="367" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;No step selected&quot;">
+<rect x="40" y="2879" width="880" height="93" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="970" width="912" height="2014" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="text#t2">
+<rect x="40" y="262" width="55" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;As of: Now&quot;">
+<rect x="40" y="288" width="112" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="96" y="312" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">As of: Now</text>
+</g>
+<g data-key="search">
+<text x="48" y="351" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="373" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="378" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="428" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="466" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="490" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="528" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="532" x2="176" y2="532" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="575" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="598" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="602" x2="128" y2="602" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="632" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="636" x2="72" y2="636" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="666" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="670" x2="96" y2="670" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="700" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="704" x2="88" y2="704" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="734" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="738" x2="112" y2="738" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="768" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="772" x2="96" y2="772" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="802" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="806" x2="80" y2="806" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="836" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="840" x2="72" y2="840" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="870" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="874" x2="80" y2="874" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="904" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="908" x2="112" y2="908" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="938" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="942" x2="104" y2="942" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="985" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="1009" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="1032" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="1036" x2="112" y2="1036" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1052" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1092" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1096" x2="240" y2="1096" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1112" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;#2">
+<text x="56" y="1152" font-size="14" fill="#1F2328">Processes</text>
+<line x1="56" y1="1156" x2="128" y2="1156" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t6">
+<rect x="56" y="1172" width="95" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Kalkulator OC/AC&quot;">
+<text x="40" y="1238" font-size="28" font-weight="600" fill="#1F2328">Kalkulator OC/AC</text>
+</g>
+<g data-key="paragraph#t7">
+<rect x="40" y="1261" width="418" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;History&quot;">
+<text x="40" y="1301" font-size="14" fill="#1F2328">History</text>
+<line x1="40" y1="1305" x2="96" y2="1305" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Documentation&quot;">
+<text x="40" y="1335" font-size="14" fill="#1F2328">Documentation</text>
+<line x1="40" y1="1339" x2="144" y2="1339" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Merge with…&quot;">
+<rect x="40" y="1355" width="120" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="100" y="1379" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Merge with…</text>
+</g>
+<g data-key="button &quot;Archive&quot;">
+<rect x="40" y="1403" width="88" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="84" y="1427" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Archive</text>
+</g>
+<g data-key="button &quot;A · As-is r3&quot;">
+<rect x="40" y="1451" width="128" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="104" y="1475" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">A · As-is r3</text>
+</g>
+<g data-key="button &quot;Start a to-be design&quot;">
+<rect x="40" y="1499" width="192" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="136" y="1523" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Start a to-be design</text>
+</g>
+<g data-key="region &quot;In the portal model&quot;">
+<text x="48" y="1562" font-size="11" fill="#6E7781">region · In the portal model</text>
+</g>
+<g data-key="heading &quot;In the portal model&quot;">
+<text x="56" y="1593" font-size="22" font-weight="600" fill="#1F2328">In the portal model</text>
+</g>
+<g data-key="text#t8">
+<rect x="56" y="1614" width="159" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t9">
+<rect x="56" y="1640" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t10">
+<rect x="56" y="1666" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1680" width="689" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t11">
+<rect x="56" y="1706" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t12">
+<rect x="56" y="1732" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t13">
+<rect x="56" y="1758" width="85" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t14">
+<rect x="56" y="1784" width="127" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Explore now&quot;">
+<rect x="56" y="1810" width="120" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="1834" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Explore now</text>
+</g>
+<g data-key="term#t15">
+<rect x="56" y="1858" width="74" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t16">
+<rect x="56" y="1884" width="403" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t17">
+<rect x="56" y="1910" width="148" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t18">
+<rect x="56" y="1936" width="350" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Paths&quot;">
+<text x="48" y="1989" font-size="11" fill="#6E7781">region · Paths</text>
+</g>
+<g data-key="heading &quot;Paths&quot;">
+<text x="56" y="2020" font-size="22" font-weight="600" fill="#1F2328">Paths</text>
+</g>
+<g data-key="text#t19">
+<rect x="56" y="2041" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Paths through the process, the most walked first&quot;">
+<text x="64" y="2082" font-size="11" fill="#6E7781">region · Paths through the process, the most walked first</text>
+</g>
+<g data-key="table &quot;Paths through the process, the most walked first&quot;">
+<rect x="72" y="2091" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2112" font-size="12" font-weight="600" fill="#1F2328">Path</text>
+<rect x="252" y="2091" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2112" font-size="12" font-weight="600" fill="#1F2328">Screens walked</text>
+<rect x="432" y="2091" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2112" font-size="12" font-weight="600" fill="#1F2328">Outcome</text>
+<rect x="612" y="2091" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2112" font-size="12" font-weight="600" fill="#1F2328">Cases</text>
+<rect x="72" y="2123" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2144" font-size="12" fill="#1F2328">A</text>
+<rect x="252" y="2123" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="2144" font-size="12" fill="#1F2328">Path A</text>
+<rect x="432" y="2123" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="2144" font-size="12" fill="#1F2328">exited</text>
+<rect x="612" y="2123" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="2144" font-size="12" fill="#1F2328">3</text>
+</g>
+<g data-key="region &quot;As-is documentation&quot;">
+<text x="48" y="2206" font-size="11" fill="#6E7781">region · As-is documentation</text>
+</g>
+<g data-key="heading &quot;As-is documentation&quot;">
+<text x="56" y="2237" font-size="22" font-weight="600" fill="#1F2328">As-is documentation</text>
+</g>
+<g data-key="text#t20">
+<rect x="56" y="2258" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t21">
+<rect x="56" y="2284" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2298" width="265" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Mark as-is documented&quot;">
+<rect x="56" y="2324" width="200" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="156" y="2348" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Mark as-is documented</text>
+</g>
+<g data-key="combobox &quot;Stage&quot;">
+<text x="56" y="2385" font-size="13" fill="#6E7781">Stage</text>
+<rect x="56" y="2390" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="396" y="2412" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="button &quot;Set stage&quot;">
+<rect x="56" y="2440" width="104" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="108" y="2464" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Set stage</text>
+</g>
+<g data-key="region &quot;A · As-is r3&quot;">
+<text x="48" y="2515" font-size="11" fill="#6E7781">region · A · As-is r3</text>
+</g>
+<g data-key="heading &quot;A · As-is r3&quot;">
+<text x="56" y="2546" font-size="22" font-weight="600" fill="#1F2328">A · As-is r3</text>
+</g>
+<g data-key="text#t22">
+<rect x="56" y="2567" width="392" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;Steps in A&quot;">
+<ellipse cx="59" cy="2602" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2606" font-size="13" fill="#1F2328">Picture of Kalkulator OC/AC — dane pojazdu | Towa…</text>
+<line x1="70" y1="2610" x2="420" y2="2610" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2624" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2628" font-size="13" fill="#1F2328">Picture of Kalkulator OC/AC — dane kierowcy | Tow…</text>
+<line x1="70" y1="2632" x2="420" y2="2632" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2646" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2650" font-size="13" fill="#1F2328">Picture of Kalkulator OC/AC — opcje | Towarzystwo…</text>
+<line x1="70" y1="2654" x2="420" y2="2654" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2668" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2672" font-size="13" fill="#1F2328">Picture of Kalkulator OC/AC — opcje | Towarzystwo…</text>
+<line x1="70" y1="2676" x2="420" y2="2676" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="2690" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2694" font-size="13" fill="#1F2328">Picture of Twoja składka | Towarzystwo Ubezpiecze…</text>
+<line x1="70" y1="2698" x2="420" y2="2698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="form &quot;Add a screen to A&quot;">
+<text x="64" y="2730" font-size="11" fill="#6E7781">form · Add a screen to A</text>
+</g>
+<g data-key="combobox &quot;Add a recorded screen at the end&quot;">
+<text x="72" y="2752" font-size="13" fill="#6E7781">Add a recorded screen at the end</text>
+<rect x="72" y="2757" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="2779" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="button &quot;Add screen&quot;">
+<rect x="72" y="2807" width="112" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="128" y="2831" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Add screen</text>
+</g>
+<g data-key="region &quot;No step selected&quot;">
+<text x="48" y="2894" font-size="11" fill="#6E7781">region · No step selected</text>
+</g>
+<g data-key="heading &quot;No step selected&quot;">
+<text x="56" y="2925" font-size="22" font-weight="600" fill="#1F2328">No step selected</text>
+</g>
+<g data-key="paragraph#t23">
+<rect x="56" y="2946" width="604" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

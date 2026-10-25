@@ -1,0 +1,194 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="1530" viewBox="0 0 960 1530" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="1530" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="344" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="438" width="912" height="356" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Portals of this environment&quot;">
+<rect x="56" y="1008" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;This environment&quot;">
+<rect x="40" y="941" width="880" height="263" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Review across portals 137&quot;">
+<rect x="40" y="1216" width="880" height="145" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Other environments&quot;">
+<rect x="40" y="1373" width="880" height="121" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="806" width="912" height="700" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: All portals&quot;">
+<rect x="40" y="166" width="184" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="132" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: All portals</text>
+</g>
+<g data-key="button &quot;Data store: per portal&quot;">
+<rect x="40" y="214" width="208" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="144" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: per portal</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="406" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="410" x2="176" y2="410" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="453" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="476" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="480" x2="72" y2="480" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="510" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="514" x2="96" y2="514" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="544" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="548" x2="88" y2="548" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t3">
+<rect x="40" y="564" width="308" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="604" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="608" x2="112" y2="608" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="638" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="642" x2="96" y2="642" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="672" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="676" x2="80" y2="676" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="706" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="710" x2="72" y2="710" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="740" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="744" x2="80" y2="744" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="774" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="778" x2="104" y2="778" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="821" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="heading &quot;All portals&quot;">
+<text x="40" y="858" font-size="28" font-weight="600" fill="#1F2328">All portals</text>
+</g>
+<g data-key="link &quot;+ New portal&quot;">
+<text x="40" y="895" font-size="14" fill="#1F2328">+ New portal</text>
+<line x1="40" y1="899" x2="136" y2="899" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="915" width="374" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;This environment&quot;">
+<text x="48" y="956" font-size="11" fill="#6E7781">region · This environment</text>
+</g>
+<g data-key="heading &quot;This environment&quot;">
+<text x="56" y="987" font-size="22" font-weight="600" fill="#1F2328">This environment</text>
+</g>
+<g data-key="region &quot;Portals of this environment&quot;">
+<text x="64" y="1023" font-size="11" fill="#6E7781">region · Portals of this environment</text>
+</g>
+<g data-key="table &quot;Portals of this environment&quot;">
+<rect x="72" y="1032" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1053" font-size="12" font-weight="600" fill="#1F2328">Portal</text>
+<rect x="252" y="1032" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1053" font-size="12" font-weight="600" fill="#1F2328">Release</text>
+<rect x="432" y="1032" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1053" font-size="12" font-weight="600" fill="#1F2328">Last scan</text>
+<rect x="612" y="1032" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1053" font-size="12" font-weight="600" fill="#1F2328">Changes</text>
+<rect x="72" y="1064" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1085" font-size="12" fill="#1F2328">mudpuppy-dashboard-…</text>
+<rect x="252" y="1064" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1085" font-size="12" fill="#1F2328">—</text>
+<rect x="432" y="1064" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1085" font-size="12" fill="#1F2328">none yet</text>
+<rect x="612" y="1064" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1085" font-size="12" fill="#1F2328">0</text>
+<rect x="72" y="1096" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1117" font-size="12" fill="#1F2328">proving-ground-bank…</text>
+<rect x="252" y="1096" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1117" font-size="12" fill="#1F2328">—</text>
+<rect x="432" y="1096" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1117" font-size="12" fill="#1F2328">none yet</text>
+<rect x="612" y="1096" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1117" font-size="12" fill="#1F2328">0</text>
+<rect x="72" y="1128" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1149" font-size="12" fill="#1F2328">proving-ground-insu…</text>
+<rect x="252" y="1128" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1149" font-size="12" fill="#1F2328">—</text>
+<rect x="432" y="1128" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1149" font-size="12" fill="#1F2328">none yet</text>
+<rect x="612" y="1128" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1149" font-size="12" fill="#1F2328">0</text>
+<text x="72" y="1175" font-size="11" fill="#6E7781">+9 more rows</text>
+</g>
+<g data-key="region &quot;Review across portals 137&quot;">
+<text x="48" y="1231" font-size="11" fill="#6E7781">region · Review across portals 137</text>
+</g>
+<g data-key="heading &quot;Review across portals 137&quot;">
+<text x="56" y="1262" font-size="22" font-weight="600" fill="#1F2328">Review across portals 137</text>
+</g>
+<g data-key="list &quot;Newest in Review&quot;">
+<ellipse cx="59" cy="1292" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1296" font-size="13" fill="#1F2328">reference-insurer-local · Findings New screen on …</text>
+<line x1="70" y1="1300" x2="420" y2="1300" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1314" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1318" font-size="13" fill="#1F2328">reference-insurer-local · Rules link &quot;oblicz skła…</text>
+<line x1="70" y1="1322" x2="420" y2="1322" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1336" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1340" font-size="13" fill="#1F2328">reference-insurer-local · Rules link &quot;oblicz skła…</text>
+<line x1="70" y1="1344" x2="420" y2="1344" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Other environments&quot;">
+<text x="48" y="1388" font-size="11" fill="#6E7781">region · Other environments</text>
+</g>
+<g data-key="heading &quot;Other environments&quot;">
+<text x="56" y="1419" font-size="22" font-weight="600" fill="#1F2328">Other environments</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1440" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1454" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1468" width="647" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

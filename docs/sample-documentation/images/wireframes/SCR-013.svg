@@ -1,0 +1,296 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2759" viewBox="0 0 960 2759" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2759" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="84" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;r1&quot;">
+<rect x="40" y="1210" width="880" height="427" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;r1&quot;#2">
+<rect x="40" y="1649" width="880" height="427" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Your answer&quot;">
+<rect x="40" y="2206" width="880" height="517" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1839" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Review&quot;#2">
+<text x="56" y="958" font-size="14" fill="#1F2328">Review</text>
+<line x1="56" y1="962" x2="104" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="148" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Same screen?&quot;">
+<text x="40" y="1044" font-size="28" font-weight="600" fill="#1F2328">Same screen?</text>
+</g>
+<g data-key="link &quot;Back to Review Esc&quot;">
+<text x="40" y="1081" font-size="14" fill="#1F2328">Back to Review Esc</text>
+<line x1="40" y1="1085" x2="184" y2="1085" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t4">
+<rect x="40" y="1101" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1115" width="847" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych: r1 and r1&quot;">
+<text x="40" y="1163" font-size="22" font-weight="600" fill="#1F2328">Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń W…</text>
+</g>
+<g data-key="text#t5">
+<rect x="40" y="1184" width="209" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;r1&quot;">
+<text x="48" y="1225" font-size="11" fill="#6E7781">region · r1</text>
+</g>
+<g data-key="heading &quot;r1&quot;">
+<text x="56" y="1252" font-size="18" font-weight="600" fill="#1F2328">r1</text>
+</g>
+<g data-key="link &quot;SC-0005&quot;">
+<text x="56" y="1285" font-size="14" fill="#1F2328">SC-0005</text>
+<line x1="56" y1="1289" x2="112" y2="1289" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="img &quot;r1: Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych&quot;">
+<rect x="56" y="1305" width="240" height="96" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<line x1="56" y1="1305" x2="296" y2="1401" stroke="#8C959F" stroke-width="1"/>
+<line x1="296" y1="1305" x2="56" y2="1401" stroke="#8C959F" stroke-width="1"/>
+<text x="176" y="1357" font-size="12" text-anchor="middle" fill="#6E7781">r1: Kalkulator OC/AC — dane p…</text>
+</g>
+<g data-key="link &quot;Open the recorded page&quot;">
+<text x="56" y="1427" font-size="14" fill="#1F2328">Open the recorded page</text>
+<line x1="56" y1="1431" x2="232" y2="1431" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="term#t6">
+<rect x="56" y="1447" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t7">
+<rect x="56" y="1473" width="721" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t8">
+<rect x="56" y="1499" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t9">
+<rect x="56" y="1525" width="191" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t10">
+<rect x="56" y="1551" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;01a16c99-b154&quot;">
+<text x="56" y="1591" font-size="14" fill="#1F2328">01a16c99-b154</text>
+<line x1="56" y1="1595" x2="160" y2="1595" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t11">
+<rect x="56" y="1611" width="254" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;r1&quot;#2">
+<text x="48" y="1664" font-size="11" fill="#6E7781">region · r1</text>
+</g>
+<g data-key="heading &quot;r1&quot;#2">
+<text x="56" y="1691" font-size="18" font-weight="600" fill="#1F2328">r1</text>
+</g>
+<g data-key="link &quot;SC-0021&quot;">
+<text x="56" y="1724" font-size="14" fill="#1F2328">SC-0021</text>
+<line x1="56" y1="1728" x2="112" y2="1728" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="img &quot;r1: Kalkulator OC/AC — dane pojazdu | Towarzystwo Ubezpieczeń Wzorcowych&quot;#2">
+<rect x="56" y="1744" width="240" height="96" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<line x1="56" y1="1744" x2="296" y2="1840" stroke="#8C959F" stroke-width="1"/>
+<line x1="296" y1="1744" x2="56" y2="1840" stroke="#8C959F" stroke-width="1"/>
+<text x="176" y="1796" font-size="12" text-anchor="middle" fill="#6E7781">r1: Kalkulator OC/AC — dane p…</text>
+</g>
+<g data-key="link &quot;Open the recorded page&quot;#2">
+<text x="56" y="1866" font-size="14" fill="#1F2328">Open the recorded page</text>
+<line x1="56" y1="1870" x2="232" y2="1870" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="term#t12">
+<rect x="56" y="1886" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t13">
+<rect x="56" y="1912" width="721" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t14">
+<rect x="56" y="1938" width="53" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t15">
+<rect x="56" y="1964" width="191" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t16">
+<rect x="56" y="1990" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;01a16624-db89&quot;">
+<text x="56" y="2030" font-size="14" fill="#1F2328">01a16624-db89</text>
+<line x1="56" y1="2034" x2="160" y2="2034" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t17">
+<rect x="56" y="2050" width="254" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t18">
+<rect x="40" y="2088" width="165" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t19">
+<rect x="40" y="2114" width="231" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t20">
+<rect x="40" y="2140" width="44" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t21">
+<rect x="40" y="2166" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="2180" width="55" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Your answer&quot;">
+<text x="48" y="2221" font-size="11" fill="#6E7781">region · Your answer</text>
+</g>
+<g data-key="heading &quot;Your answer&quot;">
+<text x="56" y="2252" font-size="22" font-weight="600" fill="#1F2328">Your answer</text>
+</g>
+<g data-key="text#t22">
+<rect x="56" y="2273" width="159" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="radio &quot;Same screen 1 Keep one screen; the two stay variants of it.&quot;">
+<ellipse cx="63" cy="2310" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="2315" font-size="13" fill="#1F2328">Same screen 1 Keep one screen; the two stay variants of it.</text>
+</g>
+<g data-key="radio &quot;Same, different data 2 Keep one screen; what differs is content that depends on &quot;">
+<ellipse cx="63" cy="2346" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="2351" font-size="13" fill="#1F2328">Same, different data 2 Keep one screen; what differs is con…</text>
+</g>
+<g data-key="radio &quot;Different screens 3 Two screens: the next rebuild splits them apart. Automatic g&quot;">
+<ellipse cx="63" cy="2382" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="78" y="2387" font-size="13" fill="#1F2328">Different screens 3 Two screens: the next rebuild splits th…</text>
+</g>
+<g data-key="textbox &quot;Why (optional) W&quot;">
+<text x="56" y="2420" font-size="13" fill="#6E7781">Why (optional) W</text>
+<rect x="56" y="2425" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t23">
+<rect x="56" y="2475" width="223" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Skip S&quot;">
+<text x="56" y="2515" font-size="14" fill="#1F2328">Skip S</text>
+<line x1="56" y1="2519" x2="104" y2="2519" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Save&quot;">
+<rect x="56" y="2535" width="80" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="96" y="2559" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Save</text>
+</g>
+<g data-key="strong#t24">
+<rect x="56" y="2583" width="138" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t25">
+<rect x="56" y="2609" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2623" width="360" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Kalkulator OC/AC&quot;">
+<text x="56" y="2663" font-size="14" fill="#1F2328">Kalkulator OC/AC</text>
+<line x1="56" y1="2667" x2="184" y2="2667" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t26">
+<rect x="56" y="2683" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="2697" width="318" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

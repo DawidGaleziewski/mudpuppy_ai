@@ -1,0 +1,411 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="3630" viewBox="0 0 960 3630" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="3630" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="144" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Command that starts the chat service&quot;">
+<rect x="40" y="1193" width="880" height="50" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Environments of reference-insurer-local&quot;">
+<rect x="56" y="1348" width="848" height="164" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Save an environment&quot;">
+<rect x="56" y="1524" width="848" height="276" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Environments&quot;">
+<rect x="40" y="1255" width="880" height="557" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Personas&quot;">
+<rect x="40" y="1850" width="880" height="219" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Crawl rules&quot;">
+<rect x="40" y="2081" width="880" height="301" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Hints&quot;">
+<rect x="40" y="2394" width="880" height="249" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;Budgets&quot;">
+<rect x="56" y="2722" width="848" height="342" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Budgets&quot;">
+<rect x="40" y="2655" width="880" height="421" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Screen identity&quot;">
+<rect x="40" y="3088" width="880" height="373" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Data store&quot;">
+<rect x="40" y="3473" width="880" height="121" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="2710" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="958" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="962" x2="112" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1018" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1022" x2="240" y2="1022" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1038" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;Settings&quot;">
+<text x="40" y="1104" font-size="28" font-weight="600" fill="#1F2328">Settings</text>
+</g>
+<g data-key="paragraph#t5">
+<rect x="40" y="1127" width="253" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t6">
+<rect x="40" y="1153" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1167" width="594" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Command that starts the chat service&quot;">
+<text x="48" y="1208" font-size="11" fill="#6E7781">region · Command that starts the chat service</text>
+<rect x="56" y="1217" width="519" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Environments&quot;">
+<text x="48" y="1270" font-size="11" fill="#6E7781">region · Environments</text>
+</g>
+<g data-key="heading &quot;Environments&quot;">
+<text x="56" y="1301" font-size="22" font-weight="600" fill="#1F2328">Environments</text>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="1322" width="636" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Environments of reference-insurer-local&quot;">
+<text x="64" y="1363" font-size="11" fill="#6E7781">region · Environments of reference-insurer-local</text>
+</g>
+<g data-key="table &quot;Environments of reference-insurer-local&quot;">
+<rect x="72" y="1372" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1393" font-size="12" font-weight="600" fill="#1F2328">Environment</text>
+<rect x="252" y="1372" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1393" font-size="12" font-weight="600" fill="#1F2328">Address</text>
+<rect x="432" y="1372" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1393" font-size="12" font-weight="600" fill="#1F2328">How far the crawler…</text>
+<rect x="612" y="1372" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1393" font-size="12" font-weight="600" fill="#1F2328">robots.txt</text>
+<rect x="72" y="1404" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1425" font-size="12" fill="#1F2328">production</text>
+<rect x="252" y="1404" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1425" font-size="12" fill="#1F2328">Not configured</text>
+<rect x="432" y="1404" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1425" font-size="12" fill="#1F2328"></text>
+<rect x="612" y="1404" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1425" font-size="12" fill="#1F2328"></text>
+<rect x="72" y="1436" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1457" font-size="12" fill="#1F2328">staging</text>
+<rect x="252" y="1436" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1457" font-size="12" fill="#1F2328">Not configured</text>
+<rect x="432" y="1436" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1457" font-size="12" fill="#1F2328"></text>
+<rect x="612" y="1436" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1457" font-size="12" fill="#1F2328"></text>
+<rect x="72" y="1468" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1489" font-size="12" fill="#1F2328">sandbox</text>
+<rect x="252" y="1468" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1489" font-size="12" fill="#1F2328">Not configured</text>
+<rect x="432" y="1468" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1489" font-size="12" fill="#1F2328"></text>
+<rect x="612" y="1468" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1489" font-size="12" fill="#1F2328"></text>
+</g>
+<g data-key="form &quot;Save an environment&quot;">
+<text x="64" y="1539" font-size="11" fill="#6E7781">form · Save an environment</text>
+</g>
+<g data-key="combobox &quot;Environment&quot;">
+<text x="72" y="1561" font-size="13" fill="#6E7781">Environment</text>
+<rect x="72" y="1566" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="1588" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="textbox &quot;Address&quot;">
+<text x="72" y="1629" font-size="13" fill="#6E7781">Address</text>
+<rect x="72" y="1634" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;How far the crawler may go&quot;">
+<text x="72" y="1697" font-size="13" fill="#6E7781">How far the crawler may go</text>
+<rect x="72" y="1702" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="1724" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="button &quot;Save environment&quot;">
+<rect x="72" y="1752" width="160" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="152" y="1776" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Save environment</text>
+</g>
+<g data-key="group#t8">
+<rect x="40" y="1824" width="572" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Personas&quot;">
+<text x="48" y="1865" font-size="11" fill="#6E7781">region · Personas</text>
+</g>
+<g data-key="heading &quot;Personas&quot;">
+<text x="56" y="1896" font-size="22" font-weight="600" fill="#1F2328">Personas</text>
+</g>
+<g data-key="text#t9">
+<rect x="56" y="1917" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="list &quot;Personas&quot;">
+<ellipse cx="59" cy="1952" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1956" font-size="13" fill="#1F2328">agent-anna needs AGENT_ANNA_LOGIN, AGENT_ANNA_PAS…</text>
+<ellipse cx="59" cy="1974" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1978" font-size="13" fill="#1F2328">guest anonymous Remove guest</text>
+<ellipse cx="59" cy="1996" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2000" font-size="13" fill="#1F2328">klient-premium needs REF_INSURER_PREMIUM_LOGIN, R…</text>
+<ellipse cx="59" cy="2018" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="2022" font-size="13" fill="#1F2328">klient needs REF_INSURER_KLIENT_LOGIN, REF_INSURE…</text>
+</g>
+<g data-key="group#t10">
+<rect x="56" y="2043" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Crawl rules&quot;">
+<text x="48" y="2096" font-size="11" fill="#6E7781">region · Crawl rules</text>
+</g>
+<g data-key="heading &quot;Crawl rules&quot;">
+<text x="56" y="2127" font-size="22" font-weight="600" fill="#1F2328">Crawl rules</text>
+</g>
+<g data-key="term#t11">
+<rect x="56" y="2148" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t12">
+<rect x="56" y="2174" width="519" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t13">
+<rect x="56" y="2200" width="159" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t14">
+<rect x="56" y="2226" width="95" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t15">
+<rect x="56" y="2252" width="127" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t16">
+<rect x="56" y="2278" width="350" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t17">
+<rect x="56" y="2304" width="159" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t18">
+<rect x="56" y="2330" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t19">
+<rect x="56" y="2356" width="657" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Hints&quot;">
+<text x="48" y="2409" font-size="11" fill="#6E7781">region · Hints</text>
+</g>
+<g data-key="heading &quot;Hints&quot;">
+<text x="56" y="2440" font-size="22" font-weight="600" fill="#1F2328">Hints</text>
+</g>
+<g data-key="term#t20">
+<rect x="56" y="2461" width="148" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t21">
+<rect x="56" y="2487" width="657" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t22">
+<rect x="56" y="2513" width="117" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t23">
+<rect x="56" y="2539" width="615" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t24">
+<rect x="56" y="2565" width="180" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t25">
+<rect x="56" y="2591" width="117" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="group#t26">
+<rect x="56" y="2617" width="223" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Budgets&quot;">
+<text x="48" y="2670" font-size="11" fill="#6E7781">region · Budgets</text>
+</g>
+<g data-key="heading &quot;Budgets&quot;">
+<text x="56" y="2701" font-size="22" font-weight="600" fill="#1F2328">Budgets</text>
+</g>
+<g data-key="form &quot;Budgets&quot;">
+<text x="64" y="2737" font-size="11" fill="#6E7781">form · Budgets</text>
+</g>
+<g data-key="spinbutton &quot;Checks per scan&quot;">
+<text x="72" y="2759" font-size="13" fill="#6E7781">Checks per scan</text>
+<rect x="72" y="2764" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2786" font-size="13" fill="#6E7781">20</text>
+</g>
+<g data-key="text#t27">
+<rect x="72" y="2814" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="72" y="2828" width="41" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="spinbutton &quot;Probes per form step&quot;">
+<text x="72" y="2867" font-size="13" fill="#6E7781">Probes per form step</text>
+<rect x="72" y="2872" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2894" font-size="13" fill="#6E7781">24</text>
+</g>
+<g data-key="spinbutton &quot;Probes per scan&quot;">
+<text x="72" y="2935" font-size="13" fill="#6E7781">Probes per scan</text>
+<rect x="72" y="2940" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="2962" font-size="13" fill="#6E7781">120</text>
+</g>
+<g data-key="text#t28">
+<rect x="72" y="2990" width="255" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Save the budgets&quot;">
+<rect x="72" y="3016" width="160" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="152" y="3040" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Save the budgets</text>
+</g>
+<g data-key="region &quot;Screen identity&quot;">
+<text x="48" y="3103" font-size="11" fill="#6E7781">region · Screen identity</text>
+</g>
+<g data-key="heading &quot;Screen identity&quot;">
+<text x="56" y="3134" font-size="22" font-weight="600" fill="#1F2328">Screen identity</text>
+</g>
+<g data-key="text#t29">
+<rect x="56" y="3155" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3169" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3183" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t30">
+<rect x="56" y="3209" width="117" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t31">
+<rect x="56" y="3235" width="413" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t32">
+<rect x="56" y="3261" width="117" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t33">
+<rect x="56" y="3287" width="371" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="term#t34">
+<rect x="56" y="3313" width="106" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="definition#t35">
+<rect x="56" y="3339" width="170" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Accept the calibrated τ&quot;">
+<rect x="56" y="3365" width="216" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="164" y="3389" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Accept the calibrated τ</text>
+</g>
+<g data-key="button &quot;Accept the classifier&quot;">
+<rect x="56" y="3413" width="200" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="156" y="3437" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Accept the classifier</text>
+</g>
+<g data-key="region &quot;Data store&quot;">
+<text x="48" y="3488" font-size="11" fill="#6E7781">region · Data store</text>
+</g>
+<g data-key="heading &quot;Data store&quot;">
+<text x="56" y="3519" font-size="22" font-weight="600" fill="#1F2328">Data store</text>
+</g>
+<g data-key="text#t36">
+<rect x="56" y="3540" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3554" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="3568" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+</svg>

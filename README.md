@@ -4,16 +4,20 @@
 
 MudPuppy maps a web portal the way a careful visitor would, records what it finds, and turns that
 into documentation good enough to re-create the portal. The **crawler** (`specs/001-crawler-map-mode/`)
-explores a portal as a guest, read-only on production, and stores states, transitions, forms and API
+explores a portal as a guest or a logged-in persona, up to the action limit you set, and stores states, transitions, forms and API
 shapes with evidence; in `trace` mode it records one named business process step by step. The **BA
 agent** (`specs/004-ba-documentation/`) reads that evidence and writes keyed, evidence-linked
 documentation records (an as-is SRS), which a person reviews, exports and scores against a known
 answer key.
 
+**New here?** Follow [`docs/getting-started.md`](docs/getting-started.md): install, scan the bundled
+practice portal, document it and export it, step by step. [`docs/sample-documentation/`](docs/sample-documentation/README.md)
+shows what comes out: MudPuppy's documentation of its own console.
+
 ## How the crawler works
 
 The crawler is a Claude Code subagent (`.claude/agents/crawler.md`). It has **no shell, file, web or browser
-tools**: its only tools are the eight `mcp__mudpuppy__*` tools exposed by the `mudpuppy` MCP server
+tools**: its only tools are the `mcp__mudpuppy__*` tools exposed by the `mudpuppy` MCP server
 (`apps/crawler/packages/mcp-server`, registered in `.mcp.json`). The server owns the only browser, the
 database and the evidence store.
 
@@ -30,20 +34,23 @@ start_run  ->  navigate / act  <-  get_next_frontier_item   ...   finish_run
 2. Ask the main Claude Code session: *"Use the crawler subagent to map `<portal>` as `<persona>`"*. There is no
    crawler CLI. Approve the `mudpuppy` MCP server when prompted.
 3. Results land in `data/db/<environment>.sqlite` and `data/evidence/`; both are generated and git-ignored.
-   The `MUDPUPPY_ENV` variable in `.mcp.json` picks the database (default `production`).
+   The `MUDPUPPY_ENV` variable in `.mcp.json` picks the database (required, no default; the repo sets `local-dev`).
 
 `specs/001-crawler-map-mode/quickstart.md` lists the checks that prove a run behaved.
 
 ## Seeing the results: the dashboard
 
-`apps/dashboard/` is a local, read-only web dashboard over the same database (Python, FastAPI + htmx,
-managed with `uv`). It shows each portal's runs and why they ended, and per run the states, actions and their
-safety class, the frontier, forms, network shapes, robots.txt policies and the decision log, updating live while
-the crawler writes:
+`apps/dashboard/` (Python, FastAPI, managed with `uv`) is a read-only JSON API over the same database, and it
+serves the console: a React single-page app (`apps/web/`). The console shows each portal's scans and why they
+ended, the screens, processes, rules and documentation, and the review inbox, updating live while the crawler
+writes:
 
 ```bash
-cd apps/dashboard && uv sync && uv run mudpuppy-dashboard   # http://127.0.0.1:8765
+pnpm --dir apps/web build
+cd apps/dashboard && uv sync && uv run mudpuppy-dashboard --env local-dev   # http://127.0.0.1:8765/app/
 ```
+
+Or start everything at once with `.claude/skills/preflight/scripts/harness.sh start`.
 
 See [`apps/dashboard/README.md`](apps/dashboard/README.md) (spec `specs/003-dashboard-ui/`).
 For the guided chat (scan, narrow, document, amend) step by step with screenshots, see
@@ -60,8 +67,8 @@ The whole flow, with the agents named in `.claude/agents/`:
    capabilities, requirements, business rules, data items, glossary terms, assumptions and open
    questions, each with a confidence label and evidence, and asks for **follow-up** traces of the
    processes it found.
-3. **Trace.** The crawler agent traces each open follow-up (`trace` mode); on production it stops
-   at the first mutating action and records what could not be observed. Re-running the ba agent
+3. **Trace.** The crawler agent traces each open follow-up (`trace` mode); where the action limit
+   stops it, it records what could not be observed. Re-running the ba agent
    turns the traces into process and use-case records.
 4. **Review.** The dashboard's Docs tab shows the documentation; signed with `MUDPUPPY_REVIEWER` ("unknown" by default), a
    person confirms, rejects or comments (see `apps/dashboard/README.md`). Rejections come back to
@@ -152,25 +159,27 @@ naming the file and the problem; credentials are never stored, only `ref:NAME` r
 
 ## Safety model
 
-These guarantees are enforced in code, outside the agent:
+There is **no production guard** (constitution Principle V, owner decision 2026-10-13): every
+environment is treated the same, and how far a crawl may change a site is the analyst's decision.
+These rules are enforced in code, outside the agent:
 
-- **Read-only on production.** Every action is classified (read / mutating / destructive / external-side-effect)
-  by rules over its label, role, target URL and HTTP method. Only `read` runs on production; unknown means unsafe.
-  The server re-derives the class before executing, so an agent that calls a bid button "read" gains nothing.
-- **Explicit production flag.** A portal must declare `environment: production` to be crawled at a production
-  address, and `start_run` refuses otherwise in well under 5 seconds with no request made.
-- **Compliance gate.** A production run is refused until `compliance.robots_checked_on`, `terms_reviewed_on` and
-  `terms_reviewed_by` are filled by a person, and the `rate_limit.user_agent` no longer holds the placeholder
-  contact address.
+- **Action limit.** Every action is classified (read / mutating / destructive / external-side-effect)
+  by rules over its label, role, target URL and HTTP method; unknown means unsafe. A limit set per portal,
+  environment or persona (the lowest wins) is enforced by the server, which re-derives the class before
+  executing, so an agent that calls a bid button "read" gains nothing. Without a limit every class is allowed;
+  set `read` for a site you must not change.
+- **Environment is a label.** A portal may hold several environments (production, staging, sandbox, …), each
+  with its own address and limit; every run records the one it targets. The `compliance` fields are notes only.
 - **Scope and denylist.** Allowed domains and paths, external links recorded but not followed, and a denylist of
   logout, delete, payment, bidding, buy-now, contacting the seller, revealing contact details and listing creation.
   Browser-initiated navigations (redirects, scripts) pass through the same check.
-- **Polite.** Identifiable `User-Agent`, a rate limit and a concurrency cap on every request.
-- **Stops on a block.** A 403/429, CAPTCHA or portal-specific block page ends the run (`stopped_warning`); every later
-  call returns `RUN_STOPPED` and no further request is made. There is no way to resume past a block.
-- **Test data off production (constitution 2.0.0).** On sandbox and staging, map mode fills a form with
-  deterministic test data before pressing its submit button (form autofill), so the pages behind forms are
-  recorded too. On production nothing is filled or submitted.
+- **Polite.** The portal's `User-Agent`, rate limit and concurrency cap apply to every request.
+- **CAPTCHAs go to a person.** A CAPTCHA is never solved by automation: it is handed to a human (a decision note
+  and an open question) and the crawl goes on elsewhere. Any other block (403/429, a portal-specific block page)
+  ends the run (`stopped_warning`).
+- **Forms are filled with test data.** Map mode fills a form with the persona's test data before pressing its
+  submit button (form autofill), so the pages behind forms are recorded too, on any environment the limit
+  allows; on a live site that submission really happens.
 - **Evidence as recorded.** Every new state gets an unmasked full-page screenshot and a layout (element keys
   with boxes). Text evidence is masked only when the portal sets `pii_scrub: true`; network calls are recorded
   as shapes only either way.
@@ -179,11 +188,16 @@ These guarantees are enforced in code, outside the agent:
 for every portal that does not set `pii_scrub`, which is expected since constitution 2.0.0), and
 `pnpm --dir apps/crawler stability <runA> <runB>` measures how stable state identity is between two runs.
 
+## Architecture and decisions
+
+[`docs/architecture/`](docs/architecture/README.md) describes the system (containers, the agent harness, the
+data model, the workflow); [`docs/adr/`](docs/adr/README.md) holds the architecture decision records.
+
 ## Repository layout
 
 - `apps/<name>/` — every app, whatever its language, self-contained with its own manifest, lockfile and tests
   - `apps/crawler/` — the TypeScript workspace (`packages/*`: core, fingerprint, safety, config, obstacles, crawler, mcp-server, docs, reference-portal)
-  - `apps/dashboard/` — the read-only operator dashboard (Python, uv, FastAPI + htmx)
+  - `apps/dashboard/` — the read-only JSON API and the server of the console (Python, uv, FastAPI); `apps/web/` — the React console
 - `data/` — migrations, the schema snapshot, and generated databases and evidence
 - `docs/` — the MudPuppy glossary (`docs/glossary/glossary.yaml` is the source) and the BA wiki
 - `specs/` — spec-driven development documents (spec, plan, tasks, contracts, quickstart)
@@ -196,8 +210,6 @@ Chromium cannot start.
 
 ## License
 
-Proprietary. Copyright © 2026 Dawid Gałęziewski. All rights reserved. This is not open-source
-software: no use, copying, modification or distribution without written permission, and no use
-for AI or machine-learning training or text and data mining (rights reserved under Article 4(3)
-of Directive (EU) 2019/790). See [`LICENSE`](LICENSE); third-party files keep their own licences
+Licensed under the [Apache License, Version 2.0](LICENSE). Copyright 2026 Dawid Gałęziewski; see
+[`NOTICE`](NOTICE). Third-party files keep their own licences
 ([`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md)).

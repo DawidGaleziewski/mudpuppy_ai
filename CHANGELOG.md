@@ -5,7 +5,24 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [Unreleased]
 
+### Changed
+- **Open source under Apache-2.0** (v2.12.0, 2026-10-26). The proprietary notice is replaced by
+  the Apache License 2.0 (`LICENSE`, `NOTICE`; ADR-0026). Before publishing, the history was
+  cleaned: live-site portal configs, personas and fixtures, an abandoned export tool, old trace
+  logs, old console screenshots and raw design drops were removed from every commit, and
+  live-site names were replaced by neutral ones (`liveinsurer`, `marketsite`, `classifieds`,
+  `forum`). The README's safety model now says what constitution Principle V says since 5.0.0:
+  no production guard, an action limit enforced in code, CAPTCHAs handed to a person.
+
 ### Added
+- **Docs for newcomers** (v2.12.0, 2026-10-26). `docs/getting-started.md` (clone to exported
+  documentation in twelve steps), `docs/architecture/` (containers, the agent harness, the data
+  model with ER diagrams, the workflow), `docs/adr/` (26 architecture decision records) and
+  `docs/sample-documentation/` (MudPuppy's own console, mapped by the crawler and documented by
+  the BA agent: 273 draft records). The `preflight` skill checks the machine
+  (`scripts/preflight.sh [--fix]`) and starts, shows and stops the harness
+  (`scripts/harness.sh start|status|stop`: dashboard, chat service, reference portal, optionally
+  Vite and the proving ground). `docs/how-to-use.md` has new screenshots.
 - **R-35, R-97, R-98, R-99: 2.0 leftovers and the crawler bundle** (spec 080, v2.11.0,
   2026-10-25). The crawler stops opening more pages of a kind once five of them were the same
   screen (the list cap, `scope.max_items_per_template`; never where the address names the

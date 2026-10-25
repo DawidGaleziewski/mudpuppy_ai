@@ -1,0 +1,249 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2014" viewBox="0 0 960 2014" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2014" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="392" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="486" width="912" height="398" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="920" width="880" height="144" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Records by section&quot;">
+<rect x="56" y="1314" width="848" height="184" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Analysis sessions&quot;">
+<rect x="56" y="1547" width="848" height="132" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Overview&quot;">
+<rect x="40" y="1167" width="880" height="524" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="region &quot;Sections&quot;">
+<rect x="40" y="1703" width="880" height="275" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="896" width="912" height="1094" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: reference-insurer-local&quot;">
+<rect x="40" y="166" width="280" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="180" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: reference-insurer-local</text>
+</g>
+<g data-key="button &quot;Data store: local-dev, read-only&quot;">
+<rect x="40" y="214" width="288" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="184" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: local-dev, read-only</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;down Ask Ctrl J&quot;">
+<rect x="40" y="392" width="152" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="116" y="416" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">down Ask Ctrl J</text>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="454" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="458" x2="176" y2="458" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="501" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;All portals&quot;">
+<text x="40" y="524" font-size="14" fill="#1F2328">All portals</text>
+<line x1="40" y1="528" x2="128" y2="528" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="558" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="562" x2="72" y2="562" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="592" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="596" x2="96" y2="596" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="626" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="630" x2="88" y2="630" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="660" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="664" x2="112" y2="664" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="694" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="698" x2="96" y2="698" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="728" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="732" x2="80" y2="732" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="762" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="766" x2="72" y2="766" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="796" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="800" x2="80" y2="800" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Workbench&quot;">
+<text x="40" y="830" font-size="14" fill="#1F2328">Workbench</text>
+<line x1="40" y1="834" x2="112" y2="834" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="864" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="868" x2="104" y2="868" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="911" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="935" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="958" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="962" x2="112" y2="962" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t3">
+<rect x="56" y="978" width="40" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;reference-insurer-local&quot;">
+<text x="56" y="1018" font-size="14" fill="#1F2328">reference-insurer-local</text>
+<line x1="56" y1="1022" x2="240" y2="1022" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="1038" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;reference-insurer-local documentation&quot;">
+<text x="40" y="1104" font-size="28" font-weight="600" fill="#1F2328">reference-insurer-local documentation</text>
+</g>
+<g data-key="paragraph#t5">
+<rect x="40" y="1127" width="880" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="40" y="1141" width="88" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Overview&quot;">
+<text x="48" y="1182" font-size="11" fill="#6E7781">region · Overview</text>
+</g>
+<g data-key="heading &quot;Overview&quot;">
+<text x="56" y="1213" font-size="22" font-weight="600" fill="#1F2328">Overview</text>
+</g>
+<g data-key="paragraph#t6">
+<rect x="56" y="1234" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1248" width="848" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="56" y="1262" width="456" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="1288" width="95" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Records by section&quot;">
+<text x="64" y="1329" font-size="11" fill="#6E7781">region · Records by section</text>
+</g>
+<g data-key="table &quot;Records by section&quot;">
+<rect x="72" y="1338" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1359" font-size="12" font-weight="600" fill="#1F2328">Section</text>
+<rect x="252" y="1338" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1359" font-size="12" font-weight="600" fill="#1F2328">Records</text>
+<rect x="72" y="1370" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1391" font-size="12" fill="#1F2328">Capabilities</text>
+<rect x="252" y="1370" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1391" font-size="12" fill="#1F2328">6</text>
+<rect x="72" y="1402" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1423" font-size="12" fill="#1F2328">Screens</text>
+<rect x="252" y="1402" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1423" font-size="12" fill="#1F2328">19</text>
+<rect x="72" y="1434" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1455" font-size="12" fill="#1F2328">Processes and use c…</text>
+<rect x="252" y="1434" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1455" font-size="12" fill="#1F2328">4</text>
+<text x="72" y="1481" font-size="11" fill="#6E7781">+8 more rows</text>
+</g>
+<g data-key="heading &quot;Analysis sessions&quot;">
+<text x="56" y="1528" font-size="18" font-weight="600" fill="#1F2328">Analysis sessions</text>
+</g>
+<g data-key="region &quot;Analysis sessions&quot;">
+<text x="64" y="1562" font-size="11" fill="#6E7781">region · Analysis sessions</text>
+</g>
+<g data-key="table &quot;Analysis sessions&quot;">
+<rect x="72" y="1571" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1592" font-size="12" font-weight="600" fill="#1F2328">Session</text>
+<rect x="252" y="1571" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1592" font-size="12" font-weight="600" fill="#1F2328">Status</text>
+<rect x="432" y="1571" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1592" font-size="12" font-weight="600" fill="#1F2328">Started (UTC)</text>
+<rect x="612" y="1571" width="180" height="32" fill="#F6F8FA" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1592" font-size="12" font-weight="600" fill="#1F2328">Summary</text>
+<rect x="72" y="1603" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1624" font-size="12" fill="#1F2328">01a16628-bf66…</text>
+<rect x="252" y="1603" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1624" font-size="12" fill="#1F2328">Completed</text>
+<rect x="432" y="1603" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1624" font-size="12" fill="#1F2328">2026-10-23T00:28:28…</text>
+<rect x="612" y="1603" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1624" font-size="12" fill="#1F2328">Updated the &quot;Kalkul…</text>
+<rect x="72" y="1635" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="80" y="1656" font-size="12" fill="#1F2328">01a16619-a048…</text>
+<rect x="252" y="1635" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="260" y="1656" font-size="12" fill="#1F2328">Completed</text>
+<rect x="432" y="1635" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="440" y="1656" font-size="12" fill="#1F2328">2026-10-23T00:11:57…</text>
+<rect x="612" y="1635" width="180" height="32" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="620" y="1656" font-size="12" fill="#1F2328">Documented the &quot;Kal…</text>
+</g>
+<g data-key="region &quot;Sections&quot;">
+<text x="48" y="1718" font-size="11" fill="#6E7781">region · Sections</text>
+</g>
+<g data-key="heading &quot;Sections&quot;">
+<text x="56" y="1749" font-size="22" font-weight="600" fill="#1F2328">Sections</text>
+</g>
+<g data-key="list &quot;Documentation sections&quot;">
+<ellipse cx="59" cy="1779" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1783" font-size="13" fill="#1F2328">Overview 134</text>
+<line x1="70" y1="1787" x2="154" y2="1787" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1801" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1805" font-size="13" fill="#1F2328">Capabilities 6</text>
+<line x1="70" y1="1809" x2="168" y2="1809" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1823" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1827" font-size="13" fill="#1F2328">Screens 19</text>
+<line x1="70" y1="1831" x2="140" y2="1831" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1845" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1849" font-size="13" fill="#1F2328">Processes and use cases 4</text>
+<line x1="70" y1="1853" x2="245" y2="1853" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1867" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1871" font-size="13" fill="#1F2328">Requirements 2</text>
+<line x1="70" y1="1875" x2="168" y2="1875" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1889" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1893" font-size="13" fill="#1F2328">Business rules 33</text>
+<line x1="70" y1="1897" x2="189" y2="1897" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1911" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1915" font-size="13" fill="#1F2328">Data dictionary 32</text>
+<line x1="70" y1="1919" x2="196" y2="1919" stroke="#1F2328" stroke-width="1"/>
+<ellipse cx="59" cy="1933" rx="3" ry="3" fill="#FFFFFF" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1937" font-size="13" fill="#1F2328">Glossary 15</text>
+<line x1="70" y1="1941" x2="147" y2="1941" stroke="#1F2328" stroke-width="1"/>
+<text x="70" y="1957" font-size="11" fill="#6E7781">+5 more</text>
+</g>
+</svg>

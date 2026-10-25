@@ -4,7 +4,8 @@
 # name (see session_dump/2026-10-11-dashboard-scan.md), so forms may be submitted without
 # touching real data.
 id: mudpuppy-dashboard-local
-base_url: http://127.0.0.1:8790/
+# The React console (R-100) under /app/; the JSON API it reads is network, not screens.
+base_url: http://127.0.0.1:8790/app/
 # Local-dev copy of mudpuppy-dashboard (owner 2026-10-22): its own store, data/db/local-dev.sqlite.
 environment: local-dev
 # external-side-effect: the Chat page's [send] calls the assistant (of a throwaway chat service).
@@ -28,24 +29,25 @@ scope:
 
 urls:
   disallowed:
-    - /events # server-sent event streams never finish loading
-    - /chat/conversations/*/events
-    - /fragments/* # htmx partials, loaded by the pages themselves
+    - /api/* # the console's JSON API, read by the pages themselves
+    - /ws/* # live updates (WebSockets)
     - /evidence/* # screenshots and files, not screens
     - /healthz
 
 denylist: []
 
 # The cap counts item pages across all templates together (the first run hit it after 2 run pages
-# and 1 state page), so it allows a few of each of the 6 templates.
+# and 1 state page), so it allows a few of each of the 8 templates.
 item_view_cap: 18
 item_route_templates:
-  - "/runs/:run_id"
-  - "/states/:state_id"
-  - "/docs/:portal/:key"
-  - "/docs/:portal/sessions/:session_id"
-  - "/glossary/pages/:slug"
-  - "/glossary/wiki/:slug"
+  - "/app/scans/:scan"
+  - "/app/scans/:scan/:tab"
+  - "/app/portals/:portal/screens/:screen"
+  - "/app/portals/:portal/docs/:key"
+  - "/app/portals/:portal/processes/:key"
+  - "/app/portals/:portal/rules/:key"
+  - "/app/glossary/pages/:slug"
+  - "/app/glossary/wiki/:slug"
 
 rate_limit:
   requests_per_second: 5

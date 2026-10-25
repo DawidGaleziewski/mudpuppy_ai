@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="2064" viewBox="0 0 960 2064" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif">
+<title>Wireframe: MudPuppy</title>
+<rect x="0" y="0" width="960" height="2064" fill="#FFFFFF"/>
+<g data-key="search">
+<rect x="40" y="262" width="880" height="118" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="banner">
+<rect x="24" y="82" width="912" height="344" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<rect x="24" y="438" width="912" height="356" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<rect x="40" y="830" width="880" height="84" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="alert">
+<rect x="40" y="977" width="880" height="102" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="form &quot;New portal&quot;">
+<rect x="56" y="1158" width="848" height="858" fill="none" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Which site do you want to document?&quot;">
+<rect x="40" y="1091" width="880" height="937" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="main">
+<rect x="24" y="806" width="912" height="1234" fill="none" stroke="#D0D7DE" stroke-width="1" stroke-dasharray="4 3"/>
+</g>
+<g data-key="page">
+<text x="24" y="36" font-size="12" fill="#6E7781">MudPuppy</text>
+</g>
+<g data-key="link &quot;Skip to content&quot;">
+<text x="24" y="62" font-size="14" fill="#1F2328">Skip to content</text>
+<line x1="24" y1="66" x2="144" y2="66" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="banner">
+<text x="32" y="97" font-size="11" fill="#6E7781">banner</text>
+</g>
+<g data-key="link &quot;MUD PUPPY&quot;">
+<text x="40" y="120" font-size="14" fill="#1F2328">MUD PUPPY</text>
+<line x1="40" y1="124" x2="112" y2="124" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t1">
+<rect x="40" y="140" width="66" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Portal: All portals&quot;">
+<rect x="40" y="166" width="184" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="132" y="190" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Portal: All portals</text>
+</g>
+<g data-key="button &quot;Data store: per portal&quot;">
+<rect x="40" y="214" width="208" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="144" y="238" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Data store: per portal</text>
+</g>
+<g data-key="search">
+<text x="48" y="277" font-size="11" fill="#6E7781">search</text>
+</g>
+<g data-key="searchbox &quot;Search&quot;">
+<text x="56" y="299" font-size="13" fill="#6E7781">Search</text>
+<rect x="56" y="304" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t2">
+<rect x="56" y="354" width="64" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Help and glossary&quot;">
+<text x="40" y="406" font-size="14" fill="#1F2328">Help and glossary</text>
+<line x1="40" y1="410" x2="176" y2="410" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="navigation &quot;Portal sections&quot;">
+<text x="32" y="453" font-size="11" fill="#6E7781">navigation · Portal sections</text>
+</g>
+<g data-key="link &quot;Home&quot;">
+<text x="40" y="476" font-size="14" fill="#1F2328">Home</text>
+<line x1="40" y1="480" x2="72" y2="480" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Changes&quot;">
+<text x="40" y="510" font-size="14" fill="#1F2328">Changes</text>
+<line x1="40" y1="514" x2="96" y2="514" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Review&quot;">
+<text x="40" y="544" font-size="14" fill="#1F2328">Review</text>
+<line x1="40" y1="548" x2="88" y2="548" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t3">
+<rect x="40" y="564" width="308" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Processes&quot;">
+<text x="40" y="604" font-size="14" fill="#1F2328">Processes</text>
+<line x1="40" y1="608" x2="112" y2="608" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Screens&quot;">
+<text x="40" y="638" font-size="14" fill="#1F2328">Screens</text>
+<line x1="40" y1="642" x2="96" y2="642" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Rules&quot;">
+<text x="40" y="672" font-size="14" fill="#1F2328">Rules</text>
+<line x1="40" y1="676" x2="80" y2="676" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Docs&quot;">
+<text x="40" y="706" font-size="14" fill="#1F2328">Docs</text>
+<line x1="40" y1="710" x2="72" y2="710" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Scans&quot;">
+<text x="40" y="740" font-size="14" fill="#1F2328">Scans</text>
+<line x1="40" y1="744" x2="80" y2="744" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="link &quot;Settings&quot;">
+<text x="40" y="774" font-size="14" fill="#1F2328">Settings</text>
+<line x1="40" y1="778" x2="104" y2="778" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="main">
+<text x="32" y="821" font-size="11" fill="#6E7781">main</text>
+</g>
+<g data-key="navigation &quot;Breadcrumb&quot;">
+<text x="48" y="845" font-size="11" fill="#6E7781">navigation · Breadcrumb</text>
+</g>
+<g data-key="link &quot;Portals&quot;">
+<text x="56" y="868" font-size="14" fill="#1F2328">Portals</text>
+<line x1="56" y1="872" x2="112" y2="872" stroke="#1F2328" stroke-width="1"/>
+</g>
+<g data-key="text#t4">
+<rect x="56" y="888" width="127" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="heading &quot;New portal&quot;">
+<text x="40" y="954" font-size="28" font-weight="600" fill="#1F2328">New portal</text>
+</g>
+<g data-key="alert">
+<text x="48" y="992" font-size="11" fill="#6E7781">alert</text>
+</g>
+<g data-key="text#t5">
+<rect x="56" y="1001" width="223" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="paragraph#t6">
+<rect x="56" y="1027" width="710" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t7">
+<rect x="56" y="1053" width="519" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="region &quot;Which site do you want to document?&quot;">
+<text x="48" y="1106" font-size="11" fill="#6E7781">region · Which site do you want to document?</text>
+</g>
+<g data-key="heading &quot;Which site do you want to document?&quot;">
+<text x="56" y="1137" font-size="22" font-weight="600" fill="#1F2328">Which site do you want to document?</text>
+</g>
+<g data-key="form &quot;New portal&quot;">
+<text x="64" y="1173" font-size="11" fill="#6E7781">form · New portal</text>
+</g>
+<g data-key="paragraph#t8">
+<rect x="72" y="1182" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="72" y="1196" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="72" y="1210" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Short name (optional)&quot;">
+<text x="72" y="1249" font-size="13" fill="#6E7781">Short name (optional)</text>
+<rect x="72" y="1254" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="text#t9">
+<rect x="72" y="1304" width="520" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="text#t10">
+<rect x="72" y="1330" width="184" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Address&quot;">
+<text x="72" y="1369" font-size="13" fill="#6E7781">Address</text>
+<rect x="72" y="1374" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;The most a scan may do here&quot;">
+<text x="72" y="1437" font-size="13" fill="#6E7781">The most a scan may do here</text>
+<rect x="72" y="1442" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="1464" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="text#t11">
+<rect x="72" y="1492" width="153" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Address&quot;#2">
+<text x="72" y="1531" font-size="13" fill="#6E7781">Address</text>
+<rect x="72" y="1536" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;The most a scan may do here&quot;#2">
+<text x="72" y="1599" font-size="13" fill="#6E7781">The most a scan may do here</text>
+<rect x="72" y="1604" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="1626" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="text#t12">
+<rect x="72" y="1654" width="153" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="textbox &quot;Address&quot;#3">
+<text x="72" y="1693" font-size="13" fill="#6E7781">Address</text>
+<rect x="72" y="1698" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+</g>
+<g data-key="combobox &quot;The most a scan may do here&quot;#3">
+<text x="72" y="1761" font-size="13" fill="#6E7781">The most a scan may do here</text>
+<rect x="72" y="1766" width="360" height="34" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="412" y="1788" font-size="14" fill="#6E7781">▾</text>
+</g>
+<g data-key="text#t13">
+<rect x="72" y="1816" width="102" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="radio &quot;ignore it (visit every page; your responsibility)&quot;">
+<ellipse cx="79" cy="1853" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="94" y="1858" font-size="13" fill="#1F2328">ignore it (visit every page; your responsibility)</text>
+</g>
+<g data-key="radio &quot;respect it&quot;">
+<ellipse cx="79" cy="1889" rx="7" ry="7" fill="#FFFFFF" stroke="#8C959F" stroke-width="1"/>
+<text x="94" y="1894" font-size="13" fill="#1F2328">respect it</text>
+</g>
+<g data-key="text#t14">
+<rect x="72" y="1914" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="72" y="1928" width="816" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+<rect x="72" y="1942" width="377" height="10" fill="#D0D7DE" stroke="#D0D7DE" stroke-width="1"/>
+</g>
+<g data-key="button &quot;Save portal&quot;">
+<rect x="72" y="1968" width="120" height="36" rx="6" fill="#F6F8FA" stroke="#1F2328" stroke-width="1"/>
+<text x="132" y="1992" font-size="14" font-weight="600" text-anchor="middle" fill="#1F2328">Save portal</text>
+</g>
+</svg>
