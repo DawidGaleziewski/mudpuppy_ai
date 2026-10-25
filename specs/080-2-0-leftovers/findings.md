@@ -116,3 +116,18 @@ the `code-reviewer` agent; the owner may want it run on the merge commit).
 - Process slip (tooling, not product): writing this file with the Write tool was refused
   ("subagents should return findings as text"); it was created by copying another file and
   editing it. Not a product bug; noted for the session dump.
+
+## Close-out review (code-reviewer, after merge, 2026-10-25)
+
+Branch `fix/080-close-out-review`, diff `774a969c..7eddefc5`. Rows 3–6 of the hand review above
+are not repeated. Lint warnings in changed lines: none new (`compareEval` complexity and the two
+`registerTools`/`registerBaTools` lengths are the known rows 3–4; the nested ternaries at
+`gates/src/eval.ts:225,247` and the `max-params`/`max-lines` of `store/tests/db.test.ts` are not
+in changed lines).
+
+| # | File:line | Guideline | Finding | Change | Size | Outcome |
+| - | --------- | --------- | ------- | ------ | ---- | ------- |
+| 1 | crawler/src/session.ts:289 | G-19 | the doc comment of `watchPopups` (why a pop-up's first request has no frame) was left above the new `WrittenPopup` interface, so it documented the wrong thing and `watchPopups` had none | moved the comment back onto `watchPopups` | small | fixed |
+
+Checks after fixes: typecheck ✓ lint ✓ (0 errors) test:fast ✓ (264) test:slow ✓ (crawler src touched)
+Summary: 1 finding, 1 fixed, 0 deferred, 0 rejected.

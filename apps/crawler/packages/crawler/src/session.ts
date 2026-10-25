@@ -286,12 +286,6 @@ function gateOptions(opts: SessionOptions, limiter: RateLimiter): RequestGateOpt
   };
 }
 
-/**
- * New tabs (target=_blank, window.open) are not followed in the browser: the URL each one opens is
- * noted and the tab closed; the run visits a noted URL in its own tab later (LO-27). A pop-up's
- * first request comes before its frame exists (Playwright throws on `frame()`): its URL names the
- * window when the window itself has not committed (refused, still loading).
- */
 /** A window a script wrote into (`about:blank`, no URL): what it showed before it was closed. */
 export interface WrittenPopup {
   title: string;
@@ -313,6 +307,12 @@ async function readWritten(p: Page): Promise<WrittenPopup> {
   return { title, snapshot };
 }
 
+/**
+ * New tabs (target=_blank, window.open) are not followed in the browser: the URL each one opens is
+ * noted and the tab closed; the run visits a noted URL in its own tab later (LO-27). A pop-up's
+ * first request comes before its frame exists (Playwright throws on `frame()`): its URL names the
+ * window when the window itself has not committed (refused, still loading).
+ */
 function watchPopups(
   context: BrowserContext,
   page: Page,
