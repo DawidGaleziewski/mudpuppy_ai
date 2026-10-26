@@ -1,6 +1,8 @@
-# MudPuppy
+<p align="center">
+  <img src="docs/assets/mudpuppy-logo.png" width="320" alt="MudPuppy: a pixel mudpuppy salamander on a dot grid">
+</p>
 
-<img src="docs/design/salvage-yard/brand/logo/mark-grid-path.svg" width="128" height="128" alt="The MudPuppy mark: a pixel mudpuppy crawling along a survey grid">
+# MudPuppy
 
 MudPuppy maps a web portal the way a careful visitor would, records what it finds, and turns that
 into documentation good enough to re-create the portal. The **crawler** (`specs/001-crawler-map-mode/`)
@@ -9,6 +11,8 @@ shapes with evidence; in `trace` mode it records one named business process step
 agent** (`specs/004-ba-documentation/`) reads that evidence and writes keyed, evidence-linked
 documentation records (an as-is SRS), which a person reviews, exports and scores against a known
 answer key.
+
+![The MudPuppy console: the scans of a portal, each with its persona, status and steps](docs/how-to-use/26-scans.png)
 
 **New here?** Follow [`docs/getting-started.md`](docs/getting-started.md): install, scan the bundled
 practice portal, document it and export it, step by step. [`docs/sample-documentation/`](docs/sample-documentation/README.md)
