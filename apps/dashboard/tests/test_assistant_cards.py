@@ -16,8 +16,12 @@ from .conftest import Store, insert, ts
 from .test_chat import CONV, ORIGIN, Service, seed_conversation
 
 FAKE_SECRET = "fake-value-not-real"
-NEEDED = "Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client. Login form reached."
-STORED = "Stored in the vault: LIVEINSURER_PASSWORD (liveinsurer · sandbox). Values are never shown."
+NEEDED = (
+    "Credential needed: LIVEINSURER_PASSWORD · liveinsurer · sandbox · client. Login form reached."
+)
+STORED = (
+    "Stored in the vault: LIVEINSURER_PASSWORD (liveinsurer · sandbox). Values are never shown."
+)
 
 
 def client(store: Store, service: Service) -> TestClient:

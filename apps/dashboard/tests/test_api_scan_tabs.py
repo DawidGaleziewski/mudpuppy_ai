@@ -18,7 +18,9 @@ def test_states_forms_robots_network(client: TestClient) -> None:
     assert [s["title"] for s in states] == ["Kup ubezpieczenia"]
     assert states[0]["confidence"]["shape"] is not None and states[0]["picture"] is None
     assert len(forms) == 6 and (forms[0]["fields"] is not None or forms[0]["raw"] is not None)
-    assert robots and robots[0]["outcome"]["word"] and robots[0]["host"] == "www.liveinsurer.example"
+    assert (
+        robots and robots[0]["outcome"]["word"] and robots[0]["host"] == "www.liveinsurer.example"
+    )
     assert network["total"] == 9 and network["next_cursor"] is None
     call = network["items"][0]
     assert call["status"]["word"] in ("OK", "Error") and call["method"]

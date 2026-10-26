@@ -91,8 +91,8 @@ def seed(store: Store) -> None:
         ("m-3", "recheck", "state", "st-home"),
     ):
         insert(
-            conn, "marks", id=mid, portal_id="liveinsurer", kind=kind, target_kind=tk, target_id=tid,
-            created_by="Owner", created_at=T,
+            conn, "marks", id=mid, portal_id="liveinsurer", kind=kind, target_kind=tk,
+            target_id=tid, created_by="Owner", created_at=T,
         )  # fmt: skip
     conn.commit()
     conn.close()

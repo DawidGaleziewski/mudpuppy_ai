@@ -55,7 +55,10 @@ def test_a_refusal_comes_back_and_a_portal_needs_an_address(
     with client(empty_store, service, configured(tmp_path)) as c:
         taken = c.post(
             "/api/portals",
-            json={"id": "liveinsurer", "environments": {"production": {"base_url": "https://liveinsurer.example"}}},
+            json={
+                "id": "liveinsurer",
+                "environments": {"production": {"base_url": "https://liveinsurer.example"}},
+            },
             headers=ORIGIN,
         )
         empty = c.post("/api/portals", json={"environments": {}}, headers=ORIGIN)

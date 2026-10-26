@@ -422,7 +422,8 @@ def empty_store(tmp_path: Path) -> Store:
 
 
 CAPTCHA_1 = (
-    "CAPTCHA/bot challenge (google.com/recaptcha) at https://www.liveinsurer.example/, stopping the run"
+    "CAPTCHA/bot challenge (google.com/recaptcha) at https://www.liveinsurer.example/,"
+    " stopping the run"
 )
 CAPTCHA_2 = (
     "CAPTCHA/bot challenge (g-recaptcha) at https://www.gstatic.com/recaptcha/, stopping the run"

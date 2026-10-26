@@ -37,7 +37,8 @@ def personas(tmp_path: Path) -> Path:
     (root / "liveinsurer").mkdir()
     (root / "liveinsurer" / "client.yaml").write_text(
         "id: client\nextends: ['../_mixins/base.yaml', '../../outside.yaml']\n"
-        "auth:\n  login: ref:LIVEINSURER_LOGIN\n  password: ref:LIVEINSURER_PASSWORD\n  other: ref:lower\n"
+        "auth:\n  login: ref:LIVEINSURER_LOGIN\n"
+        "  password: ref:LIVEINSURER_PASSWORD\n  other: ref:lower\n"
     )
     (root / "liveinsurer" / "guest.yaml").write_text("id: guest\nauth: none\n")
     return root
@@ -116,7 +117,7 @@ def seed_superseded(store: Store, n: int, **over: object) -> None:
 
 @pytest.fixture
 def mapped(empty_store: Store) -> Store:
-    """A conversation about liveinsurer, one run, and two states (one with a screenshot and layout)."""
+    """A conversation about liveinsurer, one run, two states (one with a screenshot and layout)."""
     write_evidence(empty_store.data_dir)
     seed_conversation(empty_store)
     seed_run(empty_store)
@@ -137,7 +138,10 @@ def mapped(empty_store: Store) -> Store:
 
 def test_list_personas_reads_refs_from_file_and_mixins_only_inside_personas(personas: Path) -> None:
     found = {p.id: p.refs for p in queries_chat.list_personas(personas, "liveinsurer")}
-    assert found == {"client": ["LIVEINSURER_LOGIN", "LIVEINSURER_PASSWORD", "SHARED_TOKEN"], "guest": []}
+    assert found == {
+        "client": ["LIVEINSURER_LOGIN", "LIVEINSURER_PASSWORD", "SHARED_TOKEN"],
+        "guest": [],
+    }
     assert queries_chat.list_personas(personas, "nope") == []
     assert queries_chat.list_personas(personas, "../liveinsurer") == []
     assert queries_chat.list_personas(personas, None) == []
@@ -171,9 +175,9 @@ def test_superseded_amendments_skip_other_statuses(mapped: Store) -> None:
     conn = db.connect(mapped.data_dir, mapped.env)
     both = queries_chat.superseded_amendments(conn, None, "both")
     assert {a.key for a in both} == {"AMD-001", "AMD-002", "AMD-003"}  # not AMD-004, AMD-009
-    assert [a.key for a in queries_chat.superseded_amendments(conn, "liveinsurer", "dismissed")] == [
-        "AMD-003"
-    ]
+    assert [
+        a.key for a in queries_chat.superseded_amendments(conn, "liveinsurer", "dismissed")
+    ] == ["AMD-003"]
     assert queries_chat.superseded_amendments(conn, "other", "both") == []
 
 
@@ -231,7 +235,11 @@ def test_credentials_vault_key_missing_409_is_passed_through(mapped: Store) -> N
     with make_client(mapped, service) as c:
         r = c.post(
             f"/chat/conversations/{CONV}/credentials",
-            json={"portal": "liveinsurer", "environment": "sandbox", "values": {"A_B": FAKE_SECRET}},
+            json={
+                "portal": "liveinsurer",
+                "environment": "sandbox",
+                "values": {"A_B": FAKE_SECRET},
+            },
             headers=ORIGIN,
         )
     assert r.status_code == 409
@@ -243,9 +251,15 @@ def test_credentials_vault_key_missing_409_is_passed_through(mapped: Store) -> N
     ("payload", "message"),
     [
         ({"environment": "sandbox", "values": {"A": "x"}}, "Choose a portal"),
-        ({"portal": "liveinsurer", "environment": "Prod Env", "values": {"A": "x"}}, "environments"),
+        (
+            {"portal": "liveinsurer", "environment": "Prod Env", "values": {"A": "x"}},
+            "environments",
+        ),
         ({"portal": "liveinsurer", "values": {"A": "x"}}, "environments"),
-        ({"portal": "liveinsurer", "environment": "sandbox", "values": {"A": ""}}, "at least one value"),
+        (
+            {"portal": "liveinsurer", "environment": "sandbox", "values": {"A": ""}},
+            "at least one value",
+        ),
         (
             {"portal": "liveinsurer", "environment": "sandbox", "values": {"bad name": "x"}},
             "capital letters",
